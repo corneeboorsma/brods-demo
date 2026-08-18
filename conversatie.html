@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Conversatie – Brodshoes Pasen 2026 met Claude</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Georgia', serif;
+      background: #f5f0e8;
+      color: #2c2c2c;
+      padding: 40px 20px;
+      font-size: 15px;
+      line-height: 1.7;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      font-size: 28px;
+      color: #1e3a3f;
+      margin-bottom: 6px;
+      font-family: Georgia, serif;
+    }
+
+    .intro {
+      font-size: 14px;
+      color: #666;
+      margin-bottom: 8px;
+    }
+
+    .uitleg {
+      background: #1e3a3f;
+      color: #e8dcc8;
+      border-radius: 4px;
+      padding: 18px 22px;
+      margin-bottom: 36px;
+      font-size: 14px;
+      line-height: 1.8;
+    }
+
+    .uitleg strong { color: #fff; }
+
+    .divider {
+      border: none;
+      border-top: 1px solid #d0c4ae;
+      margin: 32px 0;
+    }
+
+    .stap {
+      margin-bottom: 36px;
+    }
+
+    .stap-nummer {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: #999;
+      margin-bottom: 4px;
+    }
+
+    /* Gebruiker blok */
+    .gebruiker {
+      background: #fff;
+      border-left: 4px solid #e85d4a;
+      border-radius: 0 4px 4px 0;
+      padding: 16px 20px;
+      margin-bottom: 12px;
+    }
+
+    .gebruiker .label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: #e85d4a;
+      margin-bottom: 6px;
+    }
+
+    .gebruiker p {
+      font-size: 15px;
+      color: #2c2c2c;
+    }
+
+    /* Claude blok */
+    .claude {
+      background: #f0ebe0;
+      border-left: 4px solid #1e3a3f;
+      border-radius: 0 4px 4px 0;
+      padding: 16px 20px;
+      margin-bottom: 6px;
+    }
+
+    .claude .label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: #1e3a3f;
+      margin-bottom: 6px;
+    }
+
+    .claude p {
+      font-size: 15px;
+      color: #2c2c2c;
+      margin-bottom: 8px;
+    }
+
+    .claude p:last-child { margin-bottom: 0; }
+
+    /* Wat deed Claude */
+    .actie {
+      background: #e8f0e9;
+      border: 1px dashed #5a9e6a;
+      border-radius: 4px;
+      padding: 12px 16px;
+      font-size: 13px;
+      color: #2d5a38;
+      margin-top: 6px;
+    }
+
+    .actie .actie-label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: #5a9e6a;
+      margin-bottom: 4px;
+    }
+
+    code {
+      background: #ddd;
+      padding: 1px 5px;
+      border-radius: 3px;
+      font-family: monospace;
+      font-size: 13px;
+    }
+
+    .tip {
+      background: #fff8e6;
+      border: 1px solid #f0c040;
+      border-radius: 4px;
+      padding: 12px 16px;
+      font-size: 13px;
+      color: #7a5800;
+      margin-top: 8px;
+    }
+
+    .tip strong { color: #5a4000; }
+
+    footer {
+      text-align: center;
+      font-size: 12px;
+      color: #aaa;
+      margin-top: 48px;
+      padding-top: 20px;
+      border-top: 1px solid #d0c4ae;
+    }
+
+    @media print {
+      body { background: white; padding: 20px; }
+      .stap { page-break-inside: avoid; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+
+    <h1>Van idee naar website met Claude</h1>
+    <p class="intro">Een stap-voor-stap conversatie — Brodshoes Pasen 2026 bestellijst</p>
+
+    <div class="uitleg">
+      <strong>Wat is dit document?</strong><br>
+      Dit is een uitgeschreven conversatie tussen een gebruiker en Claude (een AI-assistent van Anthropic). Het laat zien hoe je met eenvoudige vragen en instructies — zonder te kunnen programmeren — een complete webpagina bouwt, stijlt en publiceert op het internet.<br><br>
+      <strong>Hoe lees je dit?</strong><br>
+      🔴 Rood blok = wat de gebruiker vroeg &nbsp;|&nbsp; 🟦 Blauw blok = wat Claude antwoordde &nbsp;|&nbsp; 🟢 Groen blok = wat Claude concreet deed
+    </div>
+
+    <hr class="divider" />
+
+    <!-- STAP 1 -->
+    <div class="stap">
+      <div class="stap-nummer">Stap 1 — Het project starten</div>
+      <div class="gebruiker">
+        <div class="label">Gebruiker</div>
+        <p>We hebben een project gemaakt met een uitnodiging, ken je dit nog?</p>
+      </div>
+      <div class="claude">
+        <div class="label">Claude</div>
+        <p>Ja, ik ken het project! Het is een aanmeldpagina voor het verjaardagsfeest van Cornee (Cornee wordt 40). Datum: 2 oktober, vanaf 20:00, op Olieslager 42. Er is ook een QR-code gegenereerd en op een uitnodigingsafbeelding geplakt.</p>
+      </div>
+      <div class="actie">
+        <div class="actie-label">Wat deed Claude</div>
+        Claude las de bestaande bestanden in de projectmap (<code>index.html</code>, <code>qrcode.png</code>, <code>uitnodiging_definitief.png</code>) en gaf een samenvatting van het vorige project.
+      </div>
+    </div>
+
+    <hr class="divider" />
+
+    <!-- STAP 2 -->
+    <div class="stap">
+      <div class="stap-nummer">Stap 2 — Nieuw project opzetten</div>
+      <div class="gebruiker">
+        <div class="label">Gebruiker</div>
+        <p>Juist, we gaan een kopie hiervan maken voor een POC... Bestellijst voor Pasen 2026 voor het Brodshoes. Ik geef je een link die je moet checken voor de content. Maar let op: het is een nieuw project, maak de oude niet veranderen.</p>
+      </div>
+      <div class="claude">
+        <div class="label">Claude</div>
+        <p>Geef de link maar door, dan kijk ik wat er op staat en starten we een nieuw project zonder de oude aan te raken.</p>
+      </div>
+      <div class="actie">
+        <div class="actie-label">Wat deed Claude</div>
+        Claude begreep dat er een volledig nieuw project moest komen in een aparte map, zodat de bestaande Cornee-uitnodiging niet wordt aangeraakt.
+      </div>
+      <div class="tip">
+        <strong>Tip voor beginners:</strong> Je kunt Claude altijd duidelijk vertellen wat hij NIET mag aanraken. Claude respecteert dit.
+      </div>
+    </div>
+
+    <hr class="divider" />
+
+    <!-- STAP 3 -->
+    <div class="stap">
+      <div class="stap-nummer">Stap 3 — Content ophalen uit bestaand formulier</div>
+      <div class="gebruiker">
+        <div class="label">Gebruiker</div>
+        <p>https://docs.google.com/forms/d/e/1FAIpQLScYpkWDdaSH9IeQG8wropPlcORf0JeeE8lNRk_otTMmREQ30Q/viewform?pli=1</p>
+      </div>
+      <div class="claude">
+        <div class="label">Claude</div>
+        <p>Ik heb de content. Dit is een bestellijst voor Pasen bij het Brodshoes met salades: Huzarensalade (per liter €10,50 / 2-persoons schaal €16,50 / 4-persoons schaal €33,00) en Waldorfsalade (per liter €14,00 / 2-persoons schaal €19,50 / 4-persoons schaal €39,00). Afhalen zaterdag 8 april 14:00–16:00.</p>
+        <p>Stelde daarna vragen over: formulieroplossing, prijzen/producten, en stijl.</p>
+      </div>
+      <div class="actie">
+        <div class="actie-label">Wat deed Claude</div>
+        Claude haalde de inhoud van het Google Formulier op via de URL en extraheerde alle velden, producten en prijzen automatisch. Vervolgens stelde Claude gerichte vragen om de juiste keuzes te maken voordat er code geschreven werd.
+      </div>
+      <div class="tip">
+        <strong>Tip voor beginners:</strong> Je kunt een link naar een bestaand formulier, website of document sturen — Claude leest de inhoud en gebruikt die als basis.
+      </div>
+    </div>
+
+    <hr class="divider" />
+
+    <!-- STAP 4 -->
+    <div class="stap">
+      <div class="stap-nummer">Stap 4 — Keuzes maken: formulier &amp; stijl</div>
+      <div class="gebruiker">
+        <div class="label">Gebruiker</div>
+        <p>Ik wil ook voor zorgen dat er een bevestigingsemail wordt verstuurd. [Keuze: Formspree] [Prijzen: zelfde als formulier] [Stijl: nieuwe stijl, ik stuur iets in een link]</p>
+      </div>
+      <div class="claude">
+        <div class="label">Claude</div>
+        <p>Oké, Formspree voor de inzendingen. Via Formspree kun je een autoresponder instellen zodat de klant automatisch een bevestigingsmail krijgt. Stuur de link voor de stijlinspiratie.</p>
+      </div>
+      <div class="actie">
+        <div class="actie-label">Wat deed Claude</div>
+        Claude legde uit hoe bevestigingsemails werken via Formspree (autoresponder op het <code>_replyto</code> veld) en wachtte op de stijlinspiratie voordat er code werd geschreven.
+      </div>
+    </div>
+
+    <hr class="divider" />
+
+    <!-- STAP 5 -->
+    <div class="stap">
+      <div class="stap-nummer">Stap 5 — Stijl bepalen via website</div>
+      <div class="gebruiker">
+        <div class="label">Gebruiker</div>
+        <p>https://www.brodshoes.nl/ — check de stijl en foto's van deze website</p>
+      </div>
+      <div class="claude">
+        <div class="label">Claude</div>
+        <p>De website heeft een warme, elegante restaurantstijl: wit/crème achtergrond, donkere tekst, verfijnd serif lettertype, warme food-fotografie. Meer dan 45 jaar traditie. Ik ga de pagina stylen op basis van die sfeer: wit/crème basis, donkerbruin/warme aardetinten, serif koppen, strak en gastvrij.</p>
+      </div>
+      <div class="actie">
+        <div class="actie-label">Wat deed Claude</div>
+        Claude analyseerde de Brodshoes website automatisch: kleuren, sfeer, typografie en beeldtaal — en vertaalde dit naar een ontwerpbeslissing voor de nieuwe pagina.
+      </div>
+      <div class="tip">
+        <strong>Tip voor beginners:</strong> Stuur gewoon een URL van een website die je mooi vindt. Claude analyseert de stijl en past die toe.
+      </div>
+    </div>
+
+    <hr class="divider" />
+
+    <!-- STAP 6 -->
+    <div class="stap">
+      <div class="stap-nummer">Stap 6 — Eerste versie pagina gebouwd</div>
+      <div class="gebruiker">
+        <div class="label">Gebruiker</div>
+        <p>[Geeft akkoord op placeholder Formspree]</p>
+      </div>
+      <div class="claude">
+        <div class="label">Claude</div>
+        <p>Klaar! De pagina staat in <code>brodshoes-pasen/index.html</code>. Contactgegevens, beide salades met prijzen en +/− knoppen, automatisch totaalbedrag, opmerkingenveld en bevestigingspagina na verzenden.</p>
+      </div>
+      <div class="actie">
+        <div class="actie-label">Wat deed Claude</div>
+        Claude maakte een nieuwe map <code>brodshoes-pasen/</code> aan en schreef een volledige HTML-pagina met CSS-stijl en JavaScript voor de bestellogica. De Formspree endpoint werd als PLACEHOLDER ingevuld zodat die later vervangen kan worden.
+      </div>
+    </div>
+
+    <hr class="divider" />
+
+    <!-- STAP 7 -->
+    <div class="stap">
+      <div class="stap-nummer">Stap 7 — Stijl aanpassen op basis van screenshot</div>
+      <div class="gebruiker">
+        <div class="label">Gebruiker</div>
+        <p>[Stuurt screenshot van Brodshoes menukaart] — dit is de menukaart online maar de stijl in lijn hiermee...</p>
+      </div>
+      <div class="claude">
+        <div class="label">Claude</div>
+        <p>Duidelijk! Donker teal/petrol achtergrond, witte serif koppen, lichtgrijze uppercase tekst, rode accent kleur. Ik pas de stijl volledig aan.</p>
+      </div>
+      <div class="actie">
+        <div class="actie-label">Wat deed Claude</div>
+        Claude herschreef de volledige CSS op basis van het screenshot: donker teal (<code>#1e3a3f</code>), Cormorant Garamond serif font, uppercase spaced labels, rode accentknop (<code>#e85d4a</code>) — exact passend bij de Brodshoes menukaart stijl.
+      </div>
+      <div class="tip">
+        <strong>Tip voor beginners:</strong> Je hoeft geen kleurnummers te kennen. Stuur gewoon een screenshot van een stijl die je mooi vindt — Claude herkent de kleuren en past ze toe.
+      </div>
+    </div>
+
+    <hr class="divider" />
+
+    <!-- STAP 8 -->
+    <div class="stap">
+      <div class="stap-nummer">Stap 8 — Header en footer foto's toevoegen</div>
+      <div class="gebruiker">
+        <div class="label">Gebruiker</div>
+        <p>[Stuurt interieursfoto] — gebruik deze als header<br>
+        [Stuurt foodfoto] — gebruik deze als footer</p>
+      </div>
+      <div class="claude">
+        <div class="label">Claude</div>
+        <p>Zet de afbeeldingen in de projectmap als <code>header.png</code> en <code>footer.png</code>, dan verwerk ik ze.</p>
+      </div>
+      <div class="actie">
+        <div class="actie-label">Wat deed Claude</div>
+        Na bevestiging dat de bestanden in de map stonden, paste Claude de HTML en CSS aan: de card kreeg <code>padding: 0</code>, een <code>.card-inner</code> wrapper voor de binnenruimte, en de foto's werden als volbrede header en footer toegevoegd met <code>object-fit: cover</code>.
+      </div>
+    </div>
+
+    <hr class="divider" />
+
+    <!-- STAP 9 -->
+    <div class="stap">
+      <div class="stap-nummer">Stap 9 — Publiceren op GitHub Pages</div>
+      <div class="gebruiker">
+        <div class="label">Gebruiker</div>
+        <p>Kun je deze zetten in GitHub Pages? https://github.com/corneeboorsma/brods-demo/settings/pages</p>
+      </div>
+      <div class="claude">
+        <div class="label">Claude</div>
+        <p>Ik kan dit doen, maar ik heb je bevestiging nodig omdat het naar een externe repo pusht. Na akkoord voerde ik de git-commando's uit.</p>
+      </div>
+      <div class="actie">
+        <div class="actie-label">Wat deed Claude</div>
+        Na akkoord van de gebruiker voerde Claude de volgende commando's uit:
+        <br><br>
+        <code>git init</code> → git repository aanmaken<br>
+        <code>git add .</code> → alle bestanden klaarzetten<br>
+        <code>git commit -m "..."</code> → wijzigingen vastleggen<br>
+        <code>git remote add origin ...</code> → koppelen aan GitHub<br>
+        <code>git push -u origin main</code> → uploaden naar GitHub<br><br>
+        De pagina is daarna bereikbaar via <strong>https://corneeboorsma.github.io/brods-demo/</strong> na activatie van GitHub Pages.
+      </div>
+      <div class="tip">
+        <strong>Tip voor beginners:</strong> Claude vraagt altijd bevestiging voordat hij iets naar buiten pusht (naar GitHub of andere externe diensten). Zo houd je altijd controle.
+      </div>
+    </div>
+
+    <hr class="divider" />
+
+    <!-- STAP 10 -->
+    <div class="stap">
+      <div class="stap-nummer">Stap 10 — Kleine correcties doorvoeren</div>
+      <div class="gebruiker">
+        <div class="label">Gebruiker</div>
+        <p>Vers bereid, af te halen in Almelo → afhalen is in Rijssen<br>
+        Ook de titel aanpassen, Almelo vervangen voor Rijssen</p>
+      </div>
+      <div class="claude">
+        <div class="label">Claude</div>
+        <p>Alle vermeldingen van Almelo vervangen door Rijssen en direct gepusht naar GitHub.</p>
+      </div>
+      <div class="actie">
+        <div class="actie-label">Wat deed Claude</div>
+        Claude zocht alle voorkomens van "Almelo" in de HTML (<code>grep</code>), verving ze allemaal tegelijk met de replace_all functie, en pushte de wijziging direct naar GitHub met een duidelijke commit message.
+      </div>
+    </div>
+
+    <hr class="divider" />
+
+    <!-- STAP 11 -->
+    <div class="stap">
+      <div class="stap-nummer">Stap 11 — Tijdslot toevoegen</div>
+      <div class="gebruiker">
+        <div class="label">Gebruiker</div>
+        <p>Maak een stap 4 aan waarbij de mensen een tijdslot van een half uur kunnen aangeven en push naar git</p>
+      </div>
+      <div class="claude">
+        <div class="label">Claude</div>
+        <p>Stap 4 toegevoegd met 4 tijdslots als klikbare knoppen: 14:00–14:30, 14:30–15:00, 15:00–15:30, 15:30–16:00. Het gekozen tijdslot staat in de bevestigingspagina en wordt meegestuurd naar Formspree.</p>
+      </div>
+      <div class="actie">
+        <div class="actie-label">Wat deed Claude</div>
+        Claude voegde een nieuwe sectie toe met radio-knoppen gestyled als selecteerbare tijdblokken (rood bij selectie, passend bij de Brodshoes stijl). Het tijdslot werd ook verwerkt in de JavaScript submit-logica en de bevestigingstekst. Direct gepusht naar GitHub.
+      </div>
+    </div>
+
+    <hr class="divider" />
+
+    <!-- STAP 12 -->
+    <div class="stap">
+      <div class="stap-nummer">Stap 12 — Achtergrondkleur aanpassen</div>
+      <div class="gebruiker">
+        <div class="label">Gebruiker</div>
+        <p>[Stuurt screenshot van een crème/zand kleur] — dit mag de achtergrondkleur worden</p>
+      </div>
+      <div class="claude">
+        <div class="label">Claude</div>
+        <p>Die kleur is een warme crème/zand tint — ongeveer #e8dcc8. Ik pas de achtergrond aan en push.</p>
+      </div>
+      <div class="actie">
+        <div class="actie-label">Wat deed Claude</div>
+        Claude herkende de kleur uit het screenshot, vertaalde dit naar een hex-kleurcode, paste de CSS variabele <code>--teal-dark</code> aan en pushte de wijziging direct naar GitHub.
+      </div>
+      <div class="tip">
+        <strong>Tip voor beginners:</strong> Je hoeft geen kleurcode te kennen of op te zoeken. Stuur gewoon een screenshot of foto van de kleur — Claude bepaalt de juiste code.
+      </div>
+    </div>
+
+    <hr class="divider" />
+
+    <div style="background:#1e3a3f; color:#e8dcc8; padding:24px 28px; border-radius:4px; margin-top:16px;">
+      <strong style="color:#fff; font-size:16px;">Samenvatting — Wat heb je geleerd?</strong>
+      <br><br>
+      Met Claude kun je zonder programmeerkennis:<br><br>
+      ✅ Een bestaand formulier of website als basis gebruiken (gewoon een link sturen)<br>
+      ✅ Stijl bepalen via screenshots of website-links<br>
+      ✅ Foto's toevoegen als header en footer<br>
+      ✅ Correcties doorvoeren in gewone mensentaal<br>
+      ✅ Nieuwe functionaliteit toevoegen (tijdslots, totaalbedrag, bevestigingspagina)<br>
+      ✅ De pagina publiceren op het internet via GitHub Pages<br><br>
+      <strong style="color:#fff;">De gouden regel:</strong> Wees specifiek in wat je wilt, geef voorbeelden (links, screenshots), en vertel Claude wat hij NIET mag aanraken. De rest doet Claude.
+    </div>
+
+    <footer>
+      Gemaakt met Claude Code (Anthropic) · Brodshoes Pasen 2026 POC · Augustus 2026
+    </footer>
+
+  </div>
+</body>
+</html>

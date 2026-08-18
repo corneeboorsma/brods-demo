@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Beheer | Brodshoes Bestellijst</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Lato:wght@300;400;600;700&display=swap" rel="stylesheet" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --teal:       #1e3a3f;
+      --teal-dark:  #162d31;
+      --red:        #e85d4a;
+      --cream:      #e8dcc8;
+      --white:      #fff;
+      --border:     #d0c4ae;
+      --text:       #2c2c2c;
+      --muted:      #888;
+    }
+
+    body {
+      font-family: 'Lato', sans-serif;
+      background: var(--cream);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* ── Login ── */
+    #login-screen {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .login-card {
+      background: var(--teal);
+      color: #fff;
+      padding: 52px 48px;
+      max-width: 380px;
+      width: 100%;
+      text-align: center;
+    }
+
+    .login-card h1 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 32px;
+      margin-bottom: 6px;
+    }
+
+    .login-card p {
+      font-size: 13px;
+      color: rgba(255,255,255,0.6);
+      margin-bottom: 28px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    .login-card input {
+      width: 100%;
+      padding: 12px 16px;
+      background: rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,255,255,0.2);
+      color: #fff;
+      font-size: 15px;
+      font-family: 'Lato', sans-serif;
+      outline: none;
+      margin-bottom: 14px;
+      text-align: center;
+      letter-spacing: 3px;
+    }
+
+    .login-card input::placeholder { color: rgba(255,255,255,0.4); letter-spacing: 1px; }
+
+    .login-card button {
+      width: 100%;
+      padding: 13px;
+      background: var(--red);
+      color: #fff;
+      border: none;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      cursor: pointer;
+      font-family: 'Lato', sans-serif;
+    }
+
+    .login-card button:hover { background: #d04838; }
+    .login-error { color: #ff9090; font-size: 13px; margin-top: 10px; display: none; }
+
+    /* ── Admin layout ── */
+    #admin-screen { display: none; }
+
+    .topbar {
+      background: var(--teal);
+      color: #fff;
+      padding: 16px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .topbar-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: 2px;
+    }
+
+    .topbar-sub { font-size: 11px; color: rgba(255,255,255,0.55); letter-spacing: 1.5px; text-transform: uppercase; }
+
+    .topbar-actions { display: flex; gap: 10px; }
+
+    .btn-primary {
+      padding: 10px 22px;
+      background: var(--red);
+      color: #fff;
+      border: none;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      cursor: pointer;
+      font-family: 'Lato', sans-serif;
+    }
+
+    .btn-primary:hover { background: #d04838; }
+
+    .btn-secondary {
+      padding: 10px 22px;
+      background: transparent;
+      color: rgba(255,255,255,0.7);
+      border: 1px solid rgba(255,255,255,0.25);
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      cursor: pointer;
+      font-family: 'Lato', sans-serif;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+    }
+
+    .btn-secondary:hover { border-color: rgba(255,255,255,0.5); color: #fff; }
+
+    /* ── Tabs ── */
+    .tabs {
+      background: var(--teal-dark);
+      display: flex;
+      padding: 0 32px;
+    }
+
+    .tab {
+      padding: 14px 20px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.5);
+      cursor: pointer;
+      border-bottom: 3px solid transparent;
+      transition: all 0.15s;
+    }
+
+    .tab.active { color: #fff; border-bottom-color: var(--red); }
+    .tab:hover { color: rgba(255,255,255,0.8); }
+
+    /* ── Content ── */
+    .content { padding: 32px; max-width: 900px; }
+
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* ── Secties ── */
+    .sectie {
+      background: #fff;
+      border: 1px solid var(--border);
+      margin-bottom: 24px;
+      overflow: hidden;
+    }
+
+    .sectie-header {
+      background: var(--teal);
+      color: #fff;
+      padding: 14px 20px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+
+    .sectie-body { padding: 24px; }
+
+    /* ── Form elementen ── */
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+
+    .form-row.drie { grid-template-columns: 1fr 1fr 1fr; }
+    .form-row.enkel { grid-template-columns: 1fr; }
+
+    .form-group { margin-bottom: 0; }
+
+    .form-group label {
+      display: block;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    .form-group input,
+    .form-group textarea,
+    .form-group select {
+      width: 100%;
+      padding: 10px 13px;
+      border: 1.5px solid var(--border);
+      font-size: 14px;
+      color: var(--text);
+      background: #fff;
+      font-family: 'Lato', sans-serif;
+      outline: none;
+      transition: border-color 0.15s;
+      border-radius: 0;
+    }
+
+    .form-group input:focus,
+    .form-group textarea:focus,
+    .form-group select:focus { border-color: var(--teal); }
+
+    /* ── Thema kiezer ── */
+    .thema-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 12px;
+    }
+
+    .thema-card {
+      cursor: pointer;
+      border: 3px solid transparent;
+      transition: all 0.15s;
+    }
+
+    .thema-card.geselecteerd { border-color: var(--red); }
+
+    .thema-preview {
+      height: 80px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+    }
+
+    .thema-dot {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+    }
+
+    .thema-naam {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      text-align: center;
+      padding: 8px 4px;
+      background: #f5f5f5;
+      color: var(--text);
+    }
+
+    /* ── Tijdslots ── */
+    .tijdslot-lijst { display: flex; flex-direction: column; gap: 8px; }
+
+    .tijdslot-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: #f9f6f0;
+      border: 1px solid var(--border);
+      padding: 10px 14px;
+    }
+
+    .tijdslot-item input {
+      flex: 1;
+      border: 1px solid var(--border);
+      padding: 7px 10px;
+      font-size: 14px;
+      font-family: 'Lato', sans-serif;
+      outline: none;
+    }
+
+    .btn-remove {
+      background: none;
+      border: 1px solid #ddd;
+      color: #aaa;
+      width: 28px;
+      height: 28px;
+      cursor: pointer;
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .btn-remove:hover { border-color: var(--red); color: var(--red); }
+
+    .btn-add {
+      padding: 9px 16px;
+      background: transparent;
+      border: 1.5px dashed var(--border);
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      cursor: pointer;
+      font-family: 'Lato', sans-serif;
+      margin-top: 8px;
+      width: 100%;
+    }
+
+    .btn-add:hover { border-color: var(--teal); color: var(--teal); }
+
+    /* ── Categorieën & producten ── */
+    .categorie-blok {
+      background: #f9f6f0;
+      border: 1px solid var(--border);
+      margin-bottom: 16px;
+      overflow: hidden;
+    }
+
+    .categorie-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 16px;
+      background: #f0ebe0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .categorie-naam-input {
+      flex: 1;
+      border: 1px solid var(--border);
+      padding: 7px 11px;
+      font-size: 14px;
+      font-weight: 700;
+      font-family: 'Lato', sans-serif;
+      background: #fff;
+      outline: none;
+    }
+
+    .categorie-naam-input:focus { border-color: var(--teal); }
+
+    .product-rij-admin {
+      display: grid;
+      grid-template-columns: 1fr 100px 36px;
+      gap: 8px;
+      align-items: center;
+      padding: 10px 16px;
+      border-bottom: 1px solid #ece3d6;
+    }
+
+    .product-rij-admin:last-child { border-bottom: none; }
+
+    .product-rij-admin input {
+      border: 1px solid var(--border);
+      padding: 7px 10px;
+      font-size: 14px;
+      font-family: 'Lato', sans-serif;
+      outline: none;
+      width: 100%;
+    }
+
+    .product-rij-admin input:focus { border-color: var(--teal); }
+
+    /* ── Opgeslagen melding ── */
+    .toast {
+      position: fixed;
+      bottom: 28px;
+      right: 28px;
+      background: var(--teal);
+      color: #fff;
+      padding: 14px 22px;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 1px;
+      opacity: 0;
+      transition: opacity 0.3s;
+      pointer-events: none;
+    }
+
+    .toast.zichtbaar { opacity: 1; }
+
+    /* ── Preview badge ── */
+    .preview-link {
+      display: inline-block;
+      margin-top: 16px;
+      font-size: 12px;
+      color: var(--teal);
+      text-decoration: underline;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+<!-- ══ LOGIN ══ -->
+<div id="login-screen">
+  <div class="login-card">
+    <h1>Brodshoes</h1>
+    <p>Beheerpaneel · Inloggen</p>
+    <input type="password" id="ww-input" placeholder="Wachtwoord" />
+    <button onclick="login()">Inloggen</button>
+    <div class="login-error" id="login-error">Onjuist wachtwoord</div>
+  </div>
+</div>
+
+<!-- ══ ADMIN ══ -->
+<div id="admin-screen">
+
+  <div class="topbar">
+    <div>
+      <div class="topbar-title">Brodshoes Beheer</div>
+      <div class="topbar-sub">Bestellijst configuratie</div>
+    </div>
+    <div class="topbar-actions">
+      <a href="index.html" target="_blank" class="btn-secondary">Bekijk pagina →</a>
+      <button class="btn-primary" onclick="slaOp()">Opslaan &amp; publiceren</button>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <div class="tab active" onclick="toonTab('thema')">Thema &amp; stijl</div>
+    <div class="tab" onclick="toonTab('evenement')">Evenement</div>
+    <div class="tab" onclick="toonTab('producten')">Producten</div>
+    <div class="tab" onclick="toonTab('tijdslots')">Tijdslots</div>
+  </div>
+
+  <div class="content">
+
+    <!-- ═══ TAB: THEMA ═══ -->
+    <div class="tab-panel active" id="tab-thema">
+      <div class="sectie">
+        <div class="sectie-header">Kies een thema</div>
+        <div class="sectie-body">
+          <div class="thema-grid" id="thema-grid"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ TAB: EVENEMENT ═══ -->
+    <div class="tab-panel" id="tab-evenement">
+      <div class="sectie">
+        <div class="sectie-header">Evenementgegevens</div>
+        <div class="sectie-body">
+          <div class="form-row">
+            <div class="form-group">
+              <label>Paginatitel (groot)</label>
+              <input type="text" id="ev-titel" placeholder="Pasen 2026" />
+            </div>
+            <div class="form-group">
+              <label>Subtitel / omschrijving</label>
+              <input type="text" id="ev-subtitel" placeholder="Bestel uw huisgemaakte salades..." />
+            </div>
+          </div>
+          <div class="form-row drie">
+            <div class="form-group">
+              <label>Afhaaldag (tekst)</label>
+              <input type="text" id="ev-dag" placeholder="zaterdag 18 april" />
+            </div>
+            <div class="form-group">
+              <label>Locatie</label>
+              <input type="text" id="ev-locatie" placeholder="Rijssen" />
+            </div>
+            <div class="form-group">
+              <label>Deadline bestellen</label>
+              <input type="text" id="ev-deadline" placeholder="zondag 13 april 2026" />
+            </div>
+          </div>
+          <div class="form-row enkel">
+            <div class="form-group">
+              <label>Afhaalperiode (badge tekst)</label>
+              <input type="text" id="ev-badge" placeholder="Afhalen zaterdag 18 april · 14:00 – 16:00 uur" />
+            </div>
+          </div>
+          <div class="form-row enkel">
+            <div class="form-group">
+              <label>Formspree endpoint (vervang PLACEHOLDER)</label>
+              <input type="text" id="ev-formspree" placeholder="https://formspree.io/f/JOUWCODE" />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ TAB: PRODUCTEN ═══ -->
+    <div class="tab-panel" id="tab-producten">
+      <div class="sectie">
+        <div class="sectie-header">Categorieën &amp; producten</div>
+        <div class="sectie-body">
+          <div id="categorieen-lijst"></div>
+          <button class="btn-add" onclick="voegCategorieTO()">+ Categorie toevoegen</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ TAB: TIJDSLOTS ═══ -->
+    <div class="tab-panel" id="tab-tijdslots">
+      <div class="sectie">
+        <div class="sectie-header">Tijdslots afhalen</div>
+        <div class="sectie-body">
+          <div class="tijdslot-lijst" id="tijdslot-lijst"></div>
+          <button class="btn-add" onclick="voegTijdslotToe()">+ Tijdslot toevoegen</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="toast" id="toast">✓ Opgeslagen en gepubliceerd</div>
+
+<script>
+// ══════════════════════════════════════
+// THEMA DEFINITIES
+// ══════════════════════════════════════
+const THEMAS = {
+  pasen: {
+    naam: 'Pasen',
+    achtergrond: '#e8dcc8',
+    kaart: '#1e3a3f',
+    kaartMid: '#254a50',
+    tekst: '#ffffff',
+    accent: '#e85d4a',
+    kleuren: ['#1e3a3f', '#e85d4a', '#e8dcc8'],
+  },
+  kerst: {
+    naam: 'Kerst',
+    achtergrond: '#1a0a0a',
+    kaart: '#2d0d0d',
+    kaartMid: '#3d1515',
+    tekst: '#ffffff',
+    accent: '#c9a84c',
+    kleuren: ['#2d0d0d', '#c9a84c', '#1a0a0a'],
+  },
+  zomer: {
+    naam: 'Zomer',
+    achtergrond: '#f0f7f0',
+    kaart: '#1a3d2b',
+    kaartMid: '#244f38',
+    tekst: '#ffffff',
+    accent: '#f4a020',
+    kleuren: ['#1a3d2b', '#f4a020', '#f0f7f0'],
+  },
+  herfst: {
+    naam: 'Herfst',
+    achtergrond: '#f5ede0',
+    kaart: '#3d2008',
+    kaartMid: '#4e2a0e',
+    tekst: '#ffffff',
+    accent: '#d4621a',
+    kleuren: ['#3d2008', '#d4621a', '#f5ede0'],
+  },
+  neutraal: {
+    naam: 'Neutraal',
+    achtergrond: '#f2f2f2',
+    kaart: '#1a1a1a',
+    kaartMid: '#2e2e2e',
+    tekst: '#ffffff',
+    accent: '#555555',
+    kleuren: ['#1a1a1a', '#555555', '#f2f2f2'],
+  },
+};
+
+// ══════════════════════════════════════
+// DEFAULT CONFIG
+// ══════════════════════════════════════
+const DEFAULT_CONFIG = {
+  thema: 'pasen',
+  evenement: {
+    titel: 'Pasen 2026',
+    subtitel: 'Bestel uw huisgemaakte salades voor Pasen. Vers bereid, af te halen in Rijssen.',
+    dag: 'zaterdag 18 april',
+    locatie: 'Rijssen',
+    deadline: 'zondag 13 april 2026',
+    badge: 'Afhalen zaterdag 18 april · 14:00 – 16:00 uur',
+    formspree: 'https://formspree.io/f/PLACEHOLDER',
+  },
+  categorieeen: [
+    {
+      naam: 'Huzarensalade',
+      producten: [
+        { naam: 'Per liter', prijs: '10.50' },
+        { naam: '2-persoons schaal', prijs: '16.50' },
+        { naam: '4-persoons schaal', prijs: '33.00' },
+      ],
+    },
+    {
+      naam: 'Waldorfsalade',
+      producten: [
+        { naam: 'Per liter', prijs: '14.00' },
+        { naam: '2-persoons schaal', prijs: '19.50' },
+        { naam: '4-persoons schaal', prijs: '39.00' },
+      ],
+    },
+  ],
+  tijdslots: ['14:00 – 14:30', '14:30 – 15:00', '15:00 – 15:30', '15:30 – 16:00'],
+};
+
+// ══════════════════════════════════════
+// STAAT
+// ══════════════════════════════════════
+let config = JSON.parse(JSON.stringify(DEFAULT_CONFIG));
+
+function laadConfig() {
+  const opgeslagen = localStorage.getItem('brodshoes_config');
+  if (opgeslagen) config = JSON.parse(opgeslagen);
+}
+
+// ══════════════════════════════════════
+// LOGIN
+// ══════════════════════════════════════
+function login() {
+  const ww = document.getElementById('ww-input').value;
+  if (ww === 'brodshoes') {
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('admin-screen').style.display = 'block';
+    laadConfig();
+    vulFormulierenIn();
+    bouwThemaGrid();
+    bouwCategorieeen();
+    bouwTijdslots();
+  } else {
+    document.getElementById('login-error').style.display = 'block';
+  }
+}
+
+document.getElementById('ww-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') login();
+});
+
+// ══════════════════════════════════════
+// TABS
+// ══════════════════════════════════════
+function toonTab(naam) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-' + naam).classList.add('active');
+  event.target.classList.add('active');
+}
+
+// ══════════════════════════════════════
+// THEMA GRID
+// ══════════════════════════════════════
+function bouwThemaGrid() {
+  const grid = document.getElementById('thema-grid');
+  grid.innerHTML = '';
+  for (const [id, thema] of Object.entries(THEMAS)) {
+    const card = document.createElement('div');
+    card.className = 'thema-card' + (config.thema === id ? ' geselecteerd' : '');
+    card.onclick = () => {
+      config.thema = id;
+      document.querySelectorAll('.thema-card').forEach(c => c.classList.remove('geselecteerd'));
+      card.classList.add('geselecteerd');
+    };
+    card.innerHTML = `
+      <div class="thema-preview" style="background:${thema.achtergrond}">
+        <div style="display:flex;gap:5px">
+          ${thema.kleuren.map(k => `<div class="thema-dot" style="background:${k}"></div>`).join('')}
+        </div>
+      </div>
+      <div class="thema-naam">${thema.naam}</div>`;
+    grid.appendChild(card);
+  }
+}
+
+// ══════════════════════════════════════
+// FORMULIEREN INVULLEN
+// ══════════════════════════════════════
+function vulFormulierenIn() {
+  const ev = config.evenement;
+  document.getElementById('ev-titel').value      = ev.titel || '';
+  document.getElementById('ev-subtitel').value   = ev.subtitel || '';
+  document.getElementById('ev-dag').value        = ev.dag || '';
+  document.getElementById('ev-locatie').value    = ev.locatie || '';
+  document.getElementById('ev-deadline').value   = ev.deadline || '';
+  document.getElementById('ev-badge').value      = ev.badge || '';
+  document.getElementById('ev-formspree').value  = ev.formspree || '';
+}
+
+function leesFormulieren() {
+  config.evenement = {
+    titel:     document.getElementById('ev-titel').value.trim(),
+    subtitel:  document.getElementById('ev-subtitel').value.trim(),
+    dag:       document.getElementById('ev-dag').value.trim(),
+    locatie:   document.getElementById('ev-locatie').value.trim(),
+    deadline:  document.getElementById('ev-deadline').value.trim(),
+    badge:     document.getElementById('ev-badge').value.trim(),
+    formspree: document.getElementById('ev-formspree').value.trim(),
+  };
+}
+
+// ══════════════════════════════════════
+// CATEGORIEËN & PRODUCTEN
+// ══════════════════════════════════════
+function bouwCategorieeen() {
+  const lijst = document.getElementById('categorieen-lijst');
+  lijst.innerHTML = '';
+  config.categorieeen.forEach((cat, ci) => {
+    const blok = document.createElement('div');
+    blok.className = 'categorie-blok';
+    blok.innerHTML = `
+      <div class="categorie-header">
+        <input class="categorie-naam-input" type="text" value="${cat.naam}" placeholder="Categorienaam"
+          oninput="config.categorieeen[${ci}].naam = this.value" />
+        <button class="btn-remove" onclick="verwijderCategorie(${ci})" title="Categorie verwijderen">×</button>
+      </div>
+      <div id="producten-${ci}"></div>
+      <div style="padding:10px 16px;">
+        <button class="btn-add" style="width:auto;padding:7px 14px;" onclick="voegProductToe(${ci})">+ Product toevoegen</button>
+      </div>`;
+    lijst.appendChild(blok);
+    bouwProducten(ci);
+  });
+}
+
+function bouwProducten(ci) {
+  const container = document.getElementById('producten-' + ci);
+  if (!container) return;
+  container.innerHTML = '';
+  config.categorieeen[ci].producten.forEach((prod, pi) => {
+    const rij = document.createElement('div');
+    rij.className = 'product-rij-admin';
+    rij.innerHTML = `
+      <input type="text" value="${prod.naam}" placeholder="Productnaam"
+        oninput="config.categorieeen[${ci}].producten[${pi}].naam = this.value" />
+      <input type="text" value="${prod.prijs}" placeholder="€ 0,00"
+        oninput="config.categorieeen[${ci}].producten[${pi}].prijs = this.value" />
+      <button class="btn-remove" onclick="verwijderProduct(${ci}, ${pi})">×</button>`;
+    container.appendChild(rij);
+  });
+}
+
+function voegCategorieTO() {
+  config.categorieeen.push({ naam: 'Nieuwe categorie', producten: [{ naam: '', prijs: '' }] });
+  bouwCategorieeen();
+}
+
+function verwijderCategorie(ci) {
+  if (config.categorieeen.length <= 1) return alert('Minimaal één categorie vereist.');
+  config.categorieeen.splice(ci, 1);
+  bouwCategorieeen();
+}
+
+function voegProductToe(ci) {
+  config.categorieeen[ci].producten.push({ naam: '', prijs: '' });
+  bouwProducten(ci);
+}
+
+function verwijderProduct(ci, pi) {
+  if (config.categorieeen[ci].producten.length <= 1) return alert('Minimaal één product per categorie.');
+  config.categorieeen[ci].producten.splice(pi, 1);
+  bouwProducten(ci);
+}
+
+// ══════════════════════════════════════
+// TIJDSLOTS
+// ══════════════════════════════════════
+function bouwTijdslots() {
+  const lijst = document.getElementById('tijdslot-lijst');
+  lijst.innerHTML = '';
+  config.tijdslots.forEach((slot, i) => {
+    const item = document.createElement('div');
+    item.className = 'tijdslot-item';
+    item.innerHTML = `
+      <input type="text" value="${slot}" placeholder="14:00 – 14:30"
+        oninput="config.tijdslots[${i}] = this.value" />
+      <button class="btn-remove" onclick="verwijderTijdslot(${i})">×</button>`;
+    lijst.appendChild(item);
+  });
+}
+
+function voegTijdslotToe() {
+  config.tijdslots.push('');
+  bouwTijdslots();
+}
+
+function verwijderTijdslot(i) {
+  if (config.tijdslots.length <= 1) return alert('Minimaal één tijdslot vereist.');
+  config.tijdslots.splice(i, 1);
+  bouwTijdslots();
+}
+
+// ══════════════════════════════════════
+// OPSLAAN & PUBLICEREN
+// ══════════════════════════════════════
+function slaOp() {
+  leesFormulieren();
+  localStorage.setItem('brodshoes_config', JSON.stringify(config));
+  toonToast();
+}
+
+function toonToast() {
+  const toast = document.getElementById('toast');
+  toast.classList.add('zichtbaar');
+  setTimeout(() => toast.classList.remove('zichtbaar'), 2500);
+}
+</script>
+</body>
+</html>
