@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pasen 2026 – Salade Bestellen | Brodshoes</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Lato:wght@300;400;600;700&display=swap" rel="stylesheet" />
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --teal:        #1e3a3f;
+      --teal-dark:   #162d31;
+      --teal-mid:    #254a50;
+      --teal-light:  #2e5f67;
+      --teal-border: rgba(255,255,255,0.10);
+      --red:         #e85d4a;
+      --red-hover:   #d04838;
+      --white:       #ffffff;
+      --text:        #ffffff;
+      --text-muted:  rgba(255,255,255,0.55);
+      --text-sub:    rgba(255,255,255,0.75);
+    }
+
+    body {
+      font-family: 'Lato', 'Segoe UI', sans-serif;
+      background: var(--teal-dark);
+      min-height: 100vh;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 48px 20px;
+      color: var(--text);
+    }
+
+    .card {
+      background: var(--teal);
+      max-width: 580px;
+      width: 100%;
+      padding: 0;
+      border: 1px solid var(--teal-border);
+      overflow: hidden;
+    }
+
+    .card-inner {
+      padding: 56px 52px;
+    }
+
+    /* ── Header ── */
+    .header {
+      text-align: center;
+      margin-bottom: 44px;
+    }
+
+    .header-tag {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 14px;
+    }
+
+    h1 {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: 52px;
+      font-weight: 600;
+      color: var(--white);
+      line-height: 1.1;
+      margin-bottom: 10px;
+    }
+
+    .divider-line {
+      width: 1px;
+      height: 32px;
+      background: var(--teal-border);
+      margin: 16px auto;
+    }
+
+    .subtitle {
+      font-size: 14px;
+      color: var(--text-sub);
+      line-height: 1.7;
+      font-weight: 300;
+    }
+
+    .afhaal-badge {
+      display: inline-block;
+      margin-top: 18px;
+      padding: 8px 20px;
+      border: 1px solid var(--teal-border);
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--text-sub);
+    }
+
+    /* ── Section headers ── */
+    .section-header {
+      text-align: center;
+      margin: 40px 0 20px;
+    }
+
+    .section-header .section-tag {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+
+    .section-header h2 {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: 28px;
+      font-weight: 600;
+      color: var(--white);
+    }
+
+    .section-header .divider-line {
+      margin-top: 10px;
+    }
+
+    /* ── Form groups ── */
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    label {
+      display: block;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 7px;
+    }
+
+    input[type="text"],
+    input[type="email"],
+    input[type="tel"],
+    textarea {
+      width: 100%;
+      padding: 12px 16px;
+      background: var(--teal-mid);
+      border: 1px solid var(--teal-border);
+      color: var(--white);
+      font-size: 15px;
+      font-family: 'Lato', sans-serif;
+      font-weight: 300;
+      outline: none;
+      transition: border-color 0.2s;
+      border-radius: 0;
+    }
+
+    input[type="text"]::placeholder,
+    input[type="email"]::placeholder,
+    input[type="tel"]::placeholder,
+    textarea::placeholder {
+      color: var(--text-muted);
+    }
+
+    input[type="text"]:focus,
+    input[type="email"]:focus,
+    input[type="tel"]:focus,
+    textarea:focus {
+      border-color: rgba(255,255,255,0.35);
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 80px;
+    }
+
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    /* ── Product rijen ── */
+    .product-rij {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 0;
+      border-bottom: 1px solid var(--teal-border);
+      gap: 16px;
+    }
+
+    .product-rij:first-child {
+      border-top: 1px solid var(--teal-border);
+    }
+
+    .product-info {
+      flex: 1;
+    }
+
+    .product-omschrijving {
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--white);
+    }
+
+    .product-prijs {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: 17px;
+      color: var(--text-sub);
+      margin-top: 3px;
+    }
+
+    .qty-control {
+      display: flex;
+      align-items: center;
+      gap: 0;
+    }
+
+    .qty-btn {
+      width: 34px;
+      height: 34px;
+      background: transparent;
+      border: 1px solid var(--teal-border);
+      color: var(--text-sub);
+      font-size: 18px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s;
+      line-height: 1;
+      padding: 0;
+    }
+
+    .qty-btn:hover {
+      background: var(--teal-mid);
+      border-color: rgba(255,255,255,0.25);
+      color: var(--white);
+    }
+
+    .qty-value {
+      width: 42px;
+      height: 34px;
+      text-align: center;
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--white);
+      background: var(--teal-mid);
+      border: 1px solid var(--teal-border);
+      border-left: none;
+      border-right: none;
+      outline: none;
+      font-family: 'Lato', sans-serif;
+      -moz-appearance: textfield;
+    }
+
+    .qty-value::-webkit-outer-spin-button,
+    .qty-value::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+    }
+
+    /* ── Totaal ── */
+    .totaal-balk {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-top: 1px solid rgba(255,255,255,0.20);
+      padding: 20px 0 0;
+      margin: 24px 0 32px;
+    }
+
+    .totaal-label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+
+    .totaal-bedrag {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: 28px;
+      font-weight: 600;
+      color: var(--white);
+    }
+
+    /* ── Submit ── */
+    button[type="submit"] {
+      width: 100%;
+      padding: 16px;
+      background: var(--red);
+      color: var(--white);
+      border: none;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      cursor: pointer;
+      font-family: 'Lato', sans-serif;
+      transition: background 0.2s;
+      border-radius: 0;
+    }
+
+    button[type="submit"]:hover {
+      background: var(--red-hover);
+    }
+
+    button[type="submit"]:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .deadline-note {
+      text-align: center;
+      font-size: 11px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-top: 14px;
+    }
+
+    /* ── Success ── */
+    .success {
+      display: none;
+      text-align: center;
+      padding: 20px 0;
+    }
+
+    .success h2 {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: 42px;
+      font-weight: 600;
+      color: var(--white);
+      margin: 16px 0 8px;
+    }
+
+    .success-details {
+      background: var(--teal-mid);
+      border: 1px solid var(--teal-border);
+      padding: 22px 26px;
+      margin: 24px 0;
+      font-size: 14px;
+      color: var(--text-sub);
+      line-height: 2;
+      text-align: left;
+      font-weight: 300;
+    }
+
+    .success-details strong {
+      color: var(--white);
+      font-weight: 600;
+    }
+
+    .success-footer {
+      font-size: 11px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-top: 8px;
+    }
+
+    .hero-img {
+      width: 100%;
+      height: 180px;
+      object-fit: cover;
+      object-position: center 40%;
+      display: block;
+      margin-bottom: 0;
+    }
+
+    .footer-img {
+      width: 100%;
+      height: 140px;
+      object-fit: cover;
+      object-position: center center;
+      display: block;
+      margin-top: 40px;
+    }
+
+    @media (max-width: 480px) {
+      .card-inner { padding: 40px 28px; }
+      h1 { font-size: 40px; }
+      .two-col { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <img src="header.png" alt="Brodshoes interieur" class="hero-img" />
+    <div class="card-inner">
+    <div id="form-section">
+
+      <!-- Header -->
+      <div class="header">
+        <div class="header-tag">Brodshoes · Almelo</div>
+        <h1>Pasen 2026</h1>
+        <div class="divider-line"></div>
+        <p class="subtitle">Bestel uw huisgemaakte salades voor Pasen.<br>Vers bereid, af te halen in Almelo.</p>
+        <div class="afhaal-badge">Afhalen zaterdag 18 april · 14:00 – 16:00 uur</div>
+      </div>
+
+      <form id="bestel-form" onsubmit="handleSubmit(event)">
+
+        <!-- Uw gegevens -->
+        <div class="section-header">
+          <div class="section-tag">Stap 1</div>
+          <h2>Uw gegevens</h2>
+          <div class="divider-line"></div>
+        </div>
+
+        <div class="two-col">
+          <div class="form-group">
+            <label for="voornaam">Voornaam</label>
+            <input type="text" id="voornaam" placeholder="Jan" required />
+          </div>
+          <div class="form-group">
+            <label for="achternaam">Achternaam</label>
+            <input type="text" id="achternaam" placeholder="de Vries" required />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="email">E-mailadres</label>
+          <input type="email" id="email" placeholder="jan@voorbeeld.nl" required />
+        </div>
+
+        <div class="two-col">
+          <div class="form-group">
+            <label for="telefoon">Telefoonnummer</label>
+            <input type="tel" id="telefoon" placeholder="06 12345678" required />
+          </div>
+          <div class="form-group">
+            <label for="adres">Adres &amp; Plaatsnaam</label>
+            <input type="text" id="adres" placeholder="Dorpsstraat 1, Almelo" required />
+          </div>
+        </div>
+
+        <!-- Huzarensalade -->
+        <div class="section-header">
+          <div class="section-tag">Stap 2</div>
+          <h2>Huzarensalade</h2>
+          <div class="divider-line"></div>
+        </div>
+
+        <div class="product-rij">
+          <div class="product-info">
+            <div class="product-omschrijving">Per liter</div>
+            <div class="product-prijs">€ 10,50</div>
+          </div>
+          <div class="qty-control">
+            <button type="button" class="qty-btn" onclick="changeQty('huz-liter', -1)">−</button>
+            <input class="qty-value" type="number" id="huz-liter" value="0" min="0" max="20" oninput="updateTotaal()" />
+            <button type="button" class="qty-btn" onclick="changeQty('huz-liter', 1)">+</button>
+          </div>
+        </div>
+        <div class="product-rij">
+          <div class="product-info">
+            <div class="product-omschrijving">2-persoons schaal</div>
+            <div class="product-prijs">€ 16,50</div>
+          </div>
+          <div class="qty-control">
+            <button type="button" class="qty-btn" onclick="changeQty('huz-2p', -1)">−</button>
+            <input class="qty-value" type="number" id="huz-2p" value="0" min="0" max="20" oninput="updateTotaal()" />
+            <button type="button" class="qty-btn" onclick="changeQty('huz-2p', 1)">+</button>
+          </div>
+        </div>
+        <div class="product-rij">
+          <div class="product-info">
+            <div class="product-omschrijving">4-persoons schaal</div>
+            <div class="product-prijs">€ 33,00</div>
+          </div>
+          <div class="qty-control">
+            <button type="button" class="qty-btn" onclick="changeQty('huz-4p', -1)">−</button>
+            <input class="qty-value" type="number" id="huz-4p" value="0" min="0" max="20" oninput="updateTotaal()" />
+            <button type="button" class="qty-btn" onclick="changeQty('huz-4p', 1)">+</button>
+          </div>
+        </div>
+
+        <!-- Waldorfsalade -->
+        <div class="section-header">
+          <div class="section-tag">Stap 3</div>
+          <h2>Waldorfsalade</h2>
+          <div class="divider-line"></div>
+        </div>
+
+        <div class="product-rij">
+          <div class="product-info">
+            <div class="product-omschrijving">Per liter</div>
+            <div class="product-prijs">€ 14,00</div>
+          </div>
+          <div class="qty-control">
+            <button type="button" class="qty-btn" onclick="changeQty('wal-liter', -1)">−</button>
+            <input class="qty-value" type="number" id="wal-liter" value="0" min="0" max="20" oninput="updateTotaal()" />
+            <button type="button" class="qty-btn" onclick="changeQty('wal-liter', 1)">+</button>
+          </div>
+        </div>
+        <div class="product-rij">
+          <div class="product-info">
+            <div class="product-omschrijving">2-persoons schaal</div>
+            <div class="product-prijs">€ 19,50</div>
+          </div>
+          <div class="qty-control">
+            <button type="button" class="qty-btn" onclick="changeQty('wal-2p', -1)">−</button>
+            <input class="qty-value" type="number" id="wal-2p" value="0" min="0" max="20" oninput="updateTotaal()" />
+            <button type="button" class="qty-btn" onclick="changeQty('wal-2p', 1)">+</button>
+          </div>
+        </div>
+        <div class="product-rij">
+          <div class="product-info">
+            <div class="product-omschrijving">4-persoons schaal</div>
+            <div class="product-prijs">€ 39,00</div>
+          </div>
+          <div class="qty-control">
+            <button type="button" class="qty-btn" onclick="changeQty('wal-4p', -1)">−</button>
+            <input class="qty-value" type="number" id="wal-4p" value="0" min="0" max="20" oninput="updateTotaal()" />
+            <button type="button" class="qty-btn" onclick="changeQty('wal-4p', 1)">+</button>
+          </div>
+        </div>
+
+        <!-- Totaal -->
+        <div class="totaal-balk">
+          <span class="totaal-label">Totaal</span>
+          <span class="totaal-bedrag" id="totaal-bedrag">€ 0,00</span>
+        </div>
+
+        <!-- Opmerking -->
+        <div class="form-group">
+          <label for="opmerking">Opmerkingen of wensen (optioneel)</label>
+          <textarea id="opmerking" placeholder="Bijv. allergieën, speciale wensen..."></textarea>
+        </div>
+
+        <button type="submit" id="submit-btn">Bestelling plaatsen</button>
+        <p class="deadline-note">Bestellen kan tot en met zondag 13 april 2026</p>
+      </form>
+    </div>
+
+    <!-- Bevestiging -->
+    <div class="success" id="success-section">
+      <div class="header-tag">Brodshoes · Almelo</div>
+      <h2 id="success-title">Bedankt voor uw bestelling!</h2>
+      <div class="divider-line"></div>
+      <div class="success-details" id="success-bericht"></div>
+      <p class="success-footer">Bevestiging verstuurd per e-mail &nbsp;·&nbsp; Brodshoes, Almelo</p>
+    </div> <!-- /success-section -->
+    </div> <!-- /card-inner -->
+    <img src="footer.png" alt="Brodshoes gerechten" class="footer-img" />
+  </div>
+
+  <script>
+    const PRIJZEN = {
+      'huz-liter': 10.50,
+      'huz-2p':    16.50,
+      'huz-4p':    33.00,
+      'wal-liter': 14.00,
+      'wal-2p':    19.50,
+      'wal-4p':    39.00,
+    };
+
+    const LABELS = {
+      'huz-liter': 'Huzarensalade – per liter',
+      'huz-2p':    'Huzarensalade – 2-persoons schaal',
+      'huz-4p':    'Huzarensalade – 4-persoons schaal',
+      'wal-liter': 'Waldorfsalade – per liter',
+      'wal-2p':    'Waldorfsalade – 2-persoons schaal',
+      'wal-4p':    'Waldorfsalade – 4-persoons schaal',
+    };
+
+    function changeQty(id, delta) {
+      const el = document.getElementById(id);
+      el.value = Math.max(0, Math.min(20, (parseInt(el.value) || 0) + delta));
+      updateTotaal();
+    }
+
+    function updateTotaal() {
+      let totaal = 0;
+      for (const id in PRIJZEN) {
+        totaal += (parseInt(document.getElementById(id).value) || 0) * PRIJZEN[id];
+      }
+      document.getElementById('totaal-bedrag').textContent =
+        '€ ' + totaal.toFixed(2).replace('.', ',');
+    }
+
+    function getBestelregels() {
+      const regels = [];
+      for (const id in PRIJZEN) {
+        const qty = parseInt(document.getElementById(id).value) || 0;
+        if (qty > 0) regels.push({ label: LABELS[id], qty, subtotaal: qty * PRIJZEN[id] });
+      }
+      return regels;
+    }
+
+    async function handleSubmit(e) {
+      e.preventDefault();
+
+      const regels = getBestelregels();
+      if (regels.length === 0) {
+        alert('Selecteer minimaal één product om te bestellen.');
+        return;
+      }
+
+      const voornaam   = document.getElementById('voornaam').value.trim();
+      const achternaam = document.getElementById('achternaam').value.trim();
+      const email      = document.getElementById('email').value.trim();
+      const telefoon   = document.getElementById('telefoon').value.trim();
+      const adres      = document.getElementById('adres').value.trim();
+      const opmerking  = document.getElementById('opmerking').value.trim();
+      const totaal     = regels.reduce((s, r) => s + r.subtotaal, 0);
+
+      const data = {
+        voornaam, achternaam, email, telefoon, adres,
+        bestelling: regels.map(r => `${r.qty}× ${r.label} (€ ${r.subtotaal.toFixed(2).replace('.', ',')})`).join('\n'),
+        totaal: '€ ' + totaal.toFixed(2).replace('.', ','),
+        opmerking: opmerking || '–',
+        _replyto: email,
+        _subject: `Pasen 2026 bestelling – ${voornaam} ${achternaam}`,
+      };
+
+      const btn = document.getElementById('submit-btn');
+      btn.textContent = 'Bezig met versturen…';
+      btn.disabled = true;
+
+      try {
+        await fetch('https://formspree.io/f/PLACEHOLDER', {
+          method: 'POST',
+          headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
+          body: JSON.stringify(data),
+        });
+      } catch (_) {}
+
+      document.getElementById('form-section').style.display = 'none';
+      document.getElementById('success-section').style.display = 'block';
+      document.getElementById('success-title').textContent = `Bedankt, ${voornaam}!`;
+
+      const regelHTML = regels
+        .map(r => `<strong>${r.qty}×</strong> ${r.label} &nbsp;·&nbsp; € ${r.subtotaal.toFixed(2).replace('.', ',')}`)
+        .join('<br>');
+
+      document.getElementById('success-bericht').innerHTML =
+        `${regelHTML}<br><br>
+         <strong>Totaal: € ${totaal.toFixed(2).replace('.', ',')}</strong><br><br>
+         Afhalen op <strong>zaterdag 18 april</strong> tussen 14:00 en 16:00 uur.<br>
+         Een bevestiging wordt verstuurd naar <strong>${email}</strong>.`;
+    }
+  </script>
+</body>
+</html>
