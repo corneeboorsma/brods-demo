@@ -402,6 +402,76 @@
 
     .toast.zichtbaar { opacity: 1; }
 
+    /* ── Foto upload ── */
+    .foto-sectie {
+      margin-top: 28px;
+    }
+
+    .foto-rij {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-top: 12px;
+    }
+
+    .foto-upload-blok {
+      border: 2px dashed var(--border);
+      padding: 16px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.15s;
+      background: #fff;
+      position: relative;
+    }
+
+    .foto-upload-blok:hover { border-color: var(--teal); }
+
+    .foto-upload-blok input[type="file"] {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      cursor: pointer;
+      width: 100%;
+      height: 100%;
+    }
+
+    .foto-preview {
+      width: 100%;
+      height: 100px;
+      object-fit: cover;
+      display: none;
+      margin-bottom: 8px;
+    }
+
+    .foto-upload-label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--muted);
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .foto-hint {
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .foto-verwijder {
+      display: none;
+      margin-top: 6px;
+      background: none;
+      border: 1px solid #ddd;
+      color: var(--muted);
+      font-size: 11px;
+      cursor: pointer;
+      padding: 3px 8px;
+      font-family: 'Lato', sans-serif;
+    }
+
+    .foto-verwijder:hover { color: var(--red); border-color: var(--red); }
+
     /* ── Preview badge ── */
     .preview-link {
       display: inline-block;
@@ -455,6 +525,33 @@
         <div class="sectie-header">Kies een thema</div>
         <div class="sectie-body">
           <div class="thema-grid" id="thema-grid"></div>
+        </div>
+      </div>
+      <div class="sectie">
+        <div class="sectie-header">Header &amp; footer foto</div>
+        <div class="sectie-body">
+          <p style="font-size:13px;color:var(--muted);margin-bottom:16px;">
+            Aanbevolen formaat: <strong>Header 1200 × 400px</strong> &nbsp;·&nbsp; <strong>Footer 1200 × 300px</strong>
+          </p>
+          <div class="foto-rij">
+            <div class="foto-upload-blok" id="header-upload-blok">
+              <input type="file" accept="image/*" onchange="laadFoto('header', this)" />
+              <img class="foto-preview" id="header-preview" src="" alt="Header preview" />
+              <span class="foto-upload-label">Header foto</span>
+              <span class="foto-hint">Klik om te uploaden · 1200 × 400px</span>
+              <button class="foto-verwijder" id="header-verwijder" onclick="verwijderFoto('header', event)">× Verwijderen</button>
+            </div>
+            <div class="foto-upload-blok" id="footer-upload-blok">
+              <input type="file" accept="image/*" onchange="laadFoto('footer', this)" />
+              <img class="foto-preview" id="footer-preview" src="" alt="Footer preview" />
+              <span class="foto-upload-label">Footer foto</span>
+              <span class="foto-hint">Klik om te uploaden · 1200 × 300px</span>
+              <button class="foto-verwijder" id="footer-verwijder" onclick="verwijderFoto('footer', event)">× Verwijderen</button>
+            </div>
+          </div>
+          <p style="font-size:11px;color:var(--muted);margin-top:12px;">
+            Foto's worden opgeslagen per thema. Wissel je van thema, dan worden de bijbehorende foto's automatisch geladen.
+          </p>
         </div>
       </div>
     </div>
@@ -673,6 +770,7 @@ function bouwThemaGrid() {
       config.thema = id;
       document.querySelectorAll('.thema-card').forEach(c => c.classList.remove('geselecteerd'));
       card.classList.add('geselecteerd');
+      laadFotoPreviewsVoorThema(id);
     };
     card.innerHTML = `
       <div class="thema-preview" style="background:${thema.achtergrond}">
@@ -683,6 +781,7 @@ function bouwThemaGrid() {
       <div class="thema-naam">${thema.naam}</div>`;
     grid.appendChild(card);
   }
+  laadFotoPreviewsVoorThema(config.thema);
 }
 
 // ══════════════════════════════════════
@@ -800,6 +899,62 @@ function verwijderTijdslot(i) {
   if (config.tijdslots.length <= 1) return alert('Minimaal één tijdslot vereist.');
   config.tijdslots.splice(i, 1);
   bouwTijdslots();
+}
+
+// ══════════════════════════════════════
+// FOTO UPLOAD
+// ══════════════════════════════════════
+function fotoSleutel(type) {
+  return `brodshoes_foto_${config.thema}_${type}`;
+}
+
+function laadFoto(type, input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const data = e.target.result;
+    localStorage.setItem(fotoSleutel(type), data);
+    toonFotoPreview(type, data);
+  };
+  reader.readAsDataURL(file);
+}
+
+function toonFotoPreview(type, data) {
+  const preview = document.getElementById(`${type}-preview`);
+  const verwijder = document.getElementById(`${type}-verwijder`);
+  preview.src = data;
+  preview.style.display = 'block';
+  verwijder.style.display = 'inline-block';
+}
+
+function verwijderFoto(type, e) {
+  e.stopPropagation();
+  localStorage.removeItem(fotoSleutel(type));
+  const preview = document.getElementById(`${type}-preview`);
+  const verwijder = document.getElementById(`${type}-verwijder`);
+  preview.src = '';
+  preview.style.display = 'none';
+  verwijder.style.display = 'none';
+}
+
+function laadFotoPreviewsVoorThema(themaId) {
+  const tijdelijkThema = config.thema;
+  config.thema = themaId;
+  for (const type of ['header', 'footer']) {
+    const data = localStorage.getItem(fotoSleutel(type));
+    const preview = document.getElementById(`${type}-preview`);
+    const verwijder = document.getElementById(`${type}-verwijder`);
+    if (data) {
+      toonFotoPreview(type, data);
+    } else {
+      preview.src = '';
+      preview.style.display = 'none';
+      verwijder.style.display = 'none';
+    }
+  }
+  config.thema = tijdelijkThema;
+  config.thema = themaId;
 }
 
 // ══════════════════════════════════════

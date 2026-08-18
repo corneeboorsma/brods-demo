@@ -433,7 +433,7 @@
 </head>
 <body>
   <div class="card">
-    <img src="header.png" alt="Brodshoes interieur" class="hero-img" />
+    <img id="hero-img" src="header.png" alt="Brodshoes interieur" class="hero-img" />
     <div class="card-inner">
     <div id="form-section">
 
@@ -523,7 +523,7 @@
       <p class="success-footer" id="ev-locatie-success"></p>
     </div> <!-- /success-section -->
     </div> <!-- /card-inner -->
-    <img src="footer.png" alt="Brodshoes gerechten" class="footer-img" />
+    <img id="footer-img" src="footer.png" alt="Brodshoes gerechten" class="footer-img" />
   </div>
 
   <script>
@@ -565,6 +565,12 @@
     document.documentElement.style.setProperty('--teal-mid', thema.kaartMid);
     document.documentElement.style.setProperty('--red', thema.accent);
     document.documentElement.style.setProperty('--red-hover', thema.accent + 'cc');
+
+    // Laad header/footer foto van het actieve thema uit localStorage
+    const headerFoto = localStorage.getItem(`brodshoes_foto_${cfg.thema}_header`);
+    const footerFoto = localStorage.getItem(`brodshoes_foto_${cfg.thema}_footer`);
+    if (headerFoto) document.getElementById('hero-img').src = headerFoto;
+    if (footerFoto) document.getElementById('footer-img').src = footerFoto;
 
     // Vul evenement teksten in
     document.addEventListener('DOMContentLoaded', () => {
