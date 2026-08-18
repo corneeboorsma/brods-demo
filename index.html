@@ -383,10 +383,51 @@
       margin-top: 40px;
     }
 
+    .tijdslot-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .tijdslot-option {
+      cursor: pointer;
+    }
+
+    .tijdslot-option input {
+      display: none;
+    }
+
+    .tijdslot-label {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 12px;
+      border: 1px solid var(--teal-border);
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      color: var(--text-sub);
+      background: var(--teal-mid);
+      transition: all 0.15s;
+      cursor: pointer;
+    }
+
+    .tijdslot-option input:checked + .tijdslot-label {
+      background: var(--red);
+      border-color: var(--red);
+      color: var(--white);
+    }
+
+    .tijdslot-label:hover {
+      border-color: rgba(255,255,255,0.30);
+      color: var(--white);
+    }
+
     @media (max-width: 480px) {
       .card-inner { padding: 40px 28px; }
       h1 { font-size: 40px; }
       .two-col { grid-template-columns: 1fr; }
+      .tijdslot-grid { grid-template-columns: 1fr 1fr; }
     }
   </style>
 </head>
@@ -523,6 +564,35 @@
           </div>
         </div>
 
+        <!-- Tijdslot -->
+        <div class="section-header">
+          <div class="section-tag">Stap 4</div>
+          <h2>Afhaalmoment</h2>
+          <div class="divider-line"></div>
+        </div>
+
+        <div class="form-group">
+          <label>Kies uw tijdslot (zaterdag 18 april)</label>
+          <div class="tijdslot-grid">
+            <label class="tijdslot-option">
+              <input type="radio" name="tijdslot" value="14:00 – 14:30" required />
+              <span class="tijdslot-label">14:00 – 14:30</span>
+            </label>
+            <label class="tijdslot-option">
+              <input type="radio" name="tijdslot" value="14:30 – 15:00" />
+              <span class="tijdslot-label">14:30 – 15:00</span>
+            </label>
+            <label class="tijdslot-option">
+              <input type="radio" name="tijdslot" value="15:00 – 15:30" />
+              <span class="tijdslot-label">15:00 – 15:30</span>
+            </label>
+            <label class="tijdslot-option">
+              <input type="radio" name="tijdslot" value="15:30 – 16:00" />
+              <span class="tijdslot-label">15:30 – 16:00</span>
+            </label>
+          </div>
+        </div>
+
         <!-- Totaal -->
         <div class="totaal-balk">
           <span class="totaal-label">Totaal</span>
@@ -610,12 +680,14 @@
       const telefoon   = document.getElementById('telefoon').value.trim();
       const adres      = document.getElementById('adres').value.trim();
       const opmerking  = document.getElementById('opmerking').value.trim();
+      const tijdslot   = document.querySelector('input[name="tijdslot"]:checked').value;
       const totaal     = regels.reduce((s, r) => s + r.subtotaal, 0);
 
       const data = {
         voornaam, achternaam, email, telefoon, adres,
         bestelling: regels.map(r => `${r.qty}× ${r.label} (€ ${r.subtotaal.toFixed(2).replace('.', ',')})`).join('\n'),
         totaal: '€ ' + totaal.toFixed(2).replace('.', ','),
+        tijdslot,
         opmerking: opmerking || '–',
         _replyto: email,
         _subject: `Pasen 2026 bestelling – ${voornaam} ${achternaam}`,
@@ -644,7 +716,7 @@
       document.getElementById('success-bericht').innerHTML =
         `${regelHTML}<br><br>
          <strong>Totaal: € ${totaal.toFixed(2).replace('.', ',')}</strong><br><br>
-         Afhalen op <strong>zaterdag 18 april</strong> tussen 14:00 en 16:00 uur.<br>
+         Afhalen op <strong>zaterdag 18 april</strong> om <strong>${tijdslot}</strong> uur.<br>
          Een bevestiging wordt verstuurd naar <strong>${email}</strong>.`;
     }
   </script>
