@@ -323,6 +323,58 @@
       background: var(--white);
     }
 
+    /* Uitklapbare bestelling */
+    .best-header-rij {
+      cursor: pointer; transition: background 0.15s;
+    }
+    .best-header-rij:hover td { background: #faf7f2; }
+
+    .best-toggle {
+      width: 24px; height: 24px; display: inline-flex; align-items: center;
+      justify-content: center; font-size: 12px; color: var(--muted);
+      transition: transform 0.2s;
+    }
+    .best-toggle.open { transform: rotate(90deg); }
+
+    .best-detail-rij td {
+      background: #f9f6f0;
+      padding: 0 !important;
+    }
+
+    .best-detail-inhoud {
+      display: none;
+      padding: 16px 20px 20px 52px;
+      border-top: 1px solid #ece3d6;
+    }
+
+    .best-detail-inhoud.open { display: block; }
+
+    .best-detail-grid {
+      display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 14px;
+    }
+
+    .best-detail-blok label {
+      font-size: 10px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase;
+      color: var(--muted); display: block; margin-bottom: 4px;
+    }
+
+    .best-detail-blok p { font-size: 14px; color: var(--text); }
+
+    .best-regels-tabel { width: 100%; border-collapse: collapse; margin-top: 8px; }
+    .best-regels-tabel th {
+      font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase;
+      color: var(--muted); padding: 6px 10px; text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+    .best-regels-tabel td { padding: 8px 10px; font-size: 13px; border-bottom: 1px solid #ece3d6; }
+    .best-regels-tabel tr:last-child td { border-bottom: none; }
+
+    .best-opmerking {
+      background: #fff3f2; border-left: 3px solid var(--red);
+      padding: 10px 14px; font-size: 13px; color: var(--text);
+      margin-top: 12px;
+    }
+
     /* Activiteit tijdlijn */
     .tijdlijn { display: flex; flex-direction: column; gap: 0; }
 
@@ -532,18 +584,16 @@
     <table class="pub-tabel" id="best-tabel">
       <thead>
         <tr>
+          <th></th>
           <th>Naam</th>
-          <th>Template</th>
           <th>Tijdslot</th>
           <th>Totaal</th>
-          <th>Opmerking</th>
           <th>Status</th>
           <th>Besteld op</th>
-          <th></th>
         </tr>
       </thead>
       <tbody id="best-tbody">
-        <tr><td colspan="8" style="text-align:center;color:var(--muted);padding:32px;">Laden…</td></tr>
+        <tr><td colspan="6" style="text-align:center;color:var(--muted);padding:32px;">Laden…</td></tr>
       </tbody>
     </table>
   </div>
@@ -1436,41 +1486,90 @@ function renderSamenvatting() {
 function renderBestellingen() {
   const tbody = document.getElementById('best-tbody');
   if (!alleBestellingen.length) {
-    tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:32px;">Geen bestellingen gevonden.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:32px;">Geen bestellingen gevonden.</td></tr>`;
     return;
   }
 
-  tbody.innerHTML = alleBestellingen.map(b => {
+  tbody.innerHTML = alleBestellingen.map((b, i) => {
     const naam     = `${b.voornaam} ${b.achternaam}`;
     const template = alleTemplates.find(t => t.id === b.template_id);
-    const regels   = (b.regels || []).map(r => `${r.qty}× ${r.label}`).join('<br>');
     const datum    = new Date(b.besteld_op).toLocaleString('nl-NL');
-    const opmerking = b.opmerking
-      ? `<span style="color:var(--red);font-weight:700;" title="${b.opmerking}">⚠️ ${b.opmerking.substring(0,30)}${b.opmerking.length > 30 ? '…' : ''}</span>`
-      : '<span style="color:var(--muted)">–</span>';
+    const heeftOpmerking = !!b.opmerking;
 
-    return `<tr>
-      <td>
-        <strong>${naam}</strong><br>
-        <span style="font-size:12px;color:var(--muted)">${b.email}</span><br>
-        <span style="font-size:12px;color:var(--muted)">${b.telefoon || ''}</span><br>
-        <span style="font-size:11px;color:var(--muted)">${regels}</span>
-      </td>
-      <td style="font-size:12px">${template?.naam || b.template_slug || '–'}</td>
-      <td style="font-size:13px;font-weight:600">${b.tijdslot || '–'}</td>
-      <td style="font-family:'Cormorant Garamond',serif;font-size:16px;font-weight:700">€ ${parseFloat(b.totaal).toFixed(2).replace('.', ',')}</td>
-      <td>${opmerking}</td>
-      <td>
-        <select class="status-select" onchange="updateStatus('${b.id}', this.value)">
-          <option value="nieuw"          ${b.status==='nieuw'?'selected':''}>🆕 Nieuw</option>
-          <option value="in_behandeling" ${b.status==='in_behandeling'?'selected':''}>🔄 In behandeling</option>
-          <option value="klaar"          ${b.status==='klaar'?'selected':''}>✅ Klaar</option>
-        </select>
-      </td>
-      <td style="font-size:12px;color:var(--muted)">${datum}</td>
-      <td><a href="mailto:${b.email}" style="color:var(--teal);font-size:12px;">✉️</a></td>
-    </tr>`;
+    const statusBadge = {
+      nieuw:          '<span style="color:#2d7a3a;font-weight:700;">🆕 Nieuw</span>',
+      in_behandeling: '<span style="color:#a0670a;font-weight:700;">🔄 In behandeling</span>',
+      klaar:          '<span style="color:#888;font-weight:700;">✅ Klaar</span>',
+    }[b.status] || b.status;
+
+    const regelsHTML = (b.regels || []).map(r =>
+      `<tr>
+        <td>${r.label || ''}</td>
+        <td style="text-align:center">${r.qty}×</td>
+        <td style="text-align:right">€ ${(r.subtotaal || 0).toFixed(2).replace('.', ',')}</td>
+      </tr>`
+    ).join('');
+
+    return `
+      <tr class="best-header-rij" onclick="toggleBestelling('detail-${i}')">
+        <td style="width:32px;text-align:center">
+          <span class="best-toggle" id="toggle-${i}">▶</span>
+        </td>
+        <td>
+          <strong>${naam}</strong>
+          ${heeftOpmerking ? ' <span style="color:var(--red)" title="${b.opmerking}">⚠️</span>' : ''}
+          ${template ? `<br><span style="font-size:11px;color:var(--muted)">${template.naam}</span>` : ''}
+        </td>
+        <td style="font-weight:600">${b.tijdslot || '–'}</td>
+        <td style="font-family:'Cormorant Garamond',serif;font-size:16px;font-weight:700">€ ${parseFloat(b.totaal).toFixed(2).replace('.', ',')}</td>
+        <td>${statusBadge}</td>
+        <td style="font-size:12px;color:var(--muted)">${datum}</td>
+      </tr>
+      <tr class="best-detail-rij">
+        <td colspan="6">
+          <div class="best-detail-inhoud" id="detail-${i}">
+            <div class="best-detail-grid">
+              <div class="best-detail-blok">
+                <label>Contactgegevens</label>
+                <p>${naam}<br>${b.email}<br>${b.telefoon || '–'}</p>
+              </div>
+              <div class="best-detail-blok">
+                <label>Adres</label>
+                <p>${b.adres || '–'}</p>
+              </div>
+              <div class="best-detail-blok">
+                <label>Status wijzigen</label>
+                <select class="status-select" onchange="updateStatus('${b.id}', this.value)" onclick="event.stopPropagation()">
+                  <option value="nieuw"          ${b.status==='nieuw'?'selected':''}>🆕 Nieuw</option>
+                  <option value="in_behandeling" ${b.status==='in_behandeling'?'selected':''}>🔄 In behandeling</option>
+                  <option value="klaar"          ${b.status==='klaar'?'selected':''}>✅ Klaar</option>
+                </select>
+                <br><a href="mailto:${b.email}" style="font-size:12px;color:var(--teal);margin-top:6px;display:inline-block;">✉️ Mail versturen</a>
+              </div>
+            </div>
+            <label style="font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:6px;">Bestelling</label>
+            <table class="best-regels-tabel">
+              <thead><tr><th>Product</th><th style="text-align:center">Aantal</th><th style="text-align:right">Bedrag</th></tr></thead>
+              <tbody>${regelsHTML}</tbody>
+              <tfoot><tr>
+                <td colspan="2" style="font-weight:700;font-size:12px;letter-spacing:1px;text-transform:uppercase;color:var(--muted)">Totaal</td>
+                <td style="text-align:right;font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:700">€ ${parseFloat(b.totaal).toFixed(2).replace('.', ',')}</td>
+              </tr></tfoot>
+            </table>
+            ${b.opmerking ? `<div class="best-opmerking"><strong>⚠️ Opmerking:</strong> ${b.opmerking}</div>` : ''}
+          </div>
+        </td>
+      </tr>`;
   }).join('');
+}
+
+function toggleBestelling(id) {
+  const detail  = document.getElementById(id);
+  const index   = id.replace('detail-', '');
+  const toggle  = document.getElementById('toggle-' + index);
+  const isOpen  = detail.classList.contains('open');
+  detail.classList.toggle('open', !isOpen);
+  toggle.classList.toggle('open', !isOpen);
 }
 
 async function updateStatus(id, status) {
