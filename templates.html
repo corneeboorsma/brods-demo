@@ -1,0 +1,953 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Templates | Brodshoes Beheer</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Lato:wght@300;400;600;700&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-config.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --teal:       #1e3a3f;
+      --teal-dark:  #162d31;
+      --teal-mid:   #254a50;
+      --red:        #e85d4a;
+      --cream:      #e8dcc8;
+      --white:      #fff;
+      --border:     #d0c4ae;
+      --text:       #2c2c2c;
+      --muted:      #888;
+    }
+
+    body { font-family: 'Lato', sans-serif; background: var(--cream); color: var(--text); min-height: 100vh; }
+
+    /* ── Topbar ── */
+    .topbar {
+      background: var(--teal);
+      color: #fff;
+      padding: 16px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .topbar-title { font-family: 'Cormorant Garamond', serif; font-size: 22px; font-weight: 700; letter-spacing: 2px; }
+    .topbar-sub { font-size: 11px; color: rgba(255,255,255,0.55); letter-spacing: 1.5px; text-transform: uppercase; }
+    .topbar-user { font-size: 12px; color: rgba(255,255,255,0.6); display: flex; align-items: center; gap: 16px; }
+
+    .btn-primary {
+      padding: 10px 22px; background: var(--red); color: #fff; border: none;
+      font-size: 12px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase;
+      cursor: pointer; font-family: 'Lato', sans-serif;
+    }
+    .btn-primary:hover { background: #d04838; }
+
+    .btn-secondary {
+      padding: 10px 18px; background: transparent; color: rgba(255,255,255,0.7);
+      border: 1px solid rgba(255,255,255,0.25); font-size: 12px; font-weight: 600;
+      letter-spacing: 1.5px; text-transform: uppercase; cursor: pointer; font-family: 'Lato', sans-serif;
+    }
+    .btn-secondary:hover { border-color: rgba(255,255,255,0.5); color: #fff; }
+
+    /* ── Tabs ── */
+    .tabs { background: var(--teal-dark); display: flex; padding: 0 32px; }
+    .tab {
+      padding: 14px 20px; font-size: 11px; font-weight: 700; letter-spacing: 2px;
+      text-transform: uppercase; color: rgba(255,255,255,0.5); cursor: pointer;
+      border-bottom: 3px solid transparent; transition: all 0.15s;
+    }
+    .tab.active { color: #fff; border-bottom-color: var(--red); }
+    .tab:hover { color: rgba(255,255,255,0.8); }
+
+    /* ── Content ── */
+    .content { padding: 32px; max-width: 1100px; }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* ── Toolbar ── */
+    .toolbar {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 24px; gap: 12px; flex-wrap: wrap;
+    }
+    .toolbar-links { display: flex; gap: 8px; }
+    .filter-btn {
+      padding: 7px 16px; border: 1px solid var(--border); background: var(--white);
+      font-size: 11px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase;
+      cursor: pointer; font-family: 'Lato', sans-serif; color: var(--muted); transition: all 0.15s;
+    }
+    .filter-btn.active { background: var(--teal); color: #fff; border-color: var(--teal); }
+
+    .btn-nieuw {
+      padding: 10px 22px; background: var(--red); color: #fff; border: none;
+      font-size: 12px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase;
+      cursor: pointer; font-family: 'Lato', sans-serif;
+    }
+    .btn-nieuw:hover { background: #d04838; }
+
+    /* ── Template kaartjes ── */
+    .templates-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 16px;
+    }
+
+    .template-kaart {
+      background: var(--white);
+      border: 1px solid var(--border);
+      overflow: hidden;
+    }
+
+    .kaart-kleur-balk { height: 6px; }
+
+    .kaart-body { padding: 20px; }
+
+    .kaart-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 10px; }
+
+    .kaart-naam {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 20px; font-weight: 700; color: var(--teal);
+    }
+
+    .status-badge {
+      font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase;
+      padding: 3px 9px; border-radius: 2px;
+    }
+    .status-concept      { background: #f0f0f0; color: var(--muted); }
+    .status-gepubliceerd { background: #e6f4ea; color: #2d7a3a; }
+    .status-gearchiveerd { background: #fdf0e0; color: #a0670a; }
+
+    .kaart-meta { font-size: 12px; color: var(--muted); margin-bottom: 14px; line-height: 1.6; }
+
+    .kaart-acties { display: flex; gap: 6px; flex-wrap: wrap; }
+
+    .actie-btn {
+      padding: 6px 12px; border: 1px solid var(--border); background: var(--white);
+      font-size: 11px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase;
+      cursor: pointer; font-family: 'Lato', sans-serif; color: var(--text); transition: all 0.15s;
+    }
+    .actie-btn:hover { border-color: var(--teal); color: var(--teal); }
+    .actie-btn.rood:hover { border-color: var(--red); color: var(--red); }
+    .actie-btn.groen { background: var(--red); color: #fff; border-color: var(--red); }
+    .actie-btn.groen:hover { background: #d04838; }
+
+    /* ── Leeg state ── */
+    .leeg {
+      text-align: center; padding: 60px 20px; color: var(--muted);
+    }
+    .leeg p { font-size: 15px; margin-bottom: 20px; }
+
+    /* ── Publicaties tabel ── */
+    .pub-tabel { width: 100%; border-collapse: collapse; background: var(--white); border: 1px solid var(--border); }
+    .pub-tabel th {
+      background: var(--teal); color: #fff; padding: 12px 16px;
+      font-size: 10px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; text-align: left;
+    }
+    .pub-tabel td { padding: 13px 16px; border-bottom: 1px solid #ece3d6; font-size: 14px; }
+    .pub-tabel tr:last-child td { border-bottom: none; }
+    .pub-tabel tr:hover td { background: #faf7f2; }
+
+    .url-cel { font-family: monospace; font-size: 12px; color: var(--teal); }
+    .kopieer-btn {
+      padding: 4px 10px; border: 1px solid var(--border); background: var(--white);
+      font-size: 11px; cursor: pointer; font-family: 'Lato', sans-serif; color: var(--muted);
+    }
+    .kopieer-btn:hover { border-color: var(--teal); color: var(--teal); }
+
+    /* ── Modal overlay ── */
+    .modal-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(22, 45, 49, 0.7); z-index: 100;
+      align-items: flex-start; justify-content: center;
+      padding: 40px 20px; overflow-y: auto;
+    }
+    .modal-overlay.open { display: flex; }
+
+    .modal {
+      background: var(--white); width: 100%; max-width: 700px;
+      border-top: 4px solid var(--red); position: relative;
+    }
+
+    .modal-header {
+      background: var(--teal); color: #fff; padding: 20px 28px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .modal-titel { font-family: 'Cormorant Garamond', serif; font-size: 22px; font-weight: 700; }
+    .modal-sluit {
+      background: none; border: none; color: rgba(255,255,255,0.6);
+      font-size: 22px; cursor: pointer; padding: 0; line-height: 1;
+    }
+    .modal-sluit:hover { color: #fff; }
+
+    .modal-body { padding: 28px; }
+    .modal-footer {
+      padding: 16px 28px; border-top: 1px solid var(--border);
+      display: flex; gap: 10px; justify-content: flex-end;
+    }
+
+    /* ── Editor form elementen ── */
+    .sectie-label-editor {
+      font-size: 10px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase;
+      color: var(--muted); margin: 24px 0 12px; padding-bottom: 6px;
+      border-bottom: 1px solid var(--border);
+    }
+    .sectie-label-editor:first-child { margin-top: 0; }
+
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px; }
+    .form-row.enkel { grid-template-columns: 1fr; }
+    .form-group { margin-bottom: 0; }
+
+    .form-group label {
+      display: block; font-size: 10px; font-weight: 700; letter-spacing: 2px;
+      text-transform: uppercase; color: var(--muted); margin-bottom: 6px;
+    }
+
+    .form-group input, .form-group textarea, .form-group select {
+      width: 100%; padding: 10px 13px; border: 1.5px solid var(--border);
+      font-size: 14px; color: var(--text); background: var(--white);
+      font-family: 'Lato', sans-serif; outline: none; transition: border-color 0.15s;
+    }
+    .form-group input:focus, .form-group textarea:focus { border-color: var(--teal); }
+    .form-group textarea { resize: vertical; min-height: 60px; }
+
+    /* Thema kiezer in modal */
+    .thema-grid-modal { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-bottom: 14px; }
+    .thema-card-modal {
+      cursor: pointer; border: 3px solid transparent; transition: all 0.15s;
+    }
+    .thema-card-modal.geselecteerd { border-color: var(--red); }
+    .thema-preview-modal { height: 50px; display: flex; align-items: center; justify-content: center; gap: 4px; }
+    .thema-dot { width: 14px; height: 14px; border-radius: 50%; }
+    .thema-naam-modal {
+      font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;
+      text-align: center; padding: 5px 2px; background: #f5f5f5; color: var(--text);
+    }
+
+    /* Categorieën editor in modal */
+    .categorie-blok {
+      background: #f9f6f0; border: 1px solid var(--border); margin-bottom: 12px; overflow: hidden;
+    }
+    .categorie-header-modal {
+      display: flex; align-items: center; gap: 10px; padding: 10px 14px;
+      background: #f0ebe0; border-bottom: 1px solid var(--border);
+    }
+    .categorie-naam-input {
+      flex: 1; border: 1px solid var(--border); padding: 6px 10px;
+      font-size: 14px; font-weight: 700; font-family: 'Lato', sans-serif;
+      background: #fff; outline: none;
+    }
+    .product-rij-editor {
+      display: grid; grid-template-columns: 1fr 100px 32px; gap: 8px;
+      align-items: center; padding: 8px 14px; border-bottom: 1px solid #ece3d6;
+    }
+    .product-rij-editor:last-child { border-bottom: none; }
+    .product-rij-editor input {
+      border: 1px solid var(--border); padding: 6px 9px;
+      font-size: 13px; font-family: 'Lato', sans-serif; outline: none; width: 100%;
+    }
+
+    .btn-remove {
+      background: none; border: 1px solid #ddd; color: #aaa;
+      width: 26px; height: 26px; cursor: pointer; font-size: 15px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .btn-remove:hover { border-color: var(--red); color: var(--red); }
+
+    .btn-add {
+      padding: 7px 14px; background: transparent; border: 1.5px dashed var(--border);
+      color: var(--muted); font-size: 11px; font-weight: 600; letter-spacing: 1px;
+      text-transform: uppercase; cursor: pointer; font-family: 'Lato', sans-serif;
+      margin: 8px 14px;
+    }
+    .btn-add:hover { border-color: var(--teal); color: var(--teal); }
+
+    /* Tijdslots in modal */
+    .tijdslot-lijst-modal { display: flex; flex-direction: column; gap: 6px; }
+    .tijdslot-item-modal {
+      display: flex; align-items: center; gap: 8px;
+      background: #f9f6f0; border: 1px solid var(--border); padding: 8px 12px;
+    }
+    .tijdslot-item-modal input {
+      flex: 1; border: 1px solid var(--border); padding: 6px 9px;
+      font-size: 14px; font-family: 'Lato', sans-serif; outline: none;
+    }
+
+    /* Bevestig dialoog */
+    .confirm-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(22,45,49,0.8); z-index: 200;
+      align-items: center; justify-content: center;
+    }
+    .confirm-overlay.open { display: flex; }
+    .confirm-box {
+      background: var(--white); padding: 36px; max-width: 380px;
+      width: 100%; text-align: center; border-top: 4px solid var(--red);
+    }
+    .confirm-box h3 {
+      font-family: 'Cormorant Garamond', serif; font-size: 24px;
+      color: var(--teal); margin-bottom: 10px;
+    }
+    .confirm-box p { font-size: 14px; color: var(--muted); margin-bottom: 24px; line-height: 1.6; }
+    .confirm-btns { display: flex; gap: 10px; justify-content: center; }
+
+    /* URL toast */
+    .toast {
+      position: fixed; bottom: 28px; right: 28px; background: var(--teal);
+      color: #fff; padding: 14px 22px; font-size: 13px; font-weight: 600;
+      letter-spacing: 1px; opacity: 0; transition: opacity 0.3s; pointer-events: none; z-index: 300;
+    }
+    .toast.zichtbaar { opacity: 1; }
+
+    .slug-preview {
+      font-size: 12px; color: var(--muted); margin-top: 4px; font-family: monospace;
+    }
+    .slug-preview span { color: var(--teal); }
+
+    /* Foto upload */
+    .foto-drop {
+      border: 2px dashed var(--border); background: #faf7f2; height: 90px;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; position: relative; overflow: hidden; transition: border-color 0.15s;
+    }
+    .foto-drop:hover { border-color: var(--teal); }
+    .foto-drop-preview {
+      position: absolute; inset: 0; width: 100%; height: 100%;
+      object-fit: cover; display: none;
+    }
+    .foto-drop-label {
+      font-size: 11px; color: var(--muted); letter-spacing: 1px;
+      text-transform: uppercase; position: relative; z-index: 1;
+    }
+    .foto-verwijder-btn {
+      display: none; margin-top: 5px; background: none; border: 1px solid #ddd;
+      color: var(--muted); font-size: 11px; cursor: pointer; padding: 3px 8px;
+      font-family: 'Lato', sans-serif;
+    }
+    .foto-verwijder-btn:hover { color: var(--red); border-color: var(--red); }
+  </style>
+</head>
+<body>
+
+<!-- ── Topbar ── -->
+<div class="topbar">
+  <div>
+    <div class="topbar-title">Brodshoes Beheer</div>
+    <div class="topbar-sub">Template manager</div>
+  </div>
+  <div class="topbar-user">
+    <span id="user-email"></span>
+    <button class="btn-secondary" onclick="uitloggen()">Uitloggen</button>
+  </div>
+</div>
+
+<!-- ── Tabs ── -->
+<div class="tabs">
+  <div class="tab active" data-tab="templates" onclick="toonTab('templates', this)">Templates</div>
+  <div class="tab" data-tab="publicaties" onclick="toonTab('publicaties', this)">Publicaties</div>
+</div>
+
+<!-- ── Content ── -->
+<div class="content">
+
+  <!-- ════ TAB: TEMPLATES ════ -->
+  <div class="tab-panel active" id="tab-templates">
+    <div class="toolbar">
+      <div class="toolbar-links">
+        <button class="filter-btn active" onclick="setFilter('alle', this)">Alle</button>
+        <button class="filter-btn" onclick="setFilter('concept', this)">Concept</button>
+        <button class="filter-btn" onclick="setFilter('gepubliceerd', this)">Gepubliceerd</button>
+        <button class="filter-btn" onclick="setFilter('gearchiveerd', this)">Gearchiveerd</button>
+      </div>
+      <button class="btn-nieuw" onclick="openNieuw()">+ Nieuwe template</button>
+    </div>
+    <div class="templates-grid" id="templates-grid">
+      <div class="leeg"><p>Templates laden…</p></div>
+    </div>
+  </div>
+
+  <!-- ════ TAB: PUBLICATIES ════ -->
+  <div class="tab-panel" id="tab-publicaties">
+    <div class="toolbar">
+      <div style="font-size:13px;color:var(--muted);">Alle ooit gepubliceerde templates</div>
+    </div>
+    <table class="pub-tabel" id="pub-tabel">
+      <thead>
+        <tr>
+          <th>Template</th>
+          <th>URL</th>
+          <th>Gepubliceerd op</th>
+          <th>Door</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="pub-tbody">
+        <tr><td colspan="5" style="text-align:center;color:var(--muted);padding:32px;">Laden…</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>
+
+<!-- ════ EDITOR MODAL ════ -->
+<div class="modal-overlay" id="editor-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-titel" id="modal-titel">Nieuwe template</div>
+      <button class="modal-sluit" onclick="sluitModal()">×</button>
+    </div>
+    <div class="modal-body">
+
+      <div class="sectie-label-editor">Algemeen</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Naam template</label>
+          <input type="text" id="ed-naam" placeholder="Pasen 2026" oninput="updateSlugPreview()" />
+        </div>
+        <div class="form-group">
+          <label>Slug (URL)</label>
+          <input type="text" id="ed-slug" placeholder="pasen-2026" />
+          <div class="slug-preview">URL: <span id="slug-preview-tekst">…</span></div>
+        </div>
+      </div>
+
+      <div class="sectie-label-editor">Thema</div>
+      <div class="thema-grid-modal" id="thema-grid-modal"></div>
+
+      <div class="sectie-label-editor">Evenement</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Paginatitel</label>
+          <input type="text" id="ed-titel" placeholder="Pasen 2026" />
+        </div>
+        <div class="form-group">
+          <label>Subtitel</label>
+          <input type="text" id="ed-subtitel" placeholder="Bestel uw huisgemaakte salades…" />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Afhaaldag</label>
+          <input type="text" id="ed-dag" placeholder="zaterdag 18 april" />
+        </div>
+        <div class="form-group">
+          <label>Locatie</label>
+          <input type="text" id="ed-locatie" placeholder="Rijssen" />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Deadline bestellen</label>
+          <input type="text" id="ed-deadline" placeholder="zondag 13 april 2026" />
+        </div>
+        <div class="form-group">
+          <label>Badge tekst</label>
+          <input type="text" id="ed-badge" placeholder="Afhalen zaterdag 18 april · 14:00–16:00" />
+        </div>
+      </div>
+      <div class="form-row enkel">
+        <div class="form-group">
+          <label>Formspree endpoint</label>
+          <input type="text" id="ed-formspree" placeholder="https://formspree.io/f/JOUWCODE" />
+        </div>
+      </div>
+
+      <div class="sectie-label-editor">Producten</div>
+      <div id="ed-categorieen"></div>
+      <button class="btn-add" style="margin:0 0 8px 0;width:100%;" onclick="voegCatToe()">+ Categorie toevoegen</button>
+
+      <div class="sectie-label-editor">Foto's</div>
+      <p style="font-size:12px;color:var(--muted);margin-bottom:12px;">Aanbevolen: Header <strong>1200×400px</strong> · Footer <strong>1200×300px</strong></p>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:4px;">
+        <div>
+          <div style="font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;">Header foto</div>
+          <div class="foto-drop" id="ed-header-drop" onclick="document.getElementById('ed-header-input').click()">
+            <img id="ed-header-preview" class="foto-drop-preview" src="" alt="" />
+            <span class="foto-drop-label" id="ed-header-label">Klik om te uploaden</span>
+          </div>
+          <input type="file" id="ed-header-input" accept="image/*" style="display:none" onchange="fotoGekozen('header', this)" />
+          <button class="foto-verwijder-btn" id="ed-header-verwijder" onclick="fotoVerwijder('header')">× Verwijderen</button>
+        </div>
+        <div>
+          <div style="font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;">Footer foto</div>
+          <div class="foto-drop" id="ed-footer-drop" onclick="document.getElementById('ed-footer-input').click()">
+            <img id="ed-footer-preview" class="foto-drop-preview" src="" alt="" />
+            <span class="foto-drop-label" id="ed-footer-label">Klik om te uploaden</span>
+          </div>
+          <input type="file" id="ed-footer-input" accept="image/*" style="display:none" onchange="fotoGekozen('footer', this)" />
+          <button class="foto-verwijder-btn" id="ed-footer-verwijder" onclick="fotoVerwijder('footer')">× Verwijderen</button>
+        </div>
+      </div>
+
+      <div class="sectie-label-editor">Tijdslots</div>
+      <div class="tijdslot-lijst-modal" id="ed-tijdslots"></div>
+      <button class="btn-add" style="margin-top:8px;width:100%;" onclick="voegTijdslotToe()">+ Tijdslot toevoegen</button>
+
+    </div>
+    <div class="modal-footer">
+      <button class="actie-btn" onclick="sluitModal()">Annuleren</button>
+      <button class="btn-nieuw" onclick="slaTemplateOp()">Opslaan</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════ BEVESTIG DIALOOG ════ -->
+<div class="confirm-overlay" id="confirm-overlay">
+  <div class="confirm-box">
+    <h3 id="confirm-titel">Weet u het zeker?</h3>
+    <p id="confirm-tekst"></p>
+    <div class="confirm-btns">
+      <button class="actie-btn" onclick="sluitConfirm()">Annuleren</button>
+      <button class="btn-nieuw" id="confirm-ok" onclick="">Bevestigen</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+
+const THEMAS = {
+  pasen:    { naam: 'Pasen',    achtergrond: '#e8dcc8', kaart: '#1e3a3f', kaartMid: '#254a50', accent: '#e85d4a', kleuren: ['#1e3a3f','#e85d4a','#e8dcc8'] },
+  kerst:    { naam: 'Kerst',    achtergrond: '#1a0a0a', kaart: '#2d0d0d', kaartMid: '#3d1515', accent: '#c9a84c', kleuren: ['#2d0d0d','#c9a84c','#1a0a0a'] },
+  zomer:    { naam: 'Zomer',    achtergrond: '#f0f7f0', kaart: '#1a3d2b', kaartMid: '#244f38', accent: '#f4a020', kleuren: ['#1a3d2b','#f4a020','#f0f7f0'] },
+  herfst:   { naam: 'Herfst',   achtergrond: '#f5ede0', kaart: '#3d2008', kaartMid: '#4e2a0e', accent: '#d4621a', kleuren: ['#3d2008','#d4621a','#f5ede0'] },
+  neutraal: { naam: 'Neutraal', achtergrond: '#f2f2f2', kaart: '#1a1a1a', kaartMid: '#2e2e2e', accent: '#555555', kleuren: ['#1a1a1a','#555555','#f2f2f2'] },
+};
+
+let huidigFilter = 'alle';
+let bewerkId = null;
+let edThema = 'pasen';
+let edCats = [];
+let edSlots = [];
+let alleTemplates = [];
+let edFotos = { header: null, footer: null }; // { file, url } per type
+
+// ══ Auth ══
+async function checkAuth() {
+  const { data } = await sb.auth.getSession();
+  if (!data.session) { window.location.href = 'login.html'; return; }
+  document.getElementById('user-email').textContent = data.session.user.email;
+}
+
+async function uitloggen() {
+  await sb.auth.signOut();
+  window.location.href = 'login.html';
+}
+
+// ══ Tabs ══
+function toonTab(naam, el) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-' + naam).classList.add('active');
+  el.classList.add('active');
+  if (naam === 'publicaties') laadPublicaties();
+}
+
+// ══ Filter ══
+function setFilter(f, el) {
+  huidigFilter = f;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  renderTemplates();
+}
+
+// ══ Templates laden ══
+async function laadTemplates() {
+  const { data, error } = await sb.from('templates').select('*').order('aangemaakt_op', { ascending: false });
+  if (error) { toonToast('Fout bij laden: ' + error.message); return; }
+  alleTemplates = data || [];
+  renderTemplates();
+}
+
+function renderTemplates() {
+  const grid = document.getElementById('templates-grid');
+  const gefilterd = huidigFilter === 'alle'
+    ? alleTemplates
+    : alleTemplates.filter(t => t.status === huidigFilter);
+
+  if (!gefilterd.length) {
+    grid.innerHTML = `<div class="leeg"><p>Geen templates gevonden.</p><button class="btn-nieuw" onclick="openNieuw()">+ Eerste template aanmaken</button></div>`;
+    return;
+  }
+
+  grid.innerHTML = '';
+  gefilterd.forEach(t => {
+    const thema = THEMAS[t.config?.thema] || THEMAS.pasen;
+    const kaart = document.createElement('div');
+    kaart.className = 'template-kaart';
+    kaart.innerHTML = `
+      <div class="kaart-kleur-balk" style="background:${thema.accent}"></div>
+      <div class="kaart-body">
+        <div class="kaart-header">
+          <div class="kaart-naam">${t.naam}</div>
+          <span class="status-badge status-${t.status}">${t.status}</span>
+        </div>
+        <div class="kaart-meta">
+          Thema: ${thema.naam}<br>
+          Aangemaakt: ${new Date(t.aangemaakt_op).toLocaleDateString('nl-NL')}<br>
+          ${t.status === 'gepubliceerd' ? `Slug: <code style="font-size:11px">${t.slug}</code>` : ''}
+        </div>
+        <div class="kaart-acties">
+          <button class="actie-btn" onclick="openBewerken('${t.id}')">Bewerken</button>
+          <button class="actie-btn" onclick="dupliceer('${t.id}')">Dupliceren</button>
+          ${t.status !== 'gepubliceerd' ? `<button class="actie-btn groen" onclick="publiceer('${t.id}')">Publiceren</button>` : `<button class="actie-btn" onclick="kopieerUrl('${t.slug}')">Kopieer URL</button>`}
+          ${t.status !== 'gearchiveerd' ? `<button class="actie-btn" onclick="archiveer('${t.id}')">Archiveren</button>` : `<button class="actie-btn" onclick="herstel('${t.id}')">Herstellen</button>`}
+          <button class="actie-btn rood" onclick="verwijder('${t.id}', '${t.naam}')">Verwijderen</button>
+        </div>
+      </div>`;
+    grid.appendChild(kaart);
+  });
+}
+
+// ══ Publicaties laden ══
+async function laadPublicaties() {
+  const { data, error } = await sb
+    .from('publicaties')
+    .select('*, templates(naam)')
+    .order('gepubliceerd_op', { ascending: false });
+
+  const tbody = document.getElementById('pub-tbody');
+  if (error || !data?.length) {
+    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:32px;">Nog geen publicaties.</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = data.map(p => {
+    const url = `${window.location.origin}/${window.location.pathname.replace('templates.html','index.html')}?slug=${p.slug}`;
+    return `<tr>
+      <td>${p.templates?.naam || '–'}</td>
+      <td class="url-cel"><a href="${url}" target="_blank" style="color:var(--teal)">${url}</a></td>
+      <td>${new Date(p.gepubliceerd_op).toLocaleString('nl-NL')}</td>
+      <td style="font-size:12px;color:var(--muted)">${p.gepubliceerd_door || '–'}</td>
+      <td><button class="kopieer-btn" onclick="navigator.clipboard.writeText('${url}');toonToast('URL gekopieerd')">Kopieer</button></td>
+    </tr>`;
+  }).join('');
+}
+
+// ══ Editor modal ══
+function openNieuw() {
+  bewerkId = null;
+  edThema = 'pasen';
+  edCats = [
+    { naam: 'Categorie 1', producten: [{ naam: '', prijs: '' }] }
+  ];
+  edSlots = ['14:00 – 14:30', '14:30 – 15:00'];
+  document.getElementById('modal-titel').textContent = 'Nieuwe template';
+  document.getElementById('ed-naam').value = '';
+  document.getElementById('ed-slug').value = '';
+  document.getElementById('slug-preview-tekst').textContent = '…';
+  document.getElementById('ed-titel').value = '';
+  document.getElementById('ed-subtitel').value = '';
+  document.getElementById('ed-dag').value = '';
+  document.getElementById('ed-locatie').value = '';
+  document.getElementById('ed-deadline').value = '';
+  document.getElementById('ed-badge').value = '';
+  document.getElementById('ed-formspree').value = '';
+  bouwThemaGridModal();
+  bouwCatsEditor();
+  bouwSlotsEditor();
+  resetFotos();
+  document.getElementById('editor-modal').classList.add('open');
+}
+
+function openBewerken(id) {
+  const t = alleTemplates.find(x => x.id === id);
+  if (!t) return;
+  bewerkId = id;
+  const cfg = t.config || {};
+  edThema = cfg.thema || 'pasen';
+  edCats = JSON.parse(JSON.stringify(cfg.categorieeen || []));
+  edSlots = [...(cfg.tijdslots || [])];
+  document.getElementById('modal-titel').textContent = 'Template bewerken';
+  document.getElementById('ed-naam').value = t.naam;
+  document.getElementById('ed-slug').value = t.slug;
+  document.getElementById('slug-preview-tekst').textContent = t.slug;
+  const ev = cfg.evenement || {};
+  document.getElementById('ed-titel').value = ev.titel || '';
+  document.getElementById('ed-subtitel').value = ev.subtitel || '';
+  document.getElementById('ed-dag').value = ev.dag || '';
+  document.getElementById('ed-locatie').value = ev.locatie || '';
+  document.getElementById('ed-deadline').value = ev.deadline || '';
+  document.getElementById('ed-badge').value = ev.badge || '';
+  document.getElementById('ed-formspree').value = ev.formspree || '';
+  bouwThemaGridModal();
+  bouwCatsEditor();
+  bouwSlotsEditor();
+  resetFotos(cfg.headerFoto, cfg.footerFoto);
+  document.getElementById('editor-modal').classList.add('open');
+}
+
+function sluitModal() {
+  document.getElementById('editor-modal').classList.remove('open');
+}
+
+function updateSlugPreview() {
+  const naam = document.getElementById('ed-naam').value;
+  const slug = naam.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+  if (!document.getElementById('ed-slug').value || !bewerkId) {
+    document.getElementById('ed-slug').value = slug;
+  }
+  document.getElementById('slug-preview-tekst').textContent = document.getElementById('ed-slug').value || '…';
+}
+
+// ══ Thema grid modal ══
+function bouwThemaGridModal() {
+  const grid = document.getElementById('thema-grid-modal');
+  grid.innerHTML = '';
+  for (const [id, th] of Object.entries(THEMAS)) {
+    const card = document.createElement('div');
+    card.className = 'thema-card-modal' + (edThema === id ? ' geselecteerd' : '');
+    card.onclick = () => {
+      edThema = id;
+      document.querySelectorAll('.thema-card-modal').forEach(c => c.classList.remove('geselecteerd'));
+      card.classList.add('geselecteerd');
+    };
+    card.innerHTML = `
+      <div class="thema-preview-modal" style="background:${th.achtergrond}">
+        ${th.kleuren.map(k => `<div class="thema-dot" style="background:${k}"></div>`).join('')}
+      </div>
+      <div class="thema-naam-modal">${th.naam}</div>`;
+    grid.appendChild(card);
+  }
+}
+
+// ══ Categorieën editor ══
+function bouwCatsEditor() {
+  const el = document.getElementById('ed-categorieen');
+  el.innerHTML = '';
+  edCats.forEach((cat, ci) => {
+    const blok = document.createElement('div');
+    blok.className = 'categorie-blok';
+    blok.innerHTML = `
+      <div class="categorie-header-modal">
+        <input class="categorie-naam-input" type="text" value="${cat.naam}" placeholder="Categorienaam"
+          oninput="edCats[${ci}].naam = this.value" />
+        <button class="btn-remove" onclick="verwijderCat(${ci})">×</button>
+      </div>
+      <div id="ed-prods-${ci}"></div>
+      <button class="btn-add" onclick="voegProdToe(${ci})">+ Product</button>`;
+    el.appendChild(blok);
+    bouwProdsEditor(ci);
+  });
+}
+
+function bouwProdsEditor(ci) {
+  const el = document.getElementById(`ed-prods-${ci}`);
+  if (!el) return;
+  el.innerHTML = '';
+  edCats[ci].producten.forEach((p, pi) => {
+    const rij = document.createElement('div');
+    rij.className = 'product-rij-editor';
+    rij.innerHTML = `
+      <input type="text" value="${p.naam}" placeholder="Productnaam" oninput="edCats[${ci}].producten[${pi}].naam=this.value" />
+      <input type="text" value="${p.prijs}" placeholder="0.00" oninput="edCats[${ci}].producten[${pi}].prijs=this.value" />
+      <button class="btn-remove" onclick="verwijderProd(${ci},${pi})">×</button>`;
+    el.appendChild(rij);
+  });
+}
+
+function voegCatToe() { edCats.push({ naam: 'Nieuwe categorie', producten: [{ naam: '', prijs: '' }] }); bouwCatsEditor(); }
+function verwijderCat(ci) { if (edCats.length <= 1) return; edCats.splice(ci, 1); bouwCatsEditor(); }
+function voegProdToe(ci) { edCats[ci].producten.push({ naam: '', prijs: '' }); bouwProdsEditor(ci); }
+function verwijderProd(ci, pi) { if (edCats[ci].producten.length <= 1) return; edCats[ci].producten.splice(pi, 1); bouwProdsEditor(ci); }
+
+// ══ Tijdslots editor ══
+function bouwSlotsEditor() {
+  const el = document.getElementById('ed-tijdslots');
+  el.innerHTML = '';
+  edSlots.forEach((slot, i) => {
+    const item = document.createElement('div');
+    item.className = 'tijdslot-item-modal';
+    item.innerHTML = `
+      <input type="text" value="${slot}" placeholder="14:00 – 14:30" oninput="edSlots[${i}]=this.value" />
+      <button class="btn-remove" onclick="verwijderSlot(${i})">×</button>`;
+    el.appendChild(item);
+  });
+}
+function voegTijdslotToe() { edSlots.push(''); bouwSlotsEditor(); }
+function verwijderSlot(i) { if (edSlots.length <= 1) return; edSlots.splice(i, 1); bouwSlotsEditor(); }
+
+// ══ Foto upload ══
+function resetFotos(headerUrl, footerUrl) {
+  edFotos = { header: { file: null, url: headerUrl || null }, footer: { file: null, url: footerUrl || null } };
+  toonFotoPreview('header', headerUrl);
+  toonFotoPreview('footer', footerUrl);
+}
+
+function toonFotoPreview(type, url) {
+  const preview  = document.getElementById(`ed-${type}-preview`);
+  const label    = document.getElementById(`ed-${type}-label`);
+  const verwijder = document.getElementById(`ed-${type}-verwijder`);
+  if (url) {
+    preview.src = url;
+    preview.style.display = 'block';
+    label.style.display = 'none';
+    verwijder.style.display = 'inline-block';
+  } else {
+    preview.src = '';
+    preview.style.display = 'none';
+    label.style.display = '';
+    verwijder.style.display = 'none';
+  }
+}
+
+function fotoGekozen(type, input) {
+  const file = input.files[0];
+  if (!file) return;
+  edFotos[type].file = file;
+  const reader = new FileReader();
+  reader.onload = e => { edFotos[type].url = e.target.result; toonFotoPreview(type, e.target.result); };
+  reader.readAsDataURL(file);
+}
+
+function fotoVerwijder(type) {
+  edFotos[type] = { file: null, url: null };
+  toonFotoPreview(type, null);
+}
+
+async function uploadFoto(type, templateId) {
+  const { file } = edFotos[type];
+  if (!file) return edFotos[type].url; // geen nieuwe upload, bestaande URL teruggeven
+  const ext  = file.name.split('.').pop();
+  const pad  = `${templateId}/${type}.${ext}`;
+  const { error } = await sb.storage.from('template-fotos').upload(pad, file, { upsert: true });
+  if (error) { toonToast(`Fout bij uploaden ${type}-foto`); return null; }
+  const { data } = sb.storage.from('template-fotos').getPublicUrl(pad);
+  return data.publicUrl;
+}
+
+// ══ Opslaan ══
+async function slaTemplateOp() {
+  const naam = document.getElementById('ed-naam').value.trim();
+  const slug = document.getElementById('ed-slug').value.trim();
+  if (!naam || !slug) { toonToast('Naam en slug zijn verplicht'); return; }
+
+  const { data: { user } } = await sb.auth.getUser();
+
+  // Eerst opslaan om een ID te hebben voor de foto-paden
+  let templateId = bewerkId;
+  if (!templateId) {
+    const { data, error } = await sb.from('templates')
+      .insert({ naam, slug, config: {}, status: 'concept', aangemaakt_door: user.id })
+      .select('id').single();
+    if (error) { toonToast('Fout: ' + error.message); return; }
+    templateId = data.id;
+  }
+
+  // Foto's uploaden naar Supabase Storage
+  toonToast('Foto\'s uploaden…');
+  const headerUrl = await uploadFoto('header', templateId);
+  const footerUrl = await uploadFoto('footer', templateId);
+
+  const config = {
+    thema: edThema,
+    headerFoto: headerUrl || null,
+    footerFoto: footerUrl || null,
+    evenement: {
+      titel:     document.getElementById('ed-titel').value.trim(),
+      subtitel:  document.getElementById('ed-subtitel').value.trim(),
+      dag:       document.getElementById('ed-dag').value.trim(),
+      locatie:   document.getElementById('ed-locatie').value.trim(),
+      deadline:  document.getElementById('ed-deadline').value.trim(),
+      badge:     document.getElementById('ed-badge').value.trim(),
+      formspree: document.getElementById('ed-formspree').value.trim(),
+    },
+    categorieeen: edCats,
+    tijdslots: edSlots,
+  };
+
+  const { error } = await sb.from('templates').update({ naam, slug, config }).eq('id', templateId);
+  if (error) { toonToast('Fout: ' + error.message); return; }
+
+  sluitModal();
+  toonToast(bewerkId ? 'Template bijgewerkt' : 'Template aangemaakt');
+  laadTemplates();
+}
+
+// ══ Acties ══
+async function dupliceer(id) {
+  const t = alleTemplates.find(x => x.id === id);
+  if (!t) return;
+  const { data: { user } } = await sb.auth.getUser();
+  const nieuwSlug = t.slug + '-kopie-' + Date.now().toString().slice(-4);
+  const { error } = await sb.from('templates').insert({
+    naam: 'Kopie van ' + t.naam, slug: nieuwSlug,
+    config: t.config, status: 'concept', aangemaakt_door: user.id
+  });
+  if (error) { toonToast('Fout: ' + error.message); return; }
+  toonToast('Template gedupliceerd');
+  laadTemplates();
+}
+
+async function archiveer(id) {
+  const { error } = await sb.from('templates').update({ status: 'gearchiveerd' }).eq('id', id);
+  if (error) { toonToast('Fout: ' + error.message); return; }
+  toonToast('Template gearchiveerd');
+  laadTemplates();
+}
+
+async function herstel(id) {
+  const { error } = await sb.from('templates').update({ status: 'concept' }).eq('id', id);
+  if (error) { toonToast('Fout: ' + error.message); return; }
+  toonToast('Template hersteld naar concept');
+  laadTemplates();
+}
+
+async function publiceer(id) {
+  const t = alleTemplates.find(x => x.id === id);
+  if (!t) return;
+  const { data: { user } } = await sb.auth.getUser();
+  const { error: e1 } = await sb.from('templates').update({ status: 'gepubliceerd' }).eq('id', id);
+  const { error: e2 } = await sb.from('publicaties').insert({ template_id: id, slug: t.slug, gepubliceerd_door: user.email });
+  if (e1 || e2) { toonToast('Fout bij publiceren'); return; }
+  const url = `${window.location.origin}${window.location.pathname.replace('templates.html','index.html')}?slug=${t.slug}`;
+  navigator.clipboard.writeText(url).catch(() => {});
+  toonToast('Gepubliceerd! URL gekopieerd: ' + t.slug);
+  laadTemplates();
+}
+
+function verwijder(id, naam) {
+  toonConfirm(
+    'Template verwijderen',
+    `Weet u zeker dat u "${naam}" wilt verwijderen? Dit kan niet ongedaan worden gemaakt.`,
+    async () => {
+      const { error } = await sb.from('templates').delete().eq('id', id);
+      if (error) { toonToast('Fout: ' + error.message); return; }
+      toonToast('Template verwijderd');
+      laadTemplates();
+    }
+  );
+}
+
+function kopieerUrl(slug) {
+  const url = `${window.location.origin}${window.location.pathname.replace('templates.html','index.html')}?slug=${slug}`;
+  navigator.clipboard.writeText(url).catch(() => {});
+  toonToast('URL gekopieerd');
+}
+
+// ══ Confirm dialoog ══
+let confirmCallback = null;
+function toonConfirm(titel, tekst, cb) {
+  document.getElementById('confirm-titel').textContent = titel;
+  document.getElementById('confirm-tekst').textContent = tekst;
+  confirmCallback = cb;
+  document.getElementById('confirm-overlay').classList.add('open');
+}
+function sluitConfirm() { document.getElementById('confirm-overlay').classList.remove('open'); confirmCallback = null; }
+document.getElementById('confirm-ok').onclick = () => { sluitConfirm(); if (confirmCallback) confirmCallback(); };
+
+// ══ Toast ══
+function toonToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('zichtbaar');
+  setTimeout(() => t.classList.remove('zichtbaar'), 3000);
+}
+
+// ══ Init ══
+checkAuth().then(() => laadTemplates());
+</script>
+</body>
+</html>

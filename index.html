@@ -3,6 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-config.js"></script>
   <title>Pasen 2026 – Salade Bestellen | Brodshoes</title>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Lato:wght@300;400;600;700&display=swap" rel="stylesheet" />
   <style>
@@ -527,7 +529,7 @@
   </div>
 
   <script>
-    // ══ Laad config uit localStorage (gezet door admin.html) ══
+    // ══ Config laden: slug uit URL → Supabase, anders localStorage fallback ══
     const THEMAS = {
       pasen:    { achtergrond: '#e8dcc8', kaart: '#1e3a3f', kaartMid: '#254a50', accent: '#e85d4a' },
       kerst:    { achtergrond: '#1a0a0a', kaart: '#2d0d0d', kaartMid: '#3d1515', accent: '#c9a84c' },
@@ -554,90 +556,118 @@
       tijdslots: ['14:00 – 14:30', '14:30 – 15:00', '15:00 – 15:30', '15:30 – 16:00'],
     };
 
-    const opgeslagen = localStorage.getItem('brodshoes_config');
-    const cfg = opgeslagen ? JSON.parse(opgeslagen) : DEFAULT_CONFIG;
-    const thema = THEMAS[cfg.thema] || THEMAS.pasen;
-    const ev = cfg.evenement;
+    const urlSlug = new URLSearchParams(window.location.search).get('slug');
 
-    // Pas CSS variabelen aan op basis van thema
-    document.documentElement.style.setProperty('--teal-dark', thema.achtergrond);
-    document.documentElement.style.setProperty('--teal', thema.kaart);
-    document.documentElement.style.setProperty('--teal-mid', thema.kaartMid);
-    document.documentElement.style.setProperty('--red', thema.accent);
-    document.documentElement.style.setProperty('--red-hover', thema.accent + 'cc');
+    async function laadEnRender() {
+      let cfg = DEFAULT_CONFIG;
 
-    // Laad header/footer foto van het actieve thema uit localStorage
-    const headerFoto = localStorage.getItem(`brodshoes_foto_${cfg.thema}_header`);
-    const footerFoto = localStorage.getItem(`brodshoes_foto_${cfg.thema}_footer`);
-    if (headerFoto) document.getElementById('hero-img').src = headerFoto;
-    if (footerFoto) document.getElementById('footer-img').src = footerFoto;
-
-    // Vul evenement teksten in
-    document.addEventListener('DOMContentLoaded', () => {
-      document.querySelector('title').textContent = `${ev.titel} – Bestellen | Brodshoes`;
-      document.getElementById('ev-titel').textContent = ev.titel;
-      document.getElementById('ev-subtitel').innerHTML = ev.subtitel;
-      document.getElementById('ev-badge').textContent = ev.badge;
-      document.getElementById('ev-locatie-footer').textContent = ev.locatie;
-      document.getElementById('ev-locatie-success-tag').textContent = `Brodshoes · ${ev.locatie}`;
-      document.getElementById('ev-locatie-success').textContent = `Bevestiging verstuurd per e-mail · Brodshoes, ${ev.locatie}`;
-      document.getElementById('ev-deadline').textContent = `Bestellen kan tot en met ${ev.deadline}`;
-
-      // Bouw producten dynamisch
-      const stap2 = document.getElementById('stap2-container');
-      stap2.innerHTML = '';
-      const PRIJZEN = {};
-      const LABELS = {};
-      let stapNr = 2;
-
-      cfg.categorieeen.forEach((cat, ci) => {
-        const header = document.createElement('div');
-        header.className = 'section-header';
-        header.innerHTML = `<div class="section-tag">Stap ${stapNr++}</div><h2>${cat.naam}</h2><div class="divider-line"></div>`;
-        stap2.appendChild(header);
-
-        cat.producten.forEach((prod, pi) => {
-          const id = `cat${ci}_prod${pi}`;
-          const prijs = parseFloat(prod.prijs) || 0;
-          PRIJZEN[id] = prijs;
-          LABELS[id] = `${cat.naam} – ${prod.naam}`;
-
-          const rij = document.createElement('div');
-          rij.className = 'product-rij';
-          rij.innerHTML = `
-            <div class="product-info">
-              <div class="product-omschrijving">${prod.naam}</div>
-              <div class="product-prijs">€ ${prijs.toFixed(2).replace('.', ',')}</div>
-            </div>
-            <div class="qty-control">
-              <button type="button" class="qty-btn" onclick="changeQty('${id}', -1)">−</button>
-              <input class="qty-value" type="number" id="${id}" value="0" min="0" max="20" oninput="updateTotaal()" />
-              <button type="button" class="qty-btn" onclick="changeQty('${id}', 1)">+</button>
-            </div>`;
-          stap2.appendChild(rij);
-        });
-      });
-
-      // Tijdslot stap nummer
-      document.getElementById('tijdslot-stap-nr').textContent = `Stap ${stapNr}`;
-
-      // Bouw tijdslots
-      const tijdslotGrid = document.getElementById('tijdslot-grid');
-      tijdslotGrid.innerHTML = '';
-      cfg.tijdslots.forEach(slot => {
-        const lbl = document.createElement('label');
-        lbl.className = 'tijdslot-option';
-        lbl.innerHTML = `<input type="radio" name="tijdslot" value="${slot}" /><span class="tijdslot-label">${slot}</span>`;
-        tijdslotGrid.appendChild(lbl);
-      });
-      if (tijdslotGrid.querySelector('input[type="radio"]')) {
-        tijdslotGrid.querySelector('input[type="radio"]').required = true;
+      if (urlSlug) {
+        // Laad uit Supabase op basis van slug
+        const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+        const { data, error } = await sb
+          .from('templates')
+          .select('config')
+          .eq('slug', urlSlug)
+          .eq('status', 'gepubliceerd')
+          .single();
+        if (!error && data?.config) cfg = data.config;
+      } else {
+        // Fallback: localStorage
+        const opgeslagen = localStorage.getItem('brodshoes_config');
+        if (opgeslagen) cfg = JSON.parse(opgeslagen);
       }
 
-      // Maak PRIJZEN en LABELS globaal beschikbaar
-      window._PRIJZEN = PRIJZEN;
-      window._LABELS = LABELS;
-    });
+      pasThemaToe(cfg);
+    }
+
+    function pasThemaToe(cfg) {
+      const ev = cfg.evenement;
+      const thema = THEMAS[cfg.thema] || THEMAS.pasen;
+
+      // Pas CSS variabelen aan op basis van thema
+      document.documentElement.style.setProperty('--teal-dark', thema.achtergrond);
+      document.documentElement.style.setProperty('--teal', thema.kaart);
+      document.documentElement.style.setProperty('--teal-mid', thema.kaartMid);
+      document.documentElement.style.setProperty('--red', thema.accent);
+      document.documentElement.style.setProperty('--red-hover', thema.accent + 'cc');
+
+      // Laad header/footer foto: Supabase Storage (via config) of localStorage fallback
+      const headerFoto = cfg.headerFoto || localStorage.getItem(`brodshoes_foto_${cfg.thema}_header`);
+      const footerFoto = cfg.footerFoto || localStorage.getItem(`brodshoes_foto_${cfg.thema}_footer`);
+      if (headerFoto) document.getElementById('hero-img').src = headerFoto;
+      if (footerFoto) document.getElementById('footer-img').src = footerFoto;
+
+      // Vul evenement teksten in zodra DOM gereed is
+      function vulIn() {
+        document.querySelector('title').textContent = `${ev.titel} – Bestellen | Brodshoes`;
+        document.getElementById('ev-titel').textContent = ev.titel;
+        document.getElementById('ev-subtitel').innerHTML = ev.subtitel;
+        document.getElementById('ev-badge').textContent = ev.badge;
+        document.getElementById('ev-locatie-footer').textContent = ev.locatie;
+        document.getElementById('ev-locatie-success-tag').textContent = `Brodshoes · ${ev.locatie}`;
+        document.getElementById('ev-locatie-success').textContent = `Bevestiging verstuurd per e-mail · Brodshoes, ${ev.locatie}`;
+        document.getElementById('ev-deadline').textContent = `Bestellen kan tot en met ${ev.deadline}`;
+
+        // Bouw producten dynamisch
+        const stap2 = document.getElementById('stap2-container');
+        stap2.innerHTML = '';
+        const PRIJZEN = {};
+        const LABELS = {};
+        let stapNr = 2;
+
+        cfg.categorieeen.forEach((cat, ci) => {
+          const header = document.createElement('div');
+          header.className = 'section-header';
+          header.innerHTML = `<div class="section-tag">Stap ${stapNr++}</div><h2>${cat.naam}</h2><div class="divider-line"></div>`;
+          stap2.appendChild(header);
+
+          cat.producten.forEach((prod, pi) => {
+            const id = `cat${ci}_prod${pi}`;
+            const prijs = parseFloat(prod.prijs) || 0;
+            PRIJZEN[id] = prijs;
+            LABELS[id] = `${cat.naam} – ${prod.naam}`;
+
+            const rij = document.createElement('div');
+            rij.className = 'product-rij';
+            rij.innerHTML = `
+              <div class="product-info">
+                <div class="product-omschrijving">${prod.naam}</div>
+                <div class="product-prijs">€ ${prijs.toFixed(2).replace('.', ',')}</div>
+              </div>
+              <div class="qty-control">
+                <button type="button" class="qty-btn" onclick="changeQty('${id}', -1)">−</button>
+                <input class="qty-value" type="number" id="${id}" value="0" min="0" max="20" oninput="updateTotaal()" />
+                <button type="button" class="qty-btn" onclick="changeQty('${id}', 1)">+</button>
+              </div>`;
+            stap2.appendChild(rij);
+          });
+        });
+
+        document.getElementById('tijdslot-stap-nr').textContent = `Stap ${stapNr}`;
+
+        const tijdslotGrid = document.getElementById('tijdslot-grid');
+        tijdslotGrid.innerHTML = '';
+        cfg.tijdslots.forEach(slot => {
+          const lbl = document.createElement('label');
+          lbl.className = 'tijdslot-option';
+          lbl.innerHTML = `<input type="radio" name="tijdslot" value="${slot}" /><span class="tijdslot-label">${slot}</span>`;
+          tijdslotGrid.appendChild(lbl);
+        });
+        if (tijdslotGrid.querySelector('input[type="radio"]')) {
+          tijdslotGrid.querySelector('input[type="radio"]').required = true;
+        }
+
+        window._PRIJZEN = PRIJZEN;
+        window._LABELS = LABELS;
+        window._EV = ev;
+      }
+
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', vulIn);
+      } else {
+        vulIn();
+      }
+    }
 
     function changeQty(id, delta) {
       const el = document.getElementById(id);
@@ -669,6 +699,7 @@
 
     async function handleSubmit(e) {
       e.preventDefault();
+      const ev = window._EV || {};
       const regels = getBestelregels();
       if (regels.length === 0) { alert('Selecteer minimaal één product om te bestellen.'); return; }
 
@@ -715,6 +746,9 @@
          Afhalen op <strong>${ev.dag}</strong> om <strong>${tijdslot}</strong> uur.<br>
          Een bevestiging wordt verstuurd naar <strong>${email}</strong>.`;
     }
+
+    // Start
+    laadEnRender();
   </script>
 </body>
 </html>

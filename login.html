@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Inloggen | Brodshoes Beheer</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Lato:wght@300;400;600;700&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-config.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Lato', sans-serif;
+      background: #e8dcc8;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .card {
+      background: #1e3a3f;
+      color: #fff;
+      padding: 56px 52px;
+      max-width: 420px;
+      width: 100%;
+      text-align: center;
+    }
+
+    .logo {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.5);
+      margin-bottom: 24px;
+    }
+
+    h1 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 38px;
+      font-weight: 600;
+      color: #fff;
+      margin-bottom: 6px;
+    }
+
+    .divider {
+      width: 1px;
+      height: 28px;
+      background: rgba(255,255,255,0.15);
+      margin: 16px auto 28px;
+    }
+
+    .form-group {
+      margin-bottom: 14px;
+      text-align: left;
+    }
+
+    label {
+      display: block;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.5);
+      margin-bottom: 6px;
+    }
+
+    input {
+      width: 100%;
+      padding: 12px 16px;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.15);
+      color: #fff;
+      font-size: 15px;
+      font-family: 'Lato', sans-serif;
+      font-weight: 300;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    input::placeholder { color: rgba(255,255,255,0.3); }
+    input:focus { border-color: rgba(255,255,255,0.4); }
+
+    .btn-login {
+      width: 100%;
+      padding: 14px;
+      background: #e85d4a;
+      color: #fff;
+      border: none;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      cursor: pointer;
+      font-family: 'Lato', sans-serif;
+      margin-top: 8px;
+      transition: background 0.2s;
+    }
+
+    .btn-login:hover { background: #d04838; }
+    .btn-login:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    .fout {
+      background: rgba(232, 93, 74, 0.15);
+      border: 1px solid rgba(232, 93, 74, 0.4);
+      color: #ff9090;
+      font-size: 13px;
+      padding: 10px 14px;
+      margin-top: 14px;
+      display: none;
+      text-align: left;
+    }
+
+    .footer-tekst {
+      font-size: 11px;
+      color: rgba(255,255,255,0.3);
+      margin-top: 28px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="logo">Brodshoes · Beheer</div>
+    <h1>Inloggen</h1>
+    <div class="divider"></div>
+
+    <form onsubmit="login(event)">
+      <div class="form-group">
+        <label for="email">E-mailadres</label>
+        <input type="email" id="email" placeholder="naam@brodshoes.nl" required autocomplete="email" />
+      </div>
+      <div class="form-group">
+        <label for="wachtwoord">Wachtwoord</label>
+        <input type="password" id="wachtwoord" placeholder="••••••••" required autocomplete="current-password" />
+      </div>
+      <button type="submit" class="btn-login" id="login-btn">Inloggen</button>
+      <div class="fout" id="fout-melding"></div>
+    </form>
+
+    <p class="footer-tekst">Toegang alleen voor beheerders</p>
+  </div>
+
+  <script>
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+
+    // Al ingelogd? Stuur door naar templates
+    supabase.auth.getSession().then(({ data }) => {
+      if (data.session) window.location.href = 'templates.html';
+    });
+
+    async function login(e) {
+      e.preventDefault();
+      const btn = document.getElementById('login-btn');
+      const fout = document.getElementById('fout-melding');
+      fout.style.display = 'none';
+      btn.textContent = 'Bezig…';
+      btn.disabled = true;
+
+      const email = document.getElementById('email').value.trim();
+      const ww    = document.getElementById('wachtwoord').value;
+
+      const { error } = await supabase.auth.signInWithPassword({ email, password: ww });
+
+      if (error) {
+        fout.textContent = 'Onjuiste inloggegevens. Probeer het opnieuw.';
+        fout.style.display = 'block';
+        btn.textContent = 'Inloggen';
+        btn.disabled = false;
+      } else {
+        window.location.href = 'templates.html';
+      }
+    }
+  </script>
+</body>
+</html>
