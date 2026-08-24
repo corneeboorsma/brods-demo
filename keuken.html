@@ -282,7 +282,7 @@
 
 <script>
   const KEUKEN_WW = 'keuken2026';
-  const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+  const sb = window._sbClient;
   let alleData = [];
 
   function keukensLogin() {

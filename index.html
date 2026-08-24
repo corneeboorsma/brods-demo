@@ -542,9 +542,6 @@
   </div>
 
   <script>
-    // ══ Globale Supabase client ══
-    const _sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
-
     // ══ Config laden: slug uit URL → Supabase, anders localStorage fallback ══
     const THEMAS = {
       pasen:    { achtergrond: '#e8dcc8', kaart: '#1e3a3f', kaartMid: '#254a50', accent: '#e85d4a' },
@@ -578,7 +575,7 @@
       let cfg = DEFAULT_CONFIG;
 
       if (urlSlug) {
-        const { data, error } = await _sb
+        const { data, error } = await window._sbClient
           .from('templates')
           .select('id, config')
           .eq('slug', urlSlug)
@@ -744,7 +741,7 @@
       btn.disabled = true;
 
       // Sla bestelling op in Supabase
-      const { error } = await _sb.from('bestellingen').insert({
+      const { error } = await window._sbClient.from('bestellingen').insert({
         template_id:   window._TEMPLATE_ID || null,
         template_slug: urlSlug || null,
         voornaam, achternaam, email, telefoon, adres,
