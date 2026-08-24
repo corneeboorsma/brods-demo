@@ -27,30 +27,6 @@
 
     body { font-family: 'Lato', sans-serif; background: #f0ebe0; color: var(--text); min-height: 100vh; }
 
-    /* ── Login ── */
-    #login-screen {
-      display: flex; align-items: center; justify-content: center;
-      min-height: 100vh; padding: 20px;
-    }
-    .login-card {
-      background: var(--teal); color: #fff;
-      padding: 52px 48px; max-width: 380px; width: 100%; text-align: center;
-    }
-    .login-card h1 { font-family: 'Cormorant Garamond', serif; font-size: 32px; margin-bottom: 6px; }
-    .login-card p { font-size: 13px; color: rgba(255,255,255,0.6); margin-bottom: 28px; letter-spacing: 1px; text-transform: uppercase; }
-    .login-card input {
-      width: 100%; padding: 12px 16px; background: rgba(255,255,255,0.1);
-      border: 1px solid rgba(255,255,255,0.2); color: #fff; font-size: 15px;
-      font-family: 'Lato', sans-serif; outline: none; margin-bottom: 14px; text-align: center; letter-spacing: 3px;
-    }
-    .login-card input::placeholder { color: rgba(255,255,255,0.4); letter-spacing: 1px; }
-    .login-card button {
-      width: 100%; padding: 13px; background: var(--red); color: #fff; border: none;
-      font-size: 12px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase;
-      cursor: pointer; font-family: 'Lato', sans-serif;
-    }
-    .login-fout { color: #ff9090; font-size: 13px; margin-top: 10px; display: none; }
-
     /* ── Dashboard ── */
     #dashboard { display: none; }
 
@@ -262,19 +238,8 @@
 </head>
 <body>
 
-<!-- ── Login ── -->
-<div id="login-screen">
-  <div class="login-card">
-    <h1>Brodshoes</h1>
-    <p>Keuken Dashboard</p>
-    <input type="password" id="keuken-ww" placeholder="Wachtwoord" />
-    <button onclick="keukensLogin()">Inloggen</button>
-    <div class="login-fout" id="keuken-fout">Onjuist wachtwoord</div>
-  </div>
-</div>
-
-<!-- ── Dashboard ── -->
-<div id="dashboard">
+<!-- ── Dashboard direct zichtbaar ── -->
+<div id="dashboard" style="display:block">
 
   <!-- Topbar -->
   <div class="topbar">
@@ -350,24 +315,11 @@
 </div>
 
 <script>
-const KEUKEN_WW = 'keuken2026';
-let alleData    = [];
-let voortgang   = {}; // { 'tijdslot|label': 'prep'|'klaar' }
-let bestVoortgang = {}; // { id: status }
-let quickFilter = 'alles';
-let charts      = {};
-
-// ── Login ──
-function keukensLogin() {
-  if (document.getElementById('keuken-ww').value === KEUKEN_WW) {
-    document.getElementById('login-screen').style.display = 'none';
-    document.getElementById('dashboard').style.display = 'block';
-    initialiseer();
-  } else {
-    document.getElementById('keuken-fout').style.display = 'block';
-  }
-}
-document.getElementById('keuken-ww').addEventListener('keydown', e => { if (e.key === 'Enter') keukensLogin(); });
+let alleData      = [];
+let voortgang     = {};
+let bestVoortgang = {};
+let quickFilter   = 'alles';
+let charts        = {};
 
 // ── Init ──
 async function initialiseer() {
@@ -704,6 +656,9 @@ function renderGrafieken(data) {
   });
   charts.voortgang.render();
 }
+
+// Start direct
+initialiseer();
 </script>
 </body>
 </html>
