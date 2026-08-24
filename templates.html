@@ -304,6 +304,68 @@
     }
     .slug-preview span { color: var(--teal); }
 
+    /* Thema grid */
+    .themas-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 16px;
+    }
+
+    .thema-kaart {
+      background: var(--white);
+      border: 1px solid var(--border);
+      overflow: hidden;
+    }
+
+    .thema-kleur-preview {
+      height: 70px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      position: relative;
+    }
+
+    .thema-kleur-dot {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      border: 2px solid rgba(255,255,255,0.4);
+    }
+
+    .thema-standaard-badge {
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      background: rgba(0,0,0,0.25);
+      color: #fff;
+      padding: 2px 6px;
+      border-radius: 2px;
+    }
+
+    .thema-kaart-body {
+      padding: 14px 16px;
+    }
+
+    .thema-kaart-naam {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--teal);
+      margin-bottom: 10px;
+    }
+
+    .thema-kaart-acties {
+      display: flex;
+      gap: 6px;
+    }
+
+    .form-row.drie { grid-template-columns: 1fr 1fr 1fr; }
+
     /* Foto upload */
     .foto-drop {
       border: 2px dashed var(--border); background: #faf7f2; height: 90px;
@@ -345,6 +407,7 @@
 <div class="tabs">
   <div class="tab active" data-tab="templates" onclick="toonTab('templates', this)">Templates</div>
   <div class="tab" data-tab="publicaties" onclick="toonTab('publicaties', this)">Publicaties</div>
+  <div class="tab" data-tab="themas" onclick="toonTab('themas', this)">Thema's</div>
 </div>
 
 <!-- ── Content ── -->
@@ -387,6 +450,66 @@
     </table>
   </div>
 
+  <!-- ════ TAB: THEMA'S ════ -->
+  <div class="tab-panel" id="tab-themas">
+    <div class="toolbar">
+      <div style="font-size:13px;color:var(--muted);">Standaard en aangepaste thema's</div>
+      <button class="btn-nieuw" onclick="openNieuwThema()">+ Nieuw thema</button>
+    </div>
+    <div class="themas-grid" id="themas-grid">
+      <div class="leeg"><p>Thema's laden…</p></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ════ THEMA MODAL ════ -->
+<div class="modal-overlay" id="thema-modal">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-header">
+      <div class="modal-titel" id="thema-modal-titel">Nieuw thema</div>
+      <button class="modal-sluit" onclick="sluitThemaModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="sectie-label-editor">Naam</div>
+      <div class="form-row enkel">
+        <div class="form-group">
+          <label>Thema naam</label>
+          <input type="text" id="th-naam" placeholder="bijv. Valentijn" oninput="updateThemaPreview()" />
+        </div>
+      </div>
+
+      <div class="sectie-label-editor">Kleuren</div>
+      <div class="form-row drie">
+        <div class="form-group">
+          <label>Achtergrond</label>
+          <input type="color" id="th-achtergrond" value="#e8dcc8" oninput="updateThemaPreview()" style="width:100%;height:42px;padding:2px;cursor:pointer;" />
+        </div>
+        <div class="form-group">
+          <label>Kaart</label>
+          <input type="color" id="th-kaart" value="#1e3a3f" oninput="updateThemaPreview()" style="width:100%;height:42px;padding:2px;cursor:pointer;" />
+        </div>
+        <div class="form-group">
+          <label>Accent</label>
+          <input type="color" id="th-accent" value="#e85d4a" oninput="updateThemaPreview()" style="width:100%;height:42px;padding:2px;cursor:pointer;" />
+        </div>
+      </div>
+
+      <div class="sectie-label-editor">Live preview</div>
+      <div id="thema-live-preview" style="border:1px solid var(--border);overflow:hidden;">
+        <div id="prev-kaart" style="padding:20px;text-align:center;">
+          <div id="prev-titel" style="font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:700;margin-bottom:8px;">Uw evenement</div>
+          <div id="prev-badge" style="display:inline-block;padding:6px 14px;border:1px solid rgba(255,255,255,0.2);font-size:11px;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:16px;">Afhalen zaterdag · 14:00–16:00</div>
+          <div id="prev-btn" style="padding:10px 24px;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;display:inline-block;cursor:default;">Bestelling plaatsen</div>
+        </div>
+        <div id="prev-achtergrond" style="height:12px;"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="actie-btn" onclick="sluitThemaModal()">Annuleren</button>
+      <button class="btn-nieuw" onclick="slaThemaOp()">Opslaan</button>
+    </div>
+  </div>
 </div>
 
 <!-- ════ EDITOR MODAL ════ -->
@@ -543,6 +666,7 @@ function toonTab(naam, el) {
   document.getElementById('tab-' + naam).classList.add('active');
   el.classList.add('active');
   if (naam === 'publicaties') laadPublicaties();
+  if (naam === 'themas') laadThemas();
 }
 
 // ══ Filter ══
@@ -697,21 +821,29 @@ function updateSlugPreview() {
 function bouwThemaGridModal() {
   const grid = document.getElementById('thema-grid-modal');
   grid.innerHTML = '';
-  for (const [id, th] of Object.entries(THEMAS)) {
+
+  // Gebruik alleThemas uit Supabase als beschikbaar, anders fallback op THEMAS object
+  const bronThemas = alleThemas.length > 0 ? alleThemas : Object.entries(THEMAS).map(([id, th]) => ({
+    id, naam: th.naam, achtergrond: th.achtergrond, kaart: th.kaart, accent: th.accent
+  }));
+
+  bronThemas.forEach(th => {
     const card = document.createElement('div');
-    card.className = 'thema-card-modal' + (edThema === id ? ' geselecteerd' : '');
+    card.className = 'thema-card-modal' + (edThema === th.id ? ' geselecteerd' : '');
     card.onclick = () => {
-      edThema = id;
+      edThema = th.id;
       document.querySelectorAll('.thema-card-modal').forEach(c => c.classList.remove('geselecteerd'));
       card.classList.add('geselecteerd');
     };
     card.innerHTML = `
-      <div class="thema-preview-modal" style="background:${th.achtergrond}">
-        ${th.kleuren.map(k => `<div class="thema-dot" style="background:${k}"></div>`).join('')}
+      <div class="thema-preview-modal" style="background:${th.kaart}">
+        <div class="thema-dot" style="background:${th.achtergrond}"></div>
+        <div class="thema-dot" style="background:${th.kaart}"></div>
+        <div class="thema-dot" style="background:${th.accent}"></div>
       </div>
       <div class="thema-naam-modal">${th.naam}</div>`;
     grid.appendChild(card);
-  }
+  });
 }
 
 // ══ Categorieën editor ══
@@ -952,8 +1084,130 @@ function toonToast(msg) {
   setTimeout(() => t.classList.remove('zichtbaar'), 3000);
 }
 
+// ══ Thema's ══
+let alleThemas = [];
+let bewerkThemaId = null;
+
+async function laadThemas() {
+  const { data, error } = await sb.from('themas').select('*').order('aangemaakt_op', { ascending: true });
+  if (error) { toonToast('Fout bij laden thema\'s: ' + error.message); return; }
+  alleThemas = data || [];
+  renderThemas();
+}
+
+function renderThemas() {
+  const grid = document.getElementById('themas-grid');
+  if (!alleThemas.length) {
+    grid.innerHTML = `<div class="leeg"><p>Nog geen thema's.</p></div>`;
+    return;
+  }
+  grid.innerHTML = '';
+  alleThemas.forEach(t => {
+    const kaart = document.createElement('div');
+    kaart.className = 'thema-kaart';
+    kaart.innerHTML = `
+      <div class="thema-kleur-preview" style="background:${t.kaart}">
+        <div class="thema-kleur-dot" style="background:${t.achtergrond}"></div>
+        <div class="thema-kleur-dot" style="background:${t.kaart}"></div>
+        <div class="thema-kleur-dot" style="background:${t.accent}"></div>
+        ${t.is_standaard ? '<span class="thema-standaard-badge">Standaard</span>' : ''}
+      </div>
+      <div class="thema-kaart-body">
+        <div class="thema-kaart-naam">${t.naam}</div>
+        <div class="thema-kaart-acties">
+          ${!t.is_standaard ? `<button class="actie-btn" onclick="openBewerkThema('${t.id}')">✏️ Bewerken</button>` : ''}
+          ${!t.is_standaard ? `<button class="actie-btn rood" onclick="verwijderThema('${t.id}', '${t.naam}')">🗑️ Verwijderen</button>` : '<span style="font-size:11px;color:var(--muted);">Niet aanpasbaar</span>'}
+        </div>
+      </div>`;
+    grid.appendChild(kaart);
+  });
+}
+
+function openNieuwThema() {
+  bewerkThemaId = null;
+  document.getElementById('thema-modal-titel').textContent = 'Nieuw thema';
+  document.getElementById('th-naam').value = '';
+  document.getElementById('th-achtergrond').value = '#e8dcc8';
+  document.getElementById('th-kaart').value = '#1e3a3f';
+  document.getElementById('th-accent').value = '#e85d4a';
+  updateThemaPreview();
+  document.getElementById('thema-modal').classList.add('open');
+}
+
+function openBewerkThema(id) {
+  const t = alleThemas.find(x => x.id === id);
+  if (!t) return;
+  bewerkThemaId = id;
+  document.getElementById('thema-modal-titel').textContent = 'Thema bewerken';
+  document.getElementById('th-naam').value = t.naam;
+  document.getElementById('th-achtergrond').value = t.achtergrond;
+  document.getElementById('th-kaart').value = t.kaart;
+  document.getElementById('th-accent').value = t.accent;
+  updateThemaPreview();
+  document.getElementById('thema-modal').classList.add('open');
+}
+
+function sluitThemaModal() {
+  document.getElementById('thema-modal').classList.remove('open');
+}
+
+function updateThemaPreview() {
+  const achtergrond = document.getElementById('th-achtergrond').value;
+  const kaart       = document.getElementById('th-kaart').value;
+  const accent      = document.getElementById('th-accent').value;
+  const naam        = document.getElementById('th-naam').value || 'Uw thema';
+
+  document.getElementById('prev-kaart').style.background = kaart;
+  document.getElementById('prev-kaart').style.color = '#fff';
+  document.getElementById('prev-titel').style.color = '#fff';
+  document.getElementById('prev-badge').style.borderColor = 'rgba(255,255,255,0.25)';
+  document.getElementById('prev-badge').style.color = 'rgba(255,255,255,0.7)';
+  document.getElementById('prev-btn').style.background = accent;
+  document.getElementById('prev-btn').style.color = '#fff';
+  document.getElementById('prev-achtergrond').style.background = achtergrond;
+  document.getElementById('prev-titel').textContent = naam;
+}
+
+async function slaThemaOp() {
+  const naam        = document.getElementById('th-naam').value.trim();
+  const achtergrond = document.getElementById('th-achtergrond').value;
+  const kaart       = document.getElementById('th-kaart').value;
+  const accent      = document.getElementById('th-accent').value;
+  // kaart_mid: mix tussen kaart en achtergrond
+  const kaart_mid   = kaart;
+
+  if (!naam) { toonToast('Geef het thema een naam'); return; }
+
+  const { data: { user } } = await sb.auth.getUser();
+  let error;
+
+  if (bewerkThemaId) {
+    ({ error } = await sb.from('themas').update({ naam, achtergrond, kaart, kaart_mid, accent }).eq('id', bewerkThemaId));
+  } else {
+    ({ error } = await sb.from('themas').insert({ naam, achtergrond, kaart, kaart_mid, accent, is_standaard: false, aangemaakt_door: user.id }));
+  }
+
+  if (error) { toonToast('Fout: ' + error.message); return; }
+  sluitThemaModal();
+  toonToast(bewerkThemaId ? 'Thema bijgewerkt' : 'Thema aangemaakt');
+  laadThemas();
+}
+
+function verwijderThema(id, naam) {
+  toonConfirm(
+    'Thema verwijderen',
+    `Weet u zeker dat u het thema "${naam}" wilt verwijderen?`,
+    async () => {
+      const { error } = await sb.from('themas').delete().eq('id', id);
+      if (error) { toonToast('Fout: ' + error.message); return; }
+      toonToast('Thema verwijderd');
+      laadThemas();
+    }
+  );
+}
+
 // ══ Init ══
-checkAuth().then(() => laadTemplates());
+checkAuth().then(() => { laadTemplates(); laadThemas(); });
 </script>
 </body>
 </html>
