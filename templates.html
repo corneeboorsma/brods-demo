@@ -590,11 +590,12 @@ function renderTemplates() {
           ${t.status === 'gepubliceerd' ? `Slug: <code style="font-size:11px">${t.slug}</code>` : ''}
         </div>
         <div class="kaart-acties">
-          <button class="actie-btn" onclick="openBewerken('${t.id}')">Bewerken</button>
-          <button class="actie-btn" onclick="dupliceer('${t.id}')">Dupliceren</button>
-          ${t.status !== 'gepubliceerd' ? `<button class="actie-btn groen" onclick="publiceer('${t.id}')">Publiceren</button>` : `<button class="actie-btn" onclick="kopieerUrl('${t.slug}')">Kopieer URL</button>`}
-          ${t.status !== 'gearchiveerd' ? `<button class="actie-btn" onclick="archiveer('${t.id}')">Archiveren</button>` : `<button class="actie-btn" onclick="herstel('${t.id}')">Herstellen</button>`}
-          <button class="actie-btn rood" onclick="verwijder('${t.id}', '${t.naam}')">Verwijderen</button>
+          <button class="actie-btn" onclick="openBewerken('${t.id}')">✏️ Bewerken</button>
+          <button class="actie-btn" onclick="bekijken('${t.slug}')">👁️ Bekijken</button>
+          <button class="actie-btn" onclick="dupliceer('${t.id}')">📋 Dupliceren</button>
+          ${t.status !== 'gepubliceerd' ? `<button class="actie-btn groen" onclick="publiceer('${t.id}')">🚀 Publiceren</button>` : `<button class="actie-btn" onclick="kopieerUrl('${t.slug}')">🔗 Kopieer URL</button>`}
+          ${t.status !== 'gearchiveerd' ? `<button class="actie-btn" onclick="archiveer('${t.id}')">📦 Archiveren</button>` : `<button class="actie-btn" onclick="herstel('${t.id}')">↩️ Herstellen</button>`}
+          <button class="actie-btn rood" onclick="verwijder('${t.id}', '${t.naam}')">🗑️ Verwijderen</button>
         </div>
       </div>`;
     grid.appendChild(kaart);
@@ -867,6 +868,11 @@ async function slaTemplateOp() {
 }
 
 // ══ Acties ══
+function bekijken(slug) {
+  const url = `${window.location.origin}${window.location.pathname.replace('templates.html','index.html')}?slug=${slug}`;
+  window.open(url, '_blank');
+}
+
 async function dupliceer(id) {
   const t = alleTemplates.find(x => x.id === id);
   if (!t) return;
