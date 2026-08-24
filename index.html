@@ -385,6 +385,18 @@
       margin-top: 40px;
     }
 
+    .tijdslot-fout {
+      display: none;
+      color: #e85d4a;
+      font-size: 13px;
+      font-weight: 600;
+      margin-top: 8px;
+    }
+
+    .tijdslot-grid.fout .tijdslot-label {
+      border-color: #e85d4a;
+    }
+
     .tijdslot-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -497,6 +509,7 @@
         <div class="form-group">
           <label>Kies uw tijdslot (zaterdag 18 april)</label>
           <div class="tijdslot-grid" id="tijdslot-grid"></div>
+          <div class="tijdslot-fout" id="tijdslot-fout">Kies een tijdslot om door te gaan</div>
         </div>
 
         <!-- Totaal -->
@@ -657,7 +670,7 @@
           tijdslotGrid.appendChild(lbl);
         });
         if (tijdslotGrid.querySelector('input[type="radio"]')) {
-          tijdslotGrid.querySelector('input[type="radio"]').required = true;
+          // geen required — eigen validatie in handleSubmit
         }
 
         window._PRIJZEN = PRIJZEN;
@@ -706,14 +719,23 @@
       const regels = getBestelregels();
       if (regels.length === 0) { alert('Selecteer minimaal één product om te bestellen.'); return; }
 
-      const voornaam   = document.getElementById('voornaam').value.trim();
+      const tijdslotEl = document.querySelector('input[name="tijdslot"]:checked');
+      if (!tijdslotEl) {
+        const grid = document.getElementById('tijdslot-grid');
+        const fout = document.getElementById('tijdslot-fout');
+        grid.classList.add('fout');
+        fout.style.display = 'block';
+        grid.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return;
+      }
+      document.getElementById('tijdslot-grid').classList.remove('fout');
+      document.getElementById('tijdslot-fout').style.display = 'none';
       const achternaam = document.getElementById('achternaam').value.trim();
       const email      = document.getElementById('email').value.trim();
       const telefoon   = document.getElementById('telefoon').value.trim();
       const adres      = document.getElementById('adres').value.trim();
       const opmerking  = document.getElementById('opmerking').value.trim();
-      const tijdslotEl = document.querySelector('input[name="tijdslot"]:checked');
-      const tijdslot   = tijdslotEl ? tijdslotEl.value : '–';
+      const tijdslot   = tijdslotEl.value;
       const totaal     = regels.reduce((s, r) => s + r.subtotaal, 0);
 
       const btn = document.getElementById('submit-btn');
