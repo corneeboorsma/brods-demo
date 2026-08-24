@@ -148,7 +148,7 @@
 
   <script>
     // Al ingelogd? Stuur door naar templates
-    window._sbClient.auth.getSession().then(({ data }) => {
+    getSbClient().auth.getSession().then(({ data }) => {
       if (data.session) window.location.href = 'templates.html';
     });
 
@@ -163,7 +163,7 @@
       const email = document.getElementById('email').value.trim();
       const ww    = document.getElementById('wachtwoord').value;
 
-      const { error } = await window._sbClient.auth.signInWithPassword({ email, password: ww });
+      const { error } = await getSbClient().auth.signInWithPassword({ email, password: ww });
 
       if (error) {
         fout.textContent = 'Onjuiste inloggegevens. Probeer het opnieuw.';

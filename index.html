@@ -575,7 +575,7 @@
       let cfg = DEFAULT_CONFIG;
 
       if (urlSlug) {
-        const { data, error } = await window._sbClient
+        const { data, error } = await getSbClient()
           .from('templates')
           .select('id, config')
           .eq('slug', urlSlug)
@@ -741,7 +741,7 @@
       btn.disabled = true;
 
       // Sla bestelling op in Supabase
-      const { error } = await window._sbClient.from('bestellingen').insert({
+      const { error } = await getSbClient().from('bestellingen').insert({
         template_id:   window._TEMPLATE_ID || null,
         template_slug: urlSlug || null,
         voornaam, achternaam, email, telefoon, adres,
