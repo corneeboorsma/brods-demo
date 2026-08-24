@@ -234,6 +234,29 @@
       background: var(--red); color: #fff; font-size: 10px; font-weight: 700;
       padding: 2px 6px; border-radius: 10px; animation: pulse 1s infinite;
     }
+
+    /* ── Keuken tabs ── */
+    .keuken-tabs {
+      background: var(--teal-dark); display: flex; padding: 0 24px;
+    }
+    .keuken-tab {
+      padding: 12px 20px; font-size: 11px; font-weight: 700; letter-spacing: 2px;
+      text-transform: uppercase; color: rgba(255,255,255,0.5); cursor: pointer;
+      border-bottom: 3px solid transparent; transition: all 0.15s;
+    }
+    .keuken-tab.active { color: #fff; border-bottom-color: var(--red); }
+    .keuken-tab:hover  { color: rgba(255,255,255,0.8); }
+
+    /* ── Keukenmodus ── */
+    body.keukenmodus .stat-tile-waarde  { font-size: 48px; }
+    body.keukenmodus .prod-naam         { font-size: 20px; }
+    body.keukenmodus .prod-qty          { font-size: 36px; }
+    body.keukenmodus .tijdslot-tijd     { font-size: 28px; }
+    body.keukenmodus .best-naam         { font-size: 18px; }
+    body.keukenmodus .right-col         { display: none; }
+    body.keukenmodus .main              { grid-template-columns: 1fr; }
+    body.keukenmodus .status-knop       { padding: 10px 18px; font-size: 14px; }
+    body.keukenmodus .best-status-btn   { padding: 10px 18px; font-size: 14px; }
   </style>
 </head>
 <body>
@@ -253,12 +276,19 @@
     <div class="topbar-right">
       <button class="btn-topbar btn-teal" onclick="laadData()">↺ Vernieuwen</button>
       <button class="btn-topbar btn-teal" onclick="window.print()">🖨️ Print</button>
+      <button class="btn-topbar btn-teal" id="btn-keukenmodus" onclick="toggleKeukenmodus()">⛶ Keukenmodus</button>
       <button class="btn-topbar btn-teal" onclick="window.location.href='templates.html'">← Beheer</button>
     </div>
   </div>
 
+  <!-- Tabbladen -->
+  <div class="keuken-tabs">
+    <div class="keuken-tab active" id="kt-basis" onclick="toonKeukenTab('basis')">Overzicht</div>
+    <div class="keuken-tab" id="kt-pro" onclick="toonKeukenTab('pro')">Pro Dashboard</div>
+  </div>
+
   <!-- Filters -->
-  <div class="filters">
+  <div class="filters" id="basis-filters">
     <select id="f-template" onchange="laadData()">
       <option value="">Alle templates</option>
     </select>
@@ -280,6 +310,9 @@
       <button class="quick-btn"        id="qb-allergien"   onclick="setQuick('allergien')">⚠️ Allergieën</button>
     </div>
   </div>
+
+  <!-- Basis tabblad -->
+  <div id="tab-basis">
 
   <!-- Hoofdinhoud -->
   <div class="main">
@@ -312,7 +345,64 @@
     </div>
 
   </div>
-</div>
+  </div><!-- /tab-basis -->
+
+  <!-- Pro tabblad -->
+  <div id="tab-pro" style="display:none">
+
+    <!-- Pro filters -->
+    <div class="filters">
+      <input type="date" id="pf-datum" onchange="renderPro()" style="padding:6px 10px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);color:#fff;font-family:'Lato',sans-serif;font-size:12px;outline:none;" />
+      <select id="pf-tijdslot" onchange="renderPro()" style="padding:6px 11px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);color:#fff;font-size:12px;font-family:'Lato',sans-serif;outline:none;">
+        <option value="">Alle tijdslots</option>
+      </select>
+      <select id="pf-categorie" onchange="renderPro()" style="padding:6px 11px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);color:#fff;font-size:12px;font-family:'Lato',sans-serif;outline:none;">
+        <option value="">Alle categorieën</option>
+      </select>
+      <select id="pf-status" onchange="renderPro()" style="padding:6px 11px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);color:#fff;font-size:12px;font-family:'Lato',sans-serif;outline:none;">
+        <option value="">Alle statussen</option>
+        <option value="nieuw">Nieuw</option>
+        <option value="in_behandeling">In behandeling</option>
+        <option value="klaar">Klaar</option>
+        <option value="gecontroleerd">Gecontroleerd</option>
+        <option value="uitgegeven">Uitgegeven</option>
+      </select>
+      <div class="quick-btns">
+        <button class="quick-btn active" id="pqb-alles"        onclick="setProQuick('alles')">Alles</button>
+        <button class="quick-btn"        id="pqb-open"         onclick="setProQuick('open')">Openstaand</button>
+        <button class="quick-btn"        id="pqb-opmerkingen"  onclick="setProQuick('opmerkingen')">Opmerkingen</button>
+        <button class="quick-btn"        id="pqb-allergien"    onclick="setProQuick('allergien')">⚠️ Allergieën</button>
+        <button class="quick-btn"        id="pqb-vertraagd"    onclick="setProQuick('vertraagd')">🔴 Vertraagd</button>
+        <button class="quick-btn"        id="pqb-controle"     onclick="setProQuick('controle')">✓ Klaar voor controle</button>
+      </div>
+      <button class="btn-topbar btn-rood" onclick="exportKeuken()" style="margin-left:auto;">📥 Export</button>
+    </div>
+
+    <div class="main">
+      <div class="left-col">
+        <div class="stat-rij" id="pro-stat-rij"></div>
+        <div id="pro-tijdsloten"></div>
+      </div>
+      <div class="right-col">
+        <div class="grafiek-blok">
+          <div class="grafiek-titel">Producten per tijdslot</div>
+          <div id="pro-grafiek-tijdslot"></div>
+        </div>
+        <div class="grafiek-blok">
+          <div class="grafiek-titel">Verdeling per categorie</div>
+          <div id="pro-grafiek-categorie"></div>
+        </div>
+        <div class="grafiek-blok">
+          <div class="grafiek-titel">Werkdruk per tijdslot</div>
+          <div id="pro-grafiek-werkdruk"></div>
+        </div>
+        <div class="grafiek-blok">
+          <div class="grafiek-titel">Top 10 producten</div>
+          <div id="pro-grafiek-top10"></div>
+        </div>
+      </div>
+    </div>
+  </div><!-- /tab-pro -->
 
 <script>
 let alleData      = [];
@@ -360,6 +450,7 @@ async function laadData() {
 
   document.getElementById('laatste-update').textContent = 'Bijgewerkt: ' + new Date().toLocaleTimeString('nl-NL');
   renderAlles();
+  vulProFilters(alleData);
 }
 
 // ── Realtime ──
@@ -655,6 +746,346 @@ function renderGrafieken(data) {
     plotOptions: { pie: { donut: { size: '60%' } } },
   });
   charts.voortgang.render();
+}
+
+}
+
+// ── Tabbladen ──
+function toonKeukenTab(naam) {
+  document.getElementById('tab-basis').style.display = naam === 'basis' ? 'block' : 'none';
+  document.getElementById('tab-pro').style.display   = naam === 'pro'   ? 'block' : 'none';
+  document.getElementById('basis-filters').style.display = naam === 'basis' ? 'flex' : 'none';
+  document.getElementById('kt-basis').classList.toggle('active', naam === 'basis');
+  document.getElementById('kt-pro').classList.toggle('active', naam === 'pro');
+  if (naam === 'pro') renderPro();
+}
+
+// ── Keukenmodus ──
+function toggleKeukenmodus() {
+  const aan = document.body.classList.toggle('keukenmodus');
+  document.getElementById('btn-keukenmodus').textContent = aan ? '✕ Keukenmodus uit' : '⛶ Keukenmodus';
+}
+
+// ── Pro quick filter ──
+let proQuick = 'alles';
+function setProQuick(q) {
+  proQuick = q;
+  document.querySelectorAll('[id^="pqb-"]').forEach(b => b.classList.remove('active'));
+  document.getElementById('pqb-' + q)?.classList.add('active');
+  renderPro();
+}
+
+// ── Pro render ──
+function renderPro() {
+  const pfTs   = document.getElementById('pf-tijdslot').value;
+  const pfStat = document.getElementById('pf-status').value;
+  const pfCat  = document.getElementById('pf-categorie').value;
+
+  let data = [...alleData];
+  if (pfTs)   data = data.filter(b => b.tijdslot === pfTs);
+  if (pfStat) data = data.filter(b => (bestVoortgang[b.id] || b.status) === pfStat);
+  if (pfCat)  data = data.filter(b => (b.regels||[]).some(r => (r.label||'').startsWith(pfCat + ' – ')));
+  if (proQuick === 'open')        data = data.filter(b => !['klaar','gecontroleerd','uitgegeven'].includes(bestVoortgang[b.id]||b.status));
+  if (proQuick === 'opmerkingen') data = data.filter(b => b.opmerking);
+  if (proQuick === 'allergien')   data = data.filter(b => b.opmerking);
+  if (proQuick === 'vertraagd')   data = data.filter(b => isVertraagd(b));
+  if (proQuick === 'controle')    data = data.filter(b => (bestVoortgang[b.id]||b.status) === 'klaar');
+
+  renderProStats(data);
+  renderProTijdsloten(data);
+  renderProGrafieken(data);
+  vulProFilters(data);
+}
+
+function isVertraagd(b) {
+  const nu = new Date();
+  const ts = b.tijdslot || '';
+  const match = ts.match(/(\d{2}):(\d{2})/);
+  if (!match) return false;
+  const tijdslotUur  = parseInt(match[1]);
+  const tijdslotMin  = parseInt(match[2]);
+  const tijdslotMs   = tijdslotUur * 60 + tijdslotMin;
+  const nuMs         = nu.getHours() * 60 + nu.getMinutes();
+  const status       = bestVoortgang[b.id] || b.status;
+  return nuMs > tijdslotMs - 15 && !['klaar','gecontroleerd','uitgegeven'].includes(status);
+}
+
+function vulProFilters(data) {
+  const ts   = document.getElementById('pf-tijdslot');
+  const cat  = document.getElementById('pf-categorie');
+  const hTs  = ts.value;
+  const hCat = cat.value;
+
+  const tijdslots = [...new Set(alleData.map(b => b.tijdslot).filter(Boolean))].sort();
+  ts.innerHTML = '<option value="">Alle tijdslots</option>';
+  tijdslots.forEach(t => { const o = document.createElement('option'); o.value=t; o.textContent=t; if(t===hTs) o.selected=true; ts.appendChild(o); });
+
+  const cats = [...new Set(alleData.flatMap(b => (b.regels||[]).map(r => (r.label||'').split(' – ')[0])).filter(Boolean))].sort();
+  cat.innerHTML = '<option value="">Alle categorieën</option>';
+  cats.forEach(c => { const o = document.createElement('option'); o.value=c; o.textContent=c; if(c===hCat) o.selected=true; cat.appendChild(o); });
+}
+
+function renderProStats(data) {
+  const totProd  = data.reduce((s,b) => s + (b.regels||[]).reduce((ss,r) => ss+r.qty,0), 0);
+  const metOpm   = data.filter(b => b.opmerking).length;
+  const klaar    = data.filter(b => ['klaar','gecontroleerd','uitgegeven'].includes(bestVoortgang[b.id]||b.status)).length;
+  const open     = data.length - klaar;
+  const vertraagd = data.filter(b => isVertraagd(b)).length;
+  const tijdslots = [...new Set(data.map(b => b.tijdslot).filter(Boolean))].sort();
+  const volgend   = tijdslots[0] || '–';
+  const volgendN  = data.filter(b => b.tijdslot === volgend).reduce((s,b) => s+(b.regels||[]).reduce((ss,r)=>ss+r.qty,0),0);
+
+  document.getElementById('pro-stat-rij').innerHTML = `
+    <div class="stat-tile"><div class="stat-tile-label">Bestellingen</div><div class="stat-tile-waarde" style="color:var(--teal)">${data.length}</div><div class="stat-tile-sub">${open} open · ${klaar} klaar</div></div>
+    <div class="stat-tile"><div class="stat-tile-label">Te bereiden</div><div class="stat-tile-waarde" style="color:var(--teal)">${totProd}</div><div class="stat-tile-sub">producten totaal</div></div>
+    <div class="stat-tile"><div class="stat-tile-label">Eerstvolgende</div><div class="stat-tile-waarde" style="font-size:16px;color:var(--teal);margin-top:4px">${volgend}</div><div class="stat-tile-sub">${volgendN} producten</div></div>
+    <div class="stat-tile"><div class="stat-tile-label">Aandacht</div><div class="stat-tile-waarde ${vertraagd>0?'kleur-rood':'kleur-grijs'}">${vertraagd}</div><div class="stat-tile-sub">${metOpm} opmerkingen</div></div>
+  `;
+}
+
+function renderProTijdsloten(data) {
+  const container = document.getElementById('pro-tijdsloten');
+  const tijdslots = [...new Set(data.map(b => b.tijdslot).filter(Boolean))].sort();
+
+  if (!tijdslots.length) {
+    container.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted)">Geen bestellingen gevonden.</div>';
+    return;
+  }
+
+  const nu = new Date();
+  container.innerHTML = tijdslots.map((ts, ti) => {
+    const bests   = data.filter(b => b.tijdslot === ts);
+    const totProd = bests.reduce((s,b) => s+(b.regels||[]).reduce((ss,r)=>ss+r.qty,0),0);
+    const klaarN  = bests.filter(b => ['klaar','gecontroleerd','uitgegeven'].includes(bestVoortgang[b.id]||b.status)).length;
+    const pct     = bests.length ? Math.round((klaarN/bests.length)*100) : 0;
+    const metOpm  = bests.filter(b => b.opmerking).length;
+    const vertN   = bests.filter(b => isVertraagd(b)).length;
+
+    // Resterende tijd
+    const match = ts.match(/(\d{2}):(\d{2})/);
+    let restTijd = '';
+    if (match) {
+      const tsMin = parseInt(match[1])*60 + parseInt(match[2]);
+      const nuMin = nu.getHours()*60 + nu.getMinutes();
+      const diff  = tsMin - nuMin;
+      if      (diff > 0)  restTijd = `⏱ ${Math.floor(diff/60)}u ${diff%60}m`;
+      else if (diff > -30) restTijd = `⚠️ Bezig`;
+      else                restTijd = `✅ Voorbij`;
+    }
+
+    // Producten per categorie
+    const catMap = {};
+    bests.forEach(b => (b.regels||[]).forEach(r => {
+      const delen = (r.label||'').split(' – ');
+      const cat = delen[0]||'Overig';
+      const prod = delen[1]||r.label||'';
+      const key = `pro|${ts}|${r.label}`;
+      if (!catMap[cat]) catMap[cat] = {};
+      if (!catMap[cat][prod]) catMap[cat][prod] = { qty: 0, key };
+      catMap[cat][prod].qty += r.qty;
+    }));
+
+    const catsHTML = Object.entries(catMap).map(([cat, prods]) => {
+      const catKey = `procat|${ts}|${cat}`;
+      const catV = voortgang[catKey] || 'open';
+      return `<div class="cat-blok">
+        <div class="cat-header">
+          <span>${cat}</span>
+          <div style="display:flex;align-items:center;gap:8px">
+            <span style="font-size:12px;color:var(--muted);font-weight:400">${Object.values(prods).reduce((s,p)=>s+p.qty,0)} stuks</span>
+            <button class="status-knop ${catV==='prep'?'actief-prep':''}" onclick="setProdStatus('${catKey}','prep',event)">Bezig</button>
+            <button class="status-knop ${catV==='klaar'?'actief-klaar':''}" onclick="setProdStatus('${catKey}','klaar',event)">✓ Klaar</button>
+          </div>
+        </div>
+        ${Object.entries(prods).map(([prod, info]) => {
+          const v = voortgang[info.key] || 'open';
+          return `<div class="prod-rij ${v==='klaar'?'klaar':''}">
+            <div><div class="prod-naam">${prod}</div></div>
+            <div style="display:flex;align-items:center;gap:12px">
+              <div class="prod-qty">${info.qty}×</div>
+              <div class="status-knoppen">
+                <button class="status-knop ${v==='prep'?'actief-prep':''}" onclick="setProdStatus('${info.key}','prep',event)">Bezig</button>
+                <button class="status-knop ${v==='klaar'?'actief-klaar':''}" onclick="setProdStatus('${info.key}','klaar',event)">✓ Klaar</button>
+              </div>
+            </div>
+          </div>`;
+        }).join('')}
+      </div>`;
+    }).join('');
+
+    const opms = bests.filter(b => b.opmerking);
+    const opmsHTML = opms.length ? `
+      <div class="sectie-kop" style="color:var(--red)">⚠️ Opmerkingen &amp; Allergieën <span>${opms.length}</span></div>
+      ${opms.map(b => `<div class="opmerking-rij allergie">
+        <div class="opmerking-icon">⚠️</div>
+        <div>
+          <div class="opmerking-naam">${b.voornaam} ${b.achternaam}</div>
+          <div class="opmerking-tekst">${b.opmerking}</div>
+          <div class="opmerking-tijdslot">${ts}</div>
+        </div>
+      </div>`).join('')}` : '';
+
+    const bestsHTML = bests.map((b, bi) => {
+      const bNaam  = `${b.voornaam} ${b.achternaam}`;
+      const bProd  = (b.regels||[]).map(r => `${r.qty}× ${(r.label||'').split(' – ')[1]||r.label}`).join(', ');
+      const bStat  = bestVoortgang[b.id] || b.status;
+      const isVert = isVertraagd(b);
+      const statusLabels = { nieuw:'⬜ Nieuw', in_behandeling:'🔄 Bezig', klaar:'✅ Klaar', gecontroleerd:'🔍 Gecontroleerd', uitgegeven:'📦 Uitgegeven' };
+      const badgeKleur   = { nieuw:'badge-nieuw', in_behandeling:'badge-in_behandeling', klaar:'badge-klaar', gecontroleerd:'badge-klaar', uitgegeven:'badge-klaar' };
+
+      return `
+        <div class="best-rij ${isVert?'style="background:#fff5f5"':''}">
+          <div onclick="toggleBestDetail('pro-bd-${ti}-${bi}')">
+            <div class="best-naam">${b.voornaam} ${b.achternaam} ${b.opmerking?'<span style="color:var(--red)">⚠️</span>':''} ${isVert?'<span style="color:var(--red);font-size:11px">● VERTRAAGD</span>':''}</div>
+            <div class="best-producten">${bProd}</div>
+          </div>
+          <span class="best-status-badge ${badgeKleur[bStat]||'badge-nieuw'}">${statusLabels[bStat]||bStat}</span>
+        </div>
+        <div class="best-detail" id="pro-bd-${ti}-${bi}">
+          ${(b.regels||[]).map(r=>`<div style="font-size:13px;padding:2px 0">${r.qty}× ${r.label}</div>`).join('')}
+          ${b.opmerking?`<div class="opmerking-rij allergie" style="margin-top:8px;padding:8px 12px"><div class="opmerking-icon">⚠️</div><div class="opmerking-tekst">${b.opmerking}</div></div>`:''}
+          <div class="best-status-row">
+            ${Object.entries(statusLabels).map(([s,l]) =>
+              `<button class="best-status-btn ${bStat===s?'sel-'+s:''}" style="${bStat===s?'border-color:var(--teal);color:var(--teal);':''}" onclick="setBestStatus('${b.id}','${s}',event)">${l}</button>`
+            ).join('')}
+          </div>
+        </div>`;
+    }).join('');
+
+    const waarsch = vertN > 0 ? `<span style="color:#ff9090;font-size:11px;margin-left:8px">⚠️ ${vertN} vertraagd</span>` : '';
+
+    return `<div class="tijdslot-blok">
+      <div class="tijdslot-header" onclick="toggleTijdslot('pro-ts-${ti}','pro-chev-${ti}')">
+        <div class="tijdslot-header-left">
+          <div class="tijdslot-tijd">🕐 ${ts}</div>
+          <div class="tijdslot-meta">${bests.length} best. · ${totProd} prod. · ${restTijd}${metOpm>0?` · ⚠️ ${metOpm}`:''}${waarsch}</div>
+        </div>
+        <div class="tijdslot-header-right">
+          <div class="tijdslot-progress-ring">${pct}% klaar</div>
+          <span class="tijdslot-chevron ${ti===0?'open':''}" id="pro-chev-${ti}">▼</span>
+        </div>
+      </div>
+      <div class="voortgang-balk"><div class="voortgang-fill" style="width:${pct}%"></div></div>
+      <div class="tijdslot-body ${ti===0?'open':''}" id="pro-ts-${ti}">
+        <div class="sectie-kop">Producten <span>${totProd} stuks</span></div>
+        ${catsHTML}
+        ${opmsHTML}
+        <div class="sectie-kop">Bestellingen <span>${bests.length}</span></div>
+        ${bestsHTML}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderProGrafieken(data) {
+  const tijdslots = [...new Set(data.map(b => b.tijdslot).filter(Boolean))].sort();
+
+  // Producten per tijdslot
+  const tsData = tijdslots.map(ts => data.filter(b=>b.tijdslot===ts).reduce((s,b)=>s+(b.regels||[]).reduce((ss,r)=>ss+r.qty,0),0));
+  if (charts.prots) charts.prots.destroy();
+  charts.prots = new ApexCharts(document.getElementById('pro-grafiek-tijdslot'), {
+    chart: { type:'bar', height:150, toolbar:{show:false}, background:'transparent' },
+    series: [{ name:'Producten', data: tsData }],
+    xaxis: { categories: tijdslots, labels:{ style:{fontSize:'10px',colors:'#888'} } },
+    yaxis: { labels:{ style:{colors:'#888',fontSize:'10px'} } },
+    colors: ['#1e3a3f'], plotOptions:{bar:{borderRadius:2,columnWidth:'60%'}},
+    dataLabels:{enabled:false}, grid:{borderColor:'#ece3d6'},
+  });
+  charts.prots.render();
+
+  // Categorie verdeling
+  const catMap = {};
+  data.forEach(b => (b.regels||[]).forEach(r => {
+    const cat = (r.label||'').split(' – ')[0] || 'Overig';
+    catMap[cat] = (catMap[cat]||0) + r.qty;
+  }));
+  const catLabels = Object.keys(catMap);
+  const catData   = Object.values(catMap);
+  if (charts.procat) charts.procat.destroy();
+  charts.procat = new ApexCharts(document.getElementById('pro-grafiek-categorie'), {
+    chart: { type:'donut', height:180, background:'transparent' },
+    series: catData, labels: catLabels,
+    colors: ['#1e3a3f','#e85d4a','#2d7a3a','#d97706','#2563eb','#888'],
+    dataLabels:{enabled:false}, legend:{position:'bottom',fontSize:'11px'},
+    plotOptions:{pie:{donut:{size:'55%'}}},
+  });
+  charts.procat.render();
+
+  // Werkdruk (heatmap-achtig: producten + opmerkingen + %open)
+  const werkdruk = tijdslots.map(ts => {
+    const bests  = data.filter(b=>b.tijdslot===ts);
+    const prod   = bests.reduce((s,b)=>s+(b.regels||[]).reduce((ss,r)=>ss+r.qty,0),0);
+    const opm    = bests.filter(b=>b.opmerking).length;
+    const open   = bests.filter(b=>!['klaar','gecontroleerd','uitgegeven'].includes(bestVoortgang[b.id]||b.status)).length;
+    return Math.round((prod * 0.5) + (opm * 2) + (open * 1.5));
+  });
+  if (charts.prowerkdruk) charts.prowerkdruk.destroy();
+  charts.prowerkdruk = new ApexCharts(document.getElementById('pro-grafiek-werkdruk'), {
+    chart: { type:'bar', height:150, toolbar:{show:false}, background:'transparent' },
+    series: [{ name:'Werkdruk score', data: werkdruk }],
+    xaxis: { categories: tijdslots, labels:{style:{fontSize:'10px',colors:'#888'}} },
+    yaxis: { labels:{style:{colors:'#888',fontSize:'10px'}} },
+    colors: ['#d97706'], plotOptions:{bar:{borderRadius:2,columnWidth:'60%'}},
+    dataLabels:{enabled:true,style:{fontSize:'11px'}}, grid:{borderColor:'#ece3d6'},
+  });
+  charts.prowerkdruk.render();
+
+  // Top 10
+  const prodMap = {};
+  data.forEach(b => (b.regels||[]).forEach(r => {
+    const label = (r.label||'').split(' – ')[1] || r.label || '?';
+    prodMap[label] = (prodMap[label]||0) + r.qty;
+  }));
+  const top10 = Object.entries(prodMap).sort((a,b)=>b[1]-a[1]).slice(0,10);
+  if (charts.protop) charts.protop.destroy();
+  charts.protop = new ApexCharts(document.getElementById('pro-grafiek-top10'), {
+    chart: { type:'bar', height:220, toolbar:{show:false}, background:'transparent' },
+    series: [{ name:'Aantal', data: top10.map(x=>x[1]) }],
+    xaxis: { categories: top10.map(x=>x[0]), labels:{style:{fontSize:'10px',colors:'#888'},trim:true,maxHeight:70} },
+    yaxis: { labels:{style:{colors:'#888',fontSize:'10px'}} },
+    colors: ['#e85d4a'], plotOptions:{bar:{borderRadius:2,columnWidth:'55%'}},
+    dataLabels:{enabled:true,style:{fontSize:'11px'}}, grid:{borderColor:'#ece3d6'},
+  });
+  charts.protop.render();
+}
+
+// ── Export keukenplanning ──
+function exportKeuken() {
+  const data = alleData;
+  if (!data.length) return;
+
+  const tijdslots = [...new Set(data.map(b => b.tijdslot).filter(Boolean))].sort();
+  let csv = '﻿Tijdslot,Categorie,Product,Aantal\n';
+
+  tijdslots.forEach(ts => {
+    const bests = data.filter(b => b.tijdslot === ts);
+    const catMap = {};
+    bests.forEach(b => (b.regels||[]).forEach(r => {
+      const delen = (r.label||'').split(' – ');
+      const cat = delen[0]||'Overig';
+      const prod = delen[1]||r.label||'';
+      if (!catMap[cat]) catMap[cat] = {};
+      catMap[cat][prod] = (catMap[cat][prod]||0) + r.qty;
+    }));
+    Object.entries(catMap).forEach(([cat, prods]) => {
+      Object.entries(prods).forEach(([prod, qty]) => {
+        csv += `"${ts}","${cat}","${prod}",${qty}\n`;
+      });
+    });
+  });
+
+  // Opmerkingen
+  csv += '\nOpmerkingen\nNaam,Tijdslot,Opmerking\n';
+  data.filter(b=>b.opmerking).forEach(b => {
+    csv += `"${b.voornaam} ${b.achternaam}","${b.tijdslot||''}","${b.opmerking}"\n`;
+  });
+
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url; a.download = `keukenplanning_${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
 }
 
 // Start direct
