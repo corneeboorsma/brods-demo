@@ -7,224 +7,256 @@
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Lato:wght@300;400;600;700&display=swap" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="supabase-config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
       --teal:      #1e3a3f;
       --teal-dark: #162d31;
+      --teal-mid:  #254a50;
       --red:       #e85d4a;
       --cream:     #e8dcc8;
-      --green:     #2d7a3a;
       --border:    #d0c4ae;
       --text:      #2c2c2c;
       --muted:     #888;
+      --groen:     #2d7a3a;
+      --blauw:     #2563eb;
+      --oranje:    #d97706;
     }
 
-    body {
-      font-family: 'Lato', sans-serif;
-      background: var(--cream);
-      color: var(--text);
-      min-height: 100vh;
-    }
+    body { font-family: 'Lato', sans-serif; background: #f0ebe0; color: var(--text); min-height: 100vh; }
 
     /* ── Login ── */
     #login-screen {
       display: flex; align-items: center; justify-content: center;
       min-height: 100vh; padding: 20px;
     }
-
     .login-card {
       background: var(--teal); color: #fff;
       padding: 52px 48px; max-width: 380px; width: 100%; text-align: center;
     }
-
-    .login-card h1 {
-      font-family: 'Cormorant Garamond', serif;
-      font-size: 32px; margin-bottom: 6px;
-    }
-
-    .login-card p {
-      font-size: 13px; color: rgba(255,255,255,0.6);
-      margin-bottom: 28px; letter-spacing: 1px; text-transform: uppercase;
-    }
-
+    .login-card h1 { font-family: 'Cormorant Garamond', serif; font-size: 32px; margin-bottom: 6px; }
+    .login-card p { font-size: 13px; color: rgba(255,255,255,0.6); margin-bottom: 28px; letter-spacing: 1px; text-transform: uppercase; }
     .login-card input {
-      width: 100%; padding: 12px 16px;
-      background: rgba(255,255,255,0.1);
-      border: 1px solid rgba(255,255,255,0.2);
-      color: #fff; font-size: 15px; font-family: 'Lato', sans-serif;
-      outline: none; margin-bottom: 14px; text-align: center; letter-spacing: 3px;
+      width: 100%; padding: 12px 16px; background: rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,255,255,0.2); color: #fff; font-size: 15px;
+      font-family: 'Lato', sans-serif; outline: none; margin-bottom: 14px; text-align: center; letter-spacing: 3px;
     }
-
     .login-card input::placeholder { color: rgba(255,255,255,0.4); letter-spacing: 1px; }
-
     .login-card button {
       width: 100%; padding: 13px; background: var(--red); color: #fff; border: none;
       font-size: 12px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase;
       cursor: pointer; font-family: 'Lato', sans-serif;
     }
-
-    .login-card button:hover { background: #d04838; }
     .login-fout { color: #ff9090; font-size: 13px; margin-top: 10px; display: none; }
 
     /* ── Dashboard ── */
     #dashboard { display: none; }
 
     .topbar {
-      background: var(--teal); color: #fff;
-      padding: 16px 32px; display: flex; align-items: center; justify-content: space-between;
+      background: var(--teal); color: #fff; padding: 14px 24px;
+      display: flex; align-items: center; justify-content: space-between; gap: 12px;
+      position: sticky; top: 0; z-index: 50;
     }
-
-    .topbar-left { display: flex; align-items: center; gap: 20px; }
-    .topbar-title { font-family: 'Cormorant Garamond', serif; font-size: 22px; font-weight: 700; letter-spacing: 2px; }
-    .topbar-sub { font-size: 11px; color: rgba(255,255,255,0.55); letter-spacing: 1.5px; text-transform: uppercase; }
-
-    .topbar-acties { display: flex; gap: 10px; align-items: center; }
-
-    .btn-print {
-      padding: 9px 18px; background: transparent; color: rgba(255,255,255,0.8);
-      border: 1px solid rgba(255,255,255,0.3); font-size: 11px; font-weight: 700;
-      letter-spacing: 2px; text-transform: uppercase; cursor: pointer; font-family: 'Lato', sans-serif;
+    .topbar-left { display: flex; align-items: center; gap: 16px; }
+    .topbar-title { font-family: 'Cormorant Garamond', serif; font-size: 20px; font-weight: 700; letter-spacing: 2px; }
+    .topbar-badge {
+      background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2);
+      padding: 3px 10px; font-size: 11px; letter-spacing: 1px; text-transform: uppercase;
+      color: rgba(255,255,255,0.7);
     }
+    .topbar-right { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 
-    .btn-refresh {
-      padding: 9px 18px; background: var(--red); color: #fff; border: none;
-      font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase;
-      cursor: pointer; font-family: 'Lato', sans-serif;
+    .btn-topbar {
+      padding: 7px 14px; font-size: 11px; font-weight: 700; letter-spacing: 1.5px;
+      text-transform: uppercase; cursor: pointer; font-family: 'Lato', sans-serif; border: none;
     }
+    .btn-teal    { background: rgba(255,255,255,0.12); color: #fff; border: 1px solid rgba(255,255,255,0.25); }
+    .btn-teal:hover { background: rgba(255,255,255,0.2); }
+    .btn-rood    { background: var(--red); color: #fff; }
+    .btn-rood:hover { background: #d04838; }
 
-    .filter-bar {
-      background: var(--teal-dark); padding: 12px 32px;
-      display: flex; gap: 12px; align-items: center; flex-wrap: wrap;
+    .realtime-dot {
+      width: 8px; height: 8px; border-radius: 50%; background: #4ade80;
+      display: inline-block; animation: pulse 2s infinite;
     }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
 
-    .filter-bar label { font-size: 11px; color: rgba(255,255,255,0.55); letter-spacing: 1px; text-transform: uppercase; }
-
-    .filter-bar select {
-      padding: 7px 12px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);
-      color: #fff; font-size: 13px; font-family: 'Lato', sans-serif; outline: none;
+    /* ── Filters ── */
+    .filters {
+      background: var(--teal-dark); padding: 10px 24px;
+      display: flex; gap: 10px; align-items: center; flex-wrap: wrap;
     }
+    .filters select, .filters input {
+      padding: 6px 11px; background: rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,255,255,0.2); color: #fff;
+      font-size: 12px; font-family: 'Lato', sans-serif; outline: none;
+    }
+    .filters select option { background: var(--teal); }
+    .filters input::placeholder { color: rgba(255,255,255,0.4); }
 
-    .filter-bar select option { background: var(--teal); }
+    .quick-btns { display: flex; gap: 6px; flex-wrap: wrap; }
+    .quick-btn {
+      padding: 5px 12px; font-size: 11px; font-weight: 600; letter-spacing: 1px;
+      text-transform: uppercase; cursor: pointer; font-family: 'Lato', sans-serif;
+      background: transparent; border: 1px solid rgba(255,255,255,0.2); color: rgba(255,255,255,0.6);
+    }
+    .quick-btn.active, .quick-btn:hover { background: rgba(255,255,255,0.15); color: #fff; border-color: rgba(255,255,255,0.4); }
 
-    .content { padding: 28px 32px; }
+    /* ── Main layout ── */
+    .main { display: grid; grid-template-columns: 1fr 360px; gap: 0; min-height: calc(100vh - 110px); }
+
+    .left-col { padding: 20px; overflow-y: auto; }
+    .right-col { background: #fff; border-left: 1px solid var(--border); padding: 16px; overflow-y: auto; }
 
     /* ── Stat tiles ── */
-    .stat-rij {
-      display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 28px;
-    }
+    .stat-rij { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; margin-bottom: 20px; }
 
     .stat-tile {
-      background: #fff; border: 1px solid var(--border); padding: 18px 20px;
+      background: #fff; border: 1px solid var(--border); padding: 14px 16px;
+      display: flex; flex-direction: column; gap: 4px;
     }
+    .stat-tile-label { font-size: 9px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); }
+    .stat-tile-waarde { font-family: 'Cormorant Garamond', serif; font-size: 28px; font-weight: 700; line-height: 1; }
+    .stat-tile-sub { font-size: 11px; color: var(--muted); }
 
-    .stat-tile-label {
-      font-size: 10px; font-weight: 700; letter-spacing: 2px;
-      text-transform: uppercase; color: var(--muted); margin-bottom: 6px;
-    }
+    .kleur-grijs  { color: var(--muted); }
+    .kleur-blauw  { color: var(--blauw); }
+    .kleur-groen  { color: var(--groen); }
+    .kleur-oranje { color: var(--oranje); }
+    .kleur-rood   { color: var(--red); }
 
-    .stat-tile-waarde {
-      font-family: 'Cormorant Garamond', serif;
-      font-size: 32px; font-weight: 700; color: var(--teal);
-    }
-
-    /* ── Product totalen ── */
-    .sectie-titel {
-      font-family: 'Cormorant Garamond', serif;
-      font-size: 22px; font-weight: 700; color: var(--teal);
-      margin-bottom: 16px; padding-bottom: 10px;
-      border-bottom: 2px solid var(--border);
-      display: flex; align-items: center; justify-content: space-between;
-    }
-
-    .product-grid {
-      display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-      gap: 12px; margin-bottom: 32px;
-    }
-
-    .product-tile {
-      background: #fff; border: 1px solid var(--border); padding: 16px 18px;
-    }
-
-    .product-tile-naam {
-      font-size: 12px; font-weight: 700; letter-spacing: 1.5px;
-      text-transform: uppercase; color: var(--text); margin-bottom: 8px;
-    }
-
-    .product-tile-cat {
-      font-size: 11px; color: var(--muted); margin-bottom: 10px; letter-spacing: 0.5px;
-    }
-
-    .product-tile-qty {
-      font-family: 'Cormorant Garamond', serif;
-      font-size: 36px; font-weight: 700; color: var(--teal); line-height: 1;
-    }
-
-    .product-tile-unit { font-size: 13px; color: var(--muted); margin-left: 4px; }
-
-    .progress-balk {
-      height: 6px; background: #e8e0d4; margin-top: 10px; border-radius: 3px; overflow: hidden;
-    }
-
-    .progress-fill { height: 100%; background: var(--red); border-radius: 3px; transition: width 0.4s; }
-
-    /* ── Tijdslot overzicht ── */
+    /* ── Tijdslot blokken ── */
     .tijdslot-blok {
       background: #fff; border: 1px solid var(--border);
-      margin-bottom: 16px; overflow: hidden;
+      margin-bottom: 14px; overflow: hidden;
+    }
+    .tijdslot-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 13px 18px; cursor: pointer; transition: background 0.15s;
+      background: var(--teal);
+    }
+    .tijdslot-header:hover { background: var(--teal-mid); }
+    .tijdslot-header-left { display: flex; align-items: center; gap: 12px; }
+    .tijdslot-tijd { font-family: 'Cormorant Garamond', serif; font-size: 20px; font-weight: 700; color: #fff; }
+    .tijdslot-meta { font-size: 11px; color: rgba(255,255,255,0.65); }
+    .tijdslot-header-right { display: flex; align-items: center; gap: 10px; }
+    .tijdslot-progress-ring { font-size: 13px; color: rgba(255,255,255,0.8); font-weight: 600; }
+    .tijdslot-chevron { color: rgba(255,255,255,0.6); font-size: 14px; transition: transform 0.2s; }
+    .tijdslot-chevron.open { transform: rotate(180deg); }
+
+    .voortgang-balk { height: 4px; background: rgba(255,255,255,0.15); }
+    .voortgang-fill { height: 100%; background: #4ade80; transition: width 0.4s; }
+
+    .tijdslot-body { display: none; }
+    .tijdslot-body.open { display: block; }
+
+    /* ── Producten in tijdslot ── */
+    .sectie-kop {
+      padding: 10px 18px; font-size: 10px; font-weight: 700; letter-spacing: 2px;
+      text-transform: uppercase; color: var(--muted); background: #faf7f2;
+      border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between;
     }
 
-    .tijdslot-header {
-      background: var(--teal); color: #fff; padding: 12px 20px;
+    .cat-blok { border-bottom: 1px solid var(--border); }
+    .cat-header {
+      padding: 10px 18px; font-size: 12px; font-weight: 700; letter-spacing: 1px;
+      text-transform: uppercase; color: var(--teal); background: #f5f0e8;
       display: flex; align-items: center; justify-content: space-between;
     }
 
-    .tijdslot-naam {
-      font-family: 'Cormorant Garamond', serif; font-size: 20px; font-weight: 700;
+    .prod-rij {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 18px; border-bottom: 1px solid #ece3d6; gap: 12px;
+    }
+    .prod-rij:last-child { border-bottom: none; }
+    .prod-rij.klaar { opacity: 0.45; }
+
+    .prod-naam { font-size: 14px; font-weight: 600; color: var(--text); }
+    .prod-qty {
+      font-family: 'Cormorant Garamond', serif; font-size: 22px; font-weight: 700;
+      color: var(--teal); min-width: 48px; text-align: right;
     }
 
-    .tijdslot-count {
-      font-size: 12px; color: rgba(255,255,255,0.7); letter-spacing: 1px;
+    .status-knoppen { display: flex; gap: 4px; }
+    .status-knop {
+      padding: 4px 9px; font-size: 10px; font-weight: 700; letter-spacing: 1px;
+      text-transform: uppercase; cursor: pointer; font-family: 'Lato', sans-serif;
+      border: 1px solid var(--border); background: #fff; color: var(--muted);
     }
+    .status-knop.actief-prep  { background: #dbeafe; color: var(--blauw); border-color: var(--blauw); }
+    .status-knop.actief-klaar { background: #dcfce7; color: var(--groen); border-color: var(--groen); }
 
-    .tijdslot-body { padding: 0; }
-
-    .tijdslot-rij {
-      display: grid; grid-template-columns: 1fr auto auto;
-      padding: 11px 20px; border-bottom: 1px solid #ece3d6;
-      align-items: center; gap: 12px;
+    /* ── Opmerkingen ── */
+    .opmerking-rij {
+      display: flex; align-items: flex-start; gap: 12px; padding: 12px 18px;
+      border-bottom: 1px solid #ece3d6;
     }
+    .opmerking-rij.allergie { background: #fff5f5; border-left: 3px solid var(--red); }
+    .opmerking-icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+    .opmerking-naam { font-size: 12px; font-weight: 700; color: var(--text); }
+    .opmerking-tekst { font-size: 13px; color: var(--text); margin-top: 2px; line-height: 1.5; }
+    .opmerking-tijdslot { font-size: 11px; color: var(--muted); margin-top: 2px; }
 
-    .tijdslot-rij:last-child { border-bottom: none; }
-
-    .tijdslot-rij-naam { font-size: 13px; font-weight: 600; color: var(--text); }
-    .tijdslot-rij-cat  { font-size: 11px; color: var(--muted); }
-
-    .tijdslot-rij-qty {
-      font-family: 'Cormorant Garamond', serif;
-      font-size: 22px; font-weight: 700; color: var(--teal); text-align: right;
+    /* ── Bestellingen per tijdslot ── */
+    .best-rij {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 18px; border-bottom: 1px solid #ece3d6; cursor: pointer;
+      transition: background 0.1s; gap: 10px;
     }
-
-    /* ── Allergieën lijst ── */
-    .allergie-lijst { display: flex; flex-direction: column; gap: 8px; margin-bottom: 32px; }
-
-    .allergie-rij {
-      background: #fff; border: 1px solid var(--border);
-      border-left: 4px solid var(--red); padding: 12px 16px;
-      display: flex; gap: 14px; align-items: flex-start;
+    .best-rij:hover { background: #faf7f2; }
+    .best-naam { font-size: 13px; font-weight: 600; }
+    .best-producten { font-size: 12px; color: var(--muted); margin-top: 1px; }
+    .best-status-badge {
+      padding: 3px 8px; font-size: 10px; font-weight: 700; letter-spacing: 1px;
+      text-transform: uppercase; border-radius: 2px; white-space: nowrap;
     }
+    .badge-nieuw          { background: #f1f5f9; color: var(--muted); }
+    .badge-in_behandeling { background: #dbeafe; color: var(--blauw); }
+    .badge-klaar          { background: #dcfce7; color: var(--groen); }
 
-    .allergie-naam { font-weight: 700; font-size: 14px; color: var(--text); min-width: 160px; }
-    .allergie-tekst { font-size: 14px; color: var(--text); flex: 1; }
-    .allergie-tijdslot { font-size: 12px; color: var(--muted); white-space: nowrap; }
+    .best-detail {
+      display: none; padding: 12px 18px 16px 18px;
+      background: #faf7f2; border-bottom: 1px solid var(--border);
+    }
+    .best-detail.open { display: block; }
+    .best-status-row { display: flex; gap: 6px; margin-top: 10px; }
+    .best-status-btn {
+      padding: 5px 12px; font-size: 11px; font-weight: 700; letter-spacing: 1px;
+      text-transform: uppercase; cursor: pointer; font-family: 'Lato', sans-serif;
+      border: 1px solid var(--border); background: #fff; color: var(--muted);
+    }
+    .best-status-btn.sel-nieuw          { background: #f1f5f9; color: var(--muted); border-color: var(--muted); }
+    .best-status-btn.sel-in_behandeling { background: #dbeafe; color: var(--blauw); border-color: var(--blauw); }
+    .best-status-btn.sel-klaar          { background: #dcfce7; color: var(--groen); border-color: var(--groen); }
+
+    /* ── Rechterkolom grafieken ── */
+    .grafiek-blok { margin-bottom: 20px; }
+    .grafiek-titel {
+      font-size: 10px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase;
+      color: var(--muted); margin-bottom: 10px; padding-bottom: 6px;
+      border-bottom: 1px solid var(--border);
+    }
 
     /* ── Print ── */
     @media print {
-      .topbar, .filter-bar, .btn-print, .btn-refresh { display: none !important; }
+      .topbar, .filters, .right-col, .status-knoppen, .best-status-row,
+      .btn-topbar, .quick-btns { display: none !important; }
+      .main { grid-template-columns: 1fr; }
       body { background: #fff; }
-      .content { padding: 0; }
-      .tijdslot-blok, .product-tile, .stat-tile { break-inside: avoid; }
+    }
+
+    /* ── Tablet/touch ── */
+    @media (max-width: 900px) {
+      .main { grid-template-columns: 1fr; }
+      .right-col { border-left: none; border-top: 1px solid var(--border); }
+      .stat-rij { grid-template-columns: repeat(2,1fr); }
+    }
+
+    .nieuw-badge {
+      background: var(--red); color: #fff; font-size: 10px; font-weight: 700;
+      padding: 2px 6px; border-radius: 10px; animation: pulse 1s infinite;
     }
   </style>
 </head>
@@ -243,239 +275,435 @@
 
 <!-- ── Dashboard ── -->
 <div id="dashboard">
+
+  <!-- Topbar -->
   <div class="topbar">
     <div class="topbar-left">
-      <div>
-        <div class="topbar-title">Keuken Dashboard</div>
-        <div class="topbar-sub">Brodshoes · Bestellingenoverzicht</div>
-      </div>
+      <div class="topbar-title">Keuken</div>
+      <div class="topbar-badge">Brodshoes</div>
+      <span class="realtime-dot" title="Realtime verbonden"></span>
+      <span id="laatste-update" style="font-size:11px;color:rgba(255,255,255,0.45);"></span>
+      <span id="nieuw-badge" class="nieuw-badge" style="display:none">● Nieuwe bestelling</span>
     </div>
-    <div class="topbar-acties">
-      <span id="laatste-update" style="font-size:11px;color:rgba(255,255,255,0.5);"></span>
-      <button class="btn-refresh" onclick="laadData()">↺ Vernieuwen</button>
-      <button class="btn-print" onclick="window.print()">🖨️ Printen</button>
+    <div class="topbar-right">
+      <button class="btn-topbar btn-teal" onclick="laadData()">↺ Vernieuwen</button>
+      <button class="btn-topbar btn-teal" onclick="window.print()">🖨️ Print</button>
+      <button class="btn-topbar btn-teal" onclick="window.location.href='templates.html'">← Beheer</button>
     </div>
   </div>
 
-  <div class="filter-bar">
-    <label>Template:</label>
-    <select id="dash-template" onchange="laadData()">
+  <!-- Filters -->
+  <div class="filters">
+    <select id="f-template" onchange="laadData()">
       <option value="">Alle templates</option>
     </select>
-    <label>Tijdslot:</label>
-    <select id="dash-tijdslot" onchange="renderDashboard()">
+    <select id="f-tijdslot" onchange="renderAlles()">
       <option value="">Alle tijdslots</option>
     </select>
-    <label>Status:</label>
-    <select id="dash-status" onchange="laadData()">
-      <option value="">Alle</option>
+    <select id="f-status" onchange="renderAlles()">
+      <option value="">Alle statussen</option>
       <option value="nieuw">Nieuw</option>
       <option value="in_behandeling">In behandeling</option>
       <option value="klaar">Klaar</option>
     </select>
+    <input type="text" id="f-zoek" placeholder="Zoek op naam of product…" oninput="renderAlles()" style="min-width:200px;" />
+    <div class="quick-btns">
+      <button class="quick-btn active" id="qb-alles"       onclick="setQuick('alles')">Alles</button>
+      <button class="quick-btn"        id="qb-volgend"     onclick="setQuick('volgend')">Eerstvolgende</button>
+      <button class="quick-btn"        id="qb-open"        onclick="setQuick('open')">Openstaand</button>
+      <button class="quick-btn"        id="qb-opmerkingen" onclick="setQuick('opmerkingen')">Opmerkingen</button>
+      <button class="quick-btn"        id="qb-allergien"   onclick="setQuick('allergien')">⚠️ Allergieën</button>
+    </div>
   </div>
 
-  <div class="content" id="dashboard-content">
-    <p style="color:var(--muted)">Laden…</p>
+  <!-- Hoofdinhoud -->
+  <div class="main">
+
+    <!-- Linkerkolom -->
+    <div class="left-col">
+
+      <!-- Stat tiles -->
+      <div class="stat-rij" id="stat-rij"></div>
+
+      <!-- Tijdsloten -->
+      <div id="tijdsloten-container"></div>
+
+    </div>
+
+    <!-- Rechterkolom -->
+    <div class="right-col">
+      <div class="grafiek-blok">
+        <div class="grafiek-titel">Producten per tijdslot</div>
+        <div id="grafiek-tijdslot"></div>
+      </div>
+      <div class="grafiek-blok">
+        <div class="grafiek-titel">Top 5 producten</div>
+        <div id="grafiek-top5"></div>
+      </div>
+      <div class="grafiek-blok">
+        <div class="grafiek-titel">Voortgang keuken</div>
+        <div id="grafiek-voortgang"></div>
+      </div>
+    </div>
+
   </div>
 </div>
 
 <script>
-  const KEUKEN_WW = 'keuken2026';
-  const sb = getSbClient();
-  let alleData = [];
+const KEUKEN_WW = 'keuken2026';
+let alleData    = [];
+let voortgang   = {}; // { 'tijdslot|label': 'prep'|'klaar' }
+let bestVoortgang = {}; // { id: status }
+let quickFilter = 'alles';
+let charts      = {};
 
-  function keukensLogin() {
-    const ww = document.getElementById('keuken-ww').value;
-    if (ww === KEUKEN_WW) {
-      document.getElementById('login-screen').style.display = 'none';
-      document.getElementById('dashboard').style.display = 'block';
-      initialiseer();
-    } else {
-      document.getElementById('keuken-fout').style.display = 'block';
-    }
+// ── Login ──
+function keukensLogin() {
+  if (document.getElementById('keuken-ww').value === KEUKEN_WW) {
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('dashboard').style.display = 'block';
+    initialiseer();
+  } else {
+    document.getElementById('keuken-fout').style.display = 'block';
   }
+}
+document.getElementById('keuken-ww').addEventListener('keydown', e => { if (e.key === 'Enter') keukensLogin(); });
 
-  document.getElementById('keuken-ww').addEventListener('keydown', e => {
-    if (e.key === 'Enter') keukensLogin();
+// ── Init ──
+async function initialiseer() {
+  await laadTemplateFilter();
+  await laadData();
+  startRealtime();
+}
+
+async function laadTemplateFilter() {
+  const { data } = await getSbClient().from('templates').select('id,naam').eq('status','gepubliceerd');
+  const sel = document.getElementById('f-template');
+  (data||[]).forEach(t => {
+    const o = document.createElement('option');
+    o.value = t.id; o.textContent = t.naam; sel.appendChild(o);
+  });
+}
+
+async function laadData() {
+  const tpl    = document.getElementById('f-template').value;
+  const status = document.getElementById('f-status').value;
+  let q = getSbClient().from('bestellingen').select('*').order('tijdslot').order('besteld_op');
+  if (tpl)    q = q.eq('template_id', tpl);
+  if (status) q = q.eq('status', status);
+  const { data } = await q;
+  alleData = data || [];
+
+  // Vul tijdslot filter
+  const tijdslots = [...new Set(alleData.map(b => b.tijdslot).filter(Boolean))].sort();
+  const tsSel = document.getElementById('f-tijdslot');
+  const huidig = tsSel.value;
+  tsSel.innerHTML = '<option value="">Alle tijdslots</option>';
+  tijdslots.forEach(ts => {
+    const o = document.createElement('option');
+    o.value = ts; o.textContent = ts;
+    if (ts === huidig) o.selected = true;
+    tsSel.appendChild(o);
   });
 
-  async function initialiseer() {
-    await laadTemplates();
-    await laadData();
-  }
+  document.getElementById('laatste-update').textContent = 'Bijgewerkt: ' + new Date().toLocaleTimeString('nl-NL');
+  renderAlles();
+}
 
-  async function laadTemplates() {
-    const { data } = await sb.from('templates').select('id, naam').eq('status', 'gepubliceerd');
-    const select = document.getElementById('dash-template');
-    (data || []).forEach(t => {
-      const opt = document.createElement('option');
-      opt.value = t.id; opt.textContent = t.naam;
-      select.appendChild(opt);
-    });
-  }
+// ── Realtime ──
+function startRealtime() {
+  getSbClient()
+    .channel('bestellingen-keuken')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'bestellingen' }, payload => {
+      if (payload.eventType === 'INSERT') {
+        alleData.push(payload.new);
+        document.getElementById('nieuw-badge').style.display = 'inline-block';
+        setTimeout(() => document.getElementById('nieuw-badge').style.display = 'none', 5000);
+      } else if (payload.eventType === 'UPDATE') {
+        const i = alleData.findIndex(b => b.id === payload.new.id);
+        if (i >= 0) alleData[i] = payload.new;
+      } else if (payload.eventType === 'DELETE') {
+        alleData = alleData.filter(b => b.id !== payload.old.id);
+      }
+      renderAlles();
+    })
+    .subscribe();
+}
 
-  async function laadData() {
-    const templateId = document.getElementById('dash-template').value;
-    const status     = document.getElementById('dash-status').value;
+// ── Filters ──
+function setQuick(q) {
+  quickFilter = q;
+  document.querySelectorAll('.quick-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('qb-' + q)?.classList.add('active');
+  renderAlles();
+}
 
-    let query = sb.from('bestellingen').select('*').order('tijdslot');
-    if (templateId) query = query.eq('template_id', templateId);
-    if (status)     query = query.eq('status', status);
+function gefilterd() {
+  const ts    = document.getElementById('f-tijdslot').value;
+  const zoek  = document.getElementById('f-zoek').value.toLowerCase();
+  const fstat = document.getElementById('f-status').value;
 
-    const { data, error } = await query;
-    if (error) { console.error(error); return; }
-    alleData = data || [];
-
-    // Vul tijdslot filter
-    const tijdslots = [...new Set(alleData.map(b => b.tijdslot).filter(Boolean))].sort();
-    const tsSelect  = document.getElementById('dash-tijdslot');
-    const huidigTs  = tsSelect.value;
-    tsSelect.innerHTML = '<option value="">Alle tijdslots</option>';
-    tijdslots.forEach(ts => {
-      const opt = document.createElement('option');
-      opt.value = ts; opt.textContent = ts;
-      if (ts === huidigTs) opt.selected = true;
-      tsSelect.appendChild(opt);
-    });
-
-    document.getElementById('laatste-update').textContent =
-      'Bijgewerkt: ' + new Date().toLocaleTimeString('nl-NL');
-
-    renderDashboard();
-  }
-
-  function gefilterd() {
-    const ts = document.getElementById('dash-tijdslot').value;
-    return ts ? alleData.filter(b => b.tijdslot === ts) : alleData;
-  }
-
-  function renderDashboard() {
-    const data = gefilterd();
-    const el   = document.getElementById('dashboard-content');
-
-    if (!data.length) {
-      el.innerHTML = '<p style="color:var(--muted);padding:40px 0;">Geen bestellingen gevonden.</p>';
-      return;
+  return alleData.filter(b => {
+    if (ts    && b.tijdslot !== ts) return false;
+    if (fstat && b.status   !== fstat) return false;
+    if (zoek) {
+      const naam = `${b.voornaam} ${b.achternaam}`.toLowerCase();
+      const prod = (b.regels||[]).map(r => r.label||'').join(' ').toLowerCase();
+      if (!naam.includes(zoek) && !prod.includes(zoek)) return false;
     }
+    if (quickFilter === 'open')        return b.status !== 'klaar';
+    if (quickFilter === 'opmerkingen') return !!b.opmerking;
+    if (quickFilter === 'allergien')   return !!b.opmerking;
+    if (quickFilter === 'volgend') {
+      const tijdslots = [...new Set(alleData.map(x => x.tijdslot).filter(Boolean))].sort();
+      return b.tijdslot === tijdslots[0];
+    }
+    return true;
+  });
+}
 
-    // Bereken product totalen
-    const productTotalen = {};
-    data.forEach(b => {
-      (b.regels || []).forEach(r => {
-        if (!productTotalen[r.label]) productTotalen[r.label] = 0;
-        productTotalen[r.label] += r.qty;
-      });
-    });
+// ── Render alles ──
+function renderAlles() {
+  const data = gefilterd();
+  renderStats(data);
+  renderTijdsloten(data);
+  renderGrafieken(data);
+}
 
-    const maxQty      = Math.max(...Object.values(productTotalen));
-    const totaalOmzet = data.reduce((s, b) => s + (parseFloat(b.totaal) || 0), 0);
-    const metOpmerking = data.filter(b => b.opmerking).length;
+// ── Stats ──
+function renderStats(data) {
+  const totProd    = data.reduce((s,b) => s + (b.regels||[]).reduce((ss,r) => ss+r.qty, 0), 0);
+  const metOpm     = data.filter(b => b.opmerking).length;
+  const klaar      = data.filter(b => b.status === 'klaar').length;
+  const tijdslots  = [...new Set(data.map(b => b.tijdslot).filter(Boolean))].sort();
+  const volgend    = tijdslots[0] || '–';
+  const volgendN   = data.filter(b => b.tijdslot === volgend).reduce((s,b) => s + (b.regels||[]).reduce((ss,r) => ss+r.qty, 0), 0);
 
-    // Tijdslot groepen
-    const tijdslotGroepen = {};
-    data.forEach(b => {
-      const ts = b.tijdslot || 'Onbekend';
-      if (!tijdslotGroepen[ts]) tijdslotGroepen[ts] = [];
-      tijdslotGroepen[ts].push(b);
-    });
+  document.getElementById('stat-rij').innerHTML = `
+    <div class="stat-tile">
+      <div class="stat-tile-label">Bestellingen</div>
+      <div class="stat-tile-waarde kleur-teal" style="color:var(--teal)">${data.length}</div>
+      <div class="stat-tile-sub">${klaar} klaar</div>
+    </div>
+    <div class="stat-tile">
+      <div class="stat-tile-label">Te bereiden</div>
+      <div class="stat-tile-waarde kleur-teal" style="color:var(--teal)">${totProd}</div>
+      <div class="stat-tile-sub">producten totaal</div>
+    </div>
+    <div class="stat-tile">
+      <div class="stat-tile-label">Eerstvolgende</div>
+      <div class="stat-tile-waarde" style="font-size:18px;color:var(--teal);margin-top:4px;">${volgend}</div>
+      <div class="stat-tile-sub">${volgendN} producten</div>
+    </div>
+    <div class="stat-tile">
+      <div class="stat-tile-label">Opmerkingen</div>
+      <div class="stat-tile-waarde ${metOpm > 0 ? 'kleur-oranje' : 'kleur-grijs'}">${metOpm}</div>
+      <div class="stat-tile-sub">bestellingen</div>
+    </div>
+  `;
+}
 
-    // Allergieën
-    const allergieën = data.filter(b => b.opmerking);
+// ── Tijdsloten ──
+function renderTijdsloten(data) {
+  const container = document.getElementById('tijdsloten-container');
+  const tijdslots = [...new Set(data.map(b => b.tijdslot).filter(Boolean))].sort();
 
-    el.innerHTML = `
-      <!-- Stat tiles -->
-      <div class="stat-rij">
-        <div class="stat-tile">
-          <div class="stat-tile-label">Bestellingen</div>
-          <div class="stat-tile-waarde">${data.length}</div>
+  if (!tijdslots.length) {
+    container.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted)">Geen bestellingen gevonden.</div>';
+    return;
+  }
+
+  container.innerHTML = tijdslots.map((ts, ti) => {
+    const bests    = data.filter(b => b.tijdslot === ts);
+    const totProd  = bests.reduce((s,b) => s + (b.regels||[]).reduce((ss,r) => ss+r.qty, 0), 0);
+    const klaarN   = bests.filter(b => b.status === 'klaar').length;
+    const pct      = bests.length ? Math.round((klaarN/bests.length)*100) : 0;
+    const metOpm   = bests.filter(b => b.opmerking).length;
+
+    // Producten per categorie
+    const catMap = {};
+    bests.forEach(b => (b.regels||[]).forEach(r => {
+      const delen = (r.label||'').split(' – ');
+      const cat = delen[0]||'Overig';
+      const prod = delen[1]||r.label||'';
+      const key = `${ts}|${r.label}`;
+      if (!catMap[cat]) catMap[cat] = {};
+      if (!catMap[cat][prod]) catMap[cat][prod] = { qty: 0, key };
+      catMap[cat][prod].qty += r.qty;
+    }));
+
+    const catsHTML = Object.entries(catMap).map(([cat, prods]) => `
+      <div class="cat-blok">
+        <div class="cat-header">
+          <span>${cat}</span>
+          <span style="font-size:12px;color:var(--muted);font-weight:400">${Object.values(prods).reduce((s,p)=>s+p.qty,0)} stuks</span>
         </div>
-        <div class="stat-tile">
-          <div class="stat-tile-label">Totaal omzet</div>
-          <div class="stat-tile-waarde">€ ${totaalOmzet.toFixed(2).replace('.', ',')}</div>
-        </div>
-        <div class="stat-tile">
-          <div class="stat-tile-label">Tijdslots</div>
-          <div class="stat-tile-waarde">${Object.keys(tijdslotGroepen).length}</div>
-        </div>
-        <div class="stat-tile">
-          <div class="stat-tile-label">Opmerkingen</div>
-          <div class="stat-tile-waarde" style="color:${metOpmerking > 0 ? 'var(--red)' : 'var(--teal)'}">${metOpmerking}</div>
-        </div>
-      </div>
-
-      <!-- Product totalen -->
-      <div class="sectie-titel">
-        Totaal per product
-        <span style="font-size:13px;font-weight:400;color:var(--muted);font-family:'Lato',sans-serif;">${Object.keys(productTotalen).length} producten</span>
-      </div>
-      <div class="product-grid">
-        ${Object.entries(productTotalen).sort((a,b) => b[1]-a[1]).map(([label, qty]) => {
-          const pct = Math.round((qty / maxQty) * 100);
-          const delen = label.split(' – ');
-          const cat = delen[0] || '';
-          const prod = delen[1] || label;
-          return `<div class="product-tile">
-            <div class="product-tile-cat">${cat}</div>
-            <div class="product-tile-naam">${prod}</div>
+        ${Object.entries(prods).map(([prod, info]) => {
+          const v = voortgang[info.key] || 'open';
+          return `<div class="prod-rij ${v==='klaar'?'klaar':''}" id="pr-${info.key.replace(/[^a-z0-9]/gi,'_')}">
             <div>
-              <span class="product-tile-qty">${qty}</span>
-              <span class="product-tile-unit">stuks</span>
+              <div class="prod-naam">${prod}</div>
             </div>
-            <div class="progress-balk"><div class="progress-fill" style="width:${pct}%"></div></div>
+            <div style="display:flex;align-items:center;gap:12px">
+              <div class="prod-qty">${info.qty}×</div>
+              <div class="status-knoppen">
+                <button class="status-knop ${v==='prep'?'actief-prep':''}" onclick="setProdStatus('${info.key}','prep',event)">Bezig</button>
+                <button class="status-knop ${v==='klaar'?'actief-klaar':''}" onclick="setProdStatus('${info.key}','klaar',event)">✓ Klaar</button>
+              </div>
+            </div>
           </div>`;
         }).join('')}
-      </div>
+      </div>`).join('');
 
-      <!-- Per tijdslot -->
-      <div class="sectie-titel">
-        Per tijdslot
-      </div>
-      ${Object.entries(tijdslotGroepen).sort().map(([ts, bests]) => {
-        // Bereken per tijdslot product totalen
-        const tsProd = {};
-        bests.forEach(b => {
-          (b.regels || []).forEach(r => {
-            if (!tsProd[r.label]) tsProd[r.label] = 0;
-            tsProd[r.label] += r.qty;
-          });
-        });
-        return `<div class="tijdslot-blok">
-          <div class="tijdslot-header">
-            <div class="tijdslot-naam">🕐 ${ts}</div>
-            <div class="tijdslot-count">${bests.length} ${bests.length === 1 ? 'bestelling' : 'bestellingen'}</div>
+    // Opmerkingen
+    const opms = bests.filter(b => b.opmerking);
+    const opmsHTML = opms.length ? `
+      <div class="sectie-kop">⚠️ Opmerkingen &amp; Allergieën <span>${opms.length}</span></div>
+      ${opms.map(b => `
+        <div class="opmerking-rij allergie">
+          <div class="opmerking-icon">⚠️</div>
+          <div>
+            <div class="opmerking-naam">${b.voornaam} ${b.achternaam}</div>
+            <div class="opmerking-tekst">${b.opmerking}</div>
+            <div class="opmerking-tijdslot">${ts}</div>
           </div>
-          <div class="tijdslot-body">
-            ${Object.entries(tsProd).sort((a,b) => b[1]-a[1]).map(([label, qty]) => {
-              const delen = label.split(' – ');
-              return `<div class="tijdslot-rij">
-                <div>
-                  <div class="tijdslot-rij-naam">${delen[1] || label}</div>
-                  <div class="tijdslot-rij-cat">${delen[0] || ''}</div>
-                </div>
-                <div class="tijdslot-rij-qty">${qty}×</div>
-              </div>`;
-            }).join('')}
+        </div>`).join('')}` : '';
+
+    // Bestellingen
+    const bestsHTML = bests.map((b, bi) => {
+      const bNaam = `${b.voornaam} ${b.achternaam}`;
+      const bProd = (b.regels||[]).map(r => `${r.qty}× ${(r.label||'').split(' – ')[1]||r.label}`).join(', ');
+      const bStat = bestVoortgang[b.id] || b.status;
+      const badge = { nieuw: 'badge-nieuw', in_behandeling: 'badge-in_behandeling', klaar: 'badge-klaar' }[bStat] || 'badge-nieuw';
+      const label = { nieuw: '⬜ Nieuw', in_behandeling: '🔄 Bezig', klaar: '✅ Klaar' }[bStat] || bStat;
+      return `
+        <div class="best-rij" onclick="toggleBestDetail('bd-${ts.replace(/[^a-z0-9]/gi,'_')}-${bi}')">
+          <div>
+            <div class="best-naam">${bNaam} ${b.opmerking ? '<span style="color:var(--red)">⚠️</span>' : ''}</div>
+            <div class="best-producten">${bProd}</div>
+          </div>
+          <span class="best-status-badge ${badge}">${label}</span>
+        </div>
+        <div class="best-detail" id="bd-${ts.replace(/[^a-z0-9]/gi,'_')}-${bi}">
+          ${(b.regels||[]).map(r => `<div style="font-size:13px;padding:3px 0">${r.qty}× ${r.label}</div>`).join('')}
+          ${b.opmerking ? `<div class="opmerking-rij allergie" style="margin-top:8px;padding:8px 12px"><div class="opmerking-icon">⚠️</div><div class="opmerking-tekst">${b.opmerking}</div></div>` : ''}
+          <div class="best-status-row">
+            <button class="best-status-btn ${bStat==='nieuw'?'sel-nieuw':''}"          onclick="setBestStatus('${b.id}','nieuw',event)">⬜ Nieuw</button>
+            <button class="best-status-btn ${bStat==='in_behandeling'?'sel-in_behandeling':''}" onclick="setBestStatus('${b.id}','in_behandeling',event)">🔄 Bezig</button>
+            <button class="best-status-btn ${bStat==='klaar'?'sel-klaar':''}"          onclick="setBestStatus('${b.id}','klaar',event)">✅ Klaar</button>
           </div>
         </div>`;
-      }).join('')}
+    }).join('');
 
-      <!-- Allergieën & opmerkingen -->
-      ${allergieën.length ? `
-        <div class="sectie-titel" style="color:var(--red)">
-          ⚠️ Allergieën &amp; opmerkingen
-          <span style="font-size:13px;font-weight:400;color:var(--muted);font-family:'Lato',sans-serif;">${allergieën.length} melding${allergieën.length !== 1 ? 'en' : ''}</span>
+    return `
+      <div class="tijdslot-blok">
+        <div class="tijdslot-header" onclick="toggleTijdslot('ts-body-${ti}', 'ts-chev-${ti}')">
+          <div class="tijdslot-header-left">
+            <div class="tijdslot-tijd">🕐 ${ts}</div>
+            <div class="tijdslot-meta">${bests.length} best. · ${totProd} prod. ${metOpm > 0 ? `· ⚠️ ${metOpm}` : ''}</div>
+          </div>
+          <div class="tijdslot-header-right">
+            <div class="tijdslot-progress-ring">${pct}% klaar</div>
+            <span class="tijdslot-chevron ${ti===0?'open':''}" id="ts-chev-${ti}">▼</span>
+          </div>
         </div>
-        <div class="allergie-lijst">
-          ${allergieën.map(b => `
-            <div class="allergie-rij">
-              <div class="allergie-naam">${b.voornaam} ${b.achternaam}</div>
-              <div class="allergie-tekst">${b.opmerking}</div>
-              <div class="allergie-tijdslot">${b.tijdslot || '–'}</div>
-            </div>`).join('')}
-        </div>` : ''}
-    `;
-  }
+        <div class="voortgang-balk"><div class="voortgang-fill" style="width:${pct}%"></div></div>
+        <div class="tijdslot-body ${ti===0?'open':''}" id="ts-body-${ti}">
+          <div class="sectie-kop">Producten <span>${totProd} stuks</span></div>
+          ${catsHTML}
+          ${opmsHTML}
+          <div class="sectie-kop">Bestellingen <span>${bests.length}</span></div>
+          ${bestsHTML}
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function toggleTijdslot(bodyId, chevId) {
+  const body = document.getElementById(bodyId);
+  const chev = document.getElementById(chevId);
+  body.classList.toggle('open');
+  chev.classList.toggle('open');
+}
+
+function toggleBestDetail(id) {
+  document.getElementById(id)?.classList.toggle('open');
+}
+
+// ── Product voortgang ──
+function setProdStatus(key, status, e) {
+  e.stopPropagation();
+  voortgang[key] = voortgang[key] === status ? 'open' : status;
+  renderAlles();
+}
+
+// ── Bestelling status ──
+async function setBestStatus(id, status, e) {
+  e.stopPropagation();
+  bestVoortgang[id] = status;
+  await getSbClient().from('bestellingen').update({ status }).eq('id', id);
+  renderAlles();
+}
+
+// ── Grafieken ──
+function renderGrafieken(data) {
+  const tijdslots = [...new Set(data.map(b => b.tijdslot).filter(Boolean))].sort();
+
+  // Grafiek 1: producten per tijdslot
+  const tsLabels = tijdslots;
+  const tsData   = tijdslots.map(ts => data.filter(b => b.tijdslot===ts).reduce((s,b)=>s+(b.regels||[]).reduce((ss,r)=>ss+r.qty,0),0));
+
+  if (charts.tijdslot) charts.tijdslot.destroy();
+  charts.tijdslot = new ApexCharts(document.getElementById('grafiek-tijdslot'), {
+    chart: { type: 'bar', height: 160, toolbar: { show: false }, background: 'transparent' },
+    series: [{ name: 'Producten', data: tsData }],
+    xaxis: { categories: tsLabels, labels: { style: { fontSize: '10px', colors: '#888' } } },
+    yaxis: { labels: { style: { colors: '#888', fontSize: '10px' } } },
+    colors: ['#1e3a3f'],
+    plotOptions: { bar: { borderRadius: 2, columnWidth: '60%' } },
+    dataLabels: { enabled: false },
+    grid: { borderColor: '#ece3d6' },
+  });
+  charts.tijdslot.render();
+
+  // Grafiek 2: top 5 producten
+  const prodMap = {};
+  data.forEach(b => (b.regels||[]).forEach(r => {
+    const label = (r.label||'').split(' – ')[1] || r.label || '?';
+    prodMap[label] = (prodMap[label]||0) + r.qty;
+  }));
+  const top5 = Object.entries(prodMap).sort((a,b)=>b[1]-a[1]).slice(0,5);
+
+  if (charts.top5) charts.top5.destroy();
+  charts.top5 = new ApexCharts(document.getElementById('grafiek-top5'), {
+    chart: { type: 'bar', height: 180, toolbar: { show: false }, background: 'transparent' },
+    series: [{ name: 'Aantal', data: top5.map(x=>x[1]) }],
+    xaxis: { categories: top5.map(x=>x[0]), labels: { style: { fontSize: '10px', colors: '#888' }, trim: true, maxHeight: 60 } },
+    yaxis: { labels: { style: { colors: '#888', fontSize: '10px' } } },
+    colors: ['#e85d4a'],
+    plotOptions: { bar: { borderRadius: 2, horizontal: false, columnWidth: '60%' } },
+    dataLabels: { enabled: true, style: { fontSize: '11px' } },
+    grid: { borderColor: '#ece3d6' },
+  });
+  charts.top5.render();
+
+  // Grafiek 3: voortgang donut
+  const nNieuw = data.filter(b => b.status==='nieuw').length;
+  const nBezig = data.filter(b => b.status==='in_behandeling').length;
+  const nKlaar = data.filter(b => b.status==='klaar').length;
+
+  if (charts.voortgang) charts.voortgang.destroy();
+  charts.voortgang = new ApexCharts(document.getElementById('grafiek-voortgang'), {
+    chart: { type: 'donut', height: 180, background: 'transparent' },
+    series: [nNieuw, nBezig, nKlaar],
+    labels: ['Nieuw', 'In behandeling', 'Klaar'],
+    colors: ['#94a3b8', '#2563eb', '#2d7a3a'],
+    dataLabels: { enabled: false },
+    legend: { position: 'bottom', fontSize: '11px' },
+    plotOptions: { pie: { donut: { size: '60%' } } },
+  });
+  charts.voortgang.render();
+}
 </script>
 </body>
 </html>
