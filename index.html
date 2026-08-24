@@ -566,11 +566,14 @@
         const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
         const { data, error } = await sb
           .from('templates')
-          .select('config')
+          .select('id, config')
           .eq('slug', urlSlug)
           .eq('status', 'gepubliceerd')
           .single();
-        if (!error && data?.config) cfg = data.config;
+        if (!error && data?.config) {
+          cfg = data.config;
+          window._TEMPLATE_ID = data.id;
+        }
       } else {
         // Fallback: localStorage
         const opgeslagen = localStorage.getItem('brodshoes_config');
@@ -713,27 +716,25 @@
       const tijdslot   = tijdslotEl ? tijdslotEl.value : '–';
       const totaal     = regels.reduce((s, r) => s + r.subtotaal, 0);
 
-      const data = {
-        voornaam, achternaam, email, telefoon, adres,
-        bestelling: regels.map(r => `${r.qty}× ${r.label} (€ ${r.subtotaal.toFixed(2).replace('.', ',')})`).join('\n'),
-        totaal: '€ ' + totaal.toFixed(2).replace('.', ','),
-        tijdslot,
-        opmerking: opmerking || '–',
-        _replyto: email,
-        _subject: `${ev.titel} bestelling – ${voornaam} ${achternaam}`,
-      };
-
       const btn = document.getElementById('submit-btn');
       btn.textContent = 'Bezig met versturen…';
       btn.disabled = true;
 
-      try {
-        await fetch(ev.formspree, {
-          method: 'POST',
-          headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
-          body: JSON.stringify(data),
-        });
-      } catch (_) {}
+      // Sla bestelling op in Supabase
+      const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+      const { error } = await sb.from('bestellingen').insert({
+        template_id:   window._TEMPLATE_ID || null,
+        template_slug: urlSlug || null,
+        voornaam, achternaam, email, telefoon, adres,
+        regels,
+        totaal,
+        tijdslot,
+        opmerking: opmerking || null,
+      });
+
+      if (error) {
+        console.error('Bestelling opslaan mislukt:', error.message);
+      }
 
       document.getElementById('form-section').style.display = 'none';
       document.getElementById('success-section').style.display = 'block';

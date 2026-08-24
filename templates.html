@@ -304,6 +304,25 @@
     }
     .slug-preview span { color: var(--teal); }
 
+    /* Bestelling tiles */
+    .stat-tile {
+      background: var(--white); border: 1px solid var(--border);
+      padding: 18px 20px;
+    }
+    .stat-tile-label {
+      font-size: 10px; font-weight: 700; letter-spacing: 2px;
+      text-transform: uppercase; color: var(--muted); margin-bottom: 6px;
+    }
+    .stat-tile-waarde {
+      font-family: 'Cormorant Garamond', serif; font-size: 28px;
+      font-weight: 700; color: var(--teal);
+    }
+    .status-select {
+      border: 1px solid var(--border); padding: 4px 8px; font-size: 12px;
+      font-family: 'Lato', sans-serif; outline: none; cursor: pointer;
+      background: var(--white);
+    }
+
     /* Thema grid */
     .themas-grid {
       display: grid;
@@ -407,6 +426,7 @@
 <div class="tabs">
   <div class="tab active" data-tab="templates" onclick="toonTab('templates', this)">Templates</div>
   <div class="tab" data-tab="publicaties" onclick="toonTab('publicaties', this)">Publicaties</div>
+  <div class="tab" data-tab="bestellingen" onclick="toonTab('bestellingen', this)">Bestellingen</div>
   <div class="tab" data-tab="themas" onclick="toonTab('themas', this)">Thema's</div>
 </div>
 
@@ -446,6 +466,46 @@
       </thead>
       <tbody id="pub-tbody">
         <tr><td colspan="5" style="text-align:center;color:var(--muted);padding:32px;">Laden…</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ════ TAB: BESTELLINGEN ════ -->
+  <div class="tab-panel" id="tab-bestellingen">
+    <div class="toolbar">
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+        <select id="best-template-filter" onchange="laadBestellingen()" style="padding:8px 12px;border:1px solid var(--border);font-family:'Lato',sans-serif;font-size:13px;outline:none;">
+          <option value="">Alle templates</option>
+        </select>
+        <select id="best-status-filter" onchange="laadBestellingen()" style="padding:8px 12px;border:1px solid var(--border);font-family:'Lato',sans-serif;font-size:13px;outline:none;">
+          <option value="">Alle statussen</option>
+          <option value="nieuw">Nieuw</option>
+          <option value="in_behandeling">In behandeling</option>
+          <option value="klaar">Klaar</option>
+        </select>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <button class="btn-nieuw" onclick="exporteerXLS()" style="background:var(--teal);">📥 Export XLS</button>
+      </div>
+    </div>
+
+    <div id="best-samenvatting" style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px;"></div>
+
+    <table class="pub-tabel" id="best-tabel">
+      <thead>
+        <tr>
+          <th>Naam</th>
+          <th>Template</th>
+          <th>Tijdslot</th>
+          <th>Totaal</th>
+          <th>Opmerking</th>
+          <th>Status</th>
+          <th>Besteld op</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="best-tbody">
+        <tr><td colspan="8" style="text-align:center;color:var(--muted);padding:32px;">Laden…</td></tr>
       </tbody>
     </table>
   </div>
@@ -666,6 +726,7 @@ function toonTab(naam, el) {
   document.getElementById('tab-' + naam).classList.add('active');
   el.classList.add('active');
   if (naam === 'publicaties') laadPublicaties();
+  if (naam === 'bestellingen') laadBestellingen();
   if (naam === 'themas') laadThemas();
 }
 
@@ -1206,8 +1267,136 @@ function verwijderThema(id, naam) {
   );
 }
 
+// ══ Bestellingen ══
+let alleBestellingen = [];
+
+async function laadBestellingen() {
+  const templateFilter = document.getElementById('best-template-filter')?.value;
+  const statusFilter   = document.getElementById('best-status-filter')?.value;
+
+  let query = sb.from('bestellingen').select('*').order('besteld_op', { ascending: false });
+  if (templateFilter) query = query.eq('template_id', templateFilter);
+  if (statusFilter)   query = query.eq('status', statusFilter);
+
+  const { data, error } = await query;
+  if (error) { toonToast('Fout bij laden bestellingen'); return; }
+  alleBestellingen = data || [];
+  renderBestellingen();
+  renderSamenvatting();
+}
+
+function renderSamenvatting() {
+  const totaalBestellingen = alleBestellingen.length;
+  const totaalOmzet        = alleBestellingen.reduce((s, b) => s + (parseFloat(b.totaal) || 0), 0);
+  const metOpmerking       = alleBestellingen.filter(b => b.opmerking).length;
+  const nieuw              = alleBestellingen.filter(b => b.status === 'nieuw').length;
+
+  document.getElementById('best-samenvatting').innerHTML = `
+    <div class="stat-tile"><div class="stat-tile-label">Bestellingen</div><div class="stat-tile-waarde">${totaalBestellingen}</div></div>
+    <div class="stat-tile"><div class="stat-tile-label">Totaal omzet</div><div class="stat-tile-waarde">€ ${totaalOmzet.toFixed(2).replace('.', ',')}</div></div>
+    <div class="stat-tile"><div class="stat-tile-label">Nieuw</div><div class="stat-tile-waarde">${nieuw}</div></div>
+    <div class="stat-tile"><div class="stat-tile-label">Met opmerking</div><div class="stat-tile-waarde">${metOpmerking}</div></div>
+  `;
+}
+
+function renderBestellingen() {
+  const tbody = document.getElementById('best-tbody');
+  if (!alleBestellingen.length) {
+    tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:32px;">Geen bestellingen gevonden.</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = alleBestellingen.map(b => {
+    const naam     = `${b.voornaam} ${b.achternaam}`;
+    const template = alleTemplates.find(t => t.id === b.template_id);
+    const regels   = (b.regels || []).map(r => `${r.qty}× ${r.label}`).join('<br>');
+    const datum    = new Date(b.besteld_op).toLocaleString('nl-NL');
+    const opmerking = b.opmerking
+      ? `<span style="color:var(--red);font-weight:700;" title="${b.opmerking}">⚠️ ${b.opmerking.substring(0,30)}${b.opmerking.length > 30 ? '…' : ''}</span>`
+      : '<span style="color:var(--muted)">–</span>';
+
+    return `<tr>
+      <td>
+        <strong>${naam}</strong><br>
+        <span style="font-size:12px;color:var(--muted)">${b.email}</span><br>
+        <span style="font-size:12px;color:var(--muted)">${b.telefoon || ''}</span><br>
+        <span style="font-size:11px;color:var(--muted)">${regels}</span>
+      </td>
+      <td style="font-size:12px">${template?.naam || b.template_slug || '–'}</td>
+      <td style="font-size:13px;font-weight:600">${b.tijdslot || '–'}</td>
+      <td style="font-family:'Cormorant Garamond',serif;font-size:16px;font-weight:700">€ ${parseFloat(b.totaal).toFixed(2).replace('.', ',')}</td>
+      <td>${opmerking}</td>
+      <td>
+        <select class="status-select" onchange="updateStatus('${b.id}', this.value)">
+          <option value="nieuw"          ${b.status==='nieuw'?'selected':''}>🆕 Nieuw</option>
+          <option value="in_behandeling" ${b.status==='in_behandeling'?'selected':''}>🔄 In behandeling</option>
+          <option value="klaar"          ${b.status==='klaar'?'selected':''}>✅ Klaar</option>
+        </select>
+      </td>
+      <td style="font-size:12px;color:var(--muted)">${datum}</td>
+      <td><a href="mailto:${b.email}" style="color:var(--teal);font-size:12px;">✉️</a></td>
+    </tr>`;
+  }).join('');
+}
+
+async function updateStatus(id, status) {
+  const { error } = await sb.from('bestellingen').update({ status }).eq('id', id);
+  if (error) toonToast('Fout bij bijwerken status');
+  else { toonToast('Status bijgewerkt'); laadBestellingen(); }
+}
+
+async function vulTemplateFilter() {
+  const select = document.getElementById('best-template-filter');
+  if (!select) return;
+  alleTemplates.forEach(t => {
+    const opt = document.createElement('option');
+    opt.value = t.id;
+    opt.textContent = t.naam;
+    select.appendChild(opt);
+  });
+}
+
+function exporteerXLS() {
+  if (!alleBestellingen.length) { toonToast('Geen bestellingen om te exporteren'); return; }
+
+  // Bouw CSV data
+  const rijen = [
+    ['Voornaam','Achternaam','Email','Telefoon','Adres','Tijdslot','Bestelling','Totaal','Opmerking','Status','Besteld op']
+  ];
+
+  alleBestellingen.forEach(b => {
+    const bestelStr = (b.regels || []).map(r => `${r.qty}x ${r.label}`).join('; ');
+    rijen.push([
+      b.voornaam, b.achternaam, b.email, b.telefoon || '',
+      b.adres || '', b.tijdslot || '',
+      bestelStr,
+      parseFloat(b.totaal).toFixed(2),
+      b.opmerking || '',
+      b.status,
+      new Date(b.besteld_op).toLocaleString('nl-NL')
+    ]);
+  });
+
+  const csvContent = rijen.map(r =>
+    r.map(cel => `"${String(cel).replace(/"/g, '""')}"`).join(',')
+  ).join('\n');
+
+  const blob = new Blob(['﻿' + csvContent], { type: 'text/csv;charset=utf-8;' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = `bestellingen_${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+  toonToast('Export gedownload');
+}
+
 // ══ Init ══
-checkAuth().then(() => { laadTemplates(); laadThemas(); });
+checkAuth().then(async () => {
+  await laadTemplates();
+  await laadThemas();
+  vulTemplateFilter();
+});
 </script>
 </body>
 </html>
