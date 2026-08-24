@@ -21,7 +21,8 @@ create table public.publicaties (
   template_id       uuid not null references public.templates(id) on delete cascade,
   slug              text not null,
   gepubliceerd_op   timestamptz not null default now(),
-  gepubliceerd_door uuid references auth.users(id) on delete set null
+  gepubliceerd_door uuid references auth.users(id) on delete set null,
+  gepubliceerd_door_email text
 );
 
 -- 3. Automatisch bijgewerkt_op updaten
