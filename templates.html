@@ -1733,7 +1733,28 @@ function exporteerXLS() {
   // ── Lege rij ──
   rijen.push(['', '', '']);
 
-  // ── Sectie 2: Opmerkingen ──
+  // ── Sectie 2: Halve aantallen ──
+  const halveRegels = [];
+  alleBestellingen.forEach(b => {
+    (b.regels || []).forEach(r => {
+      if ((r.qty % 1) !== 0) {
+        const delen = (r.label || '').split(' – ');
+        halveRegels.push({
+          naam: `${b.voornaam} ${b.achternaam}`,
+          product: r.label || '',
+          qty: parseFloat(r.qty.toFixed(1))
+        });
+      }
+    });
+  });
+  if (halveRegels.length) {
+    rijen.push(['HALVE AANTALLEN', '', '']);
+    rijen.push(['Naam', 'Product', 'Aantal']);
+    halveRegels.forEach(r => rijen.push([r.naam, r.product, r.qty]));
+    rijen.push(['', '', '']);
+  }
+
+  // ── Sectie 3: Opmerkingen ──
   const metOpmerking = alleBestellingen.filter(b => b.opmerking);
   if (metOpmerking.length) {
     rijen.push(['OPMERKINGEN', '', '']);
