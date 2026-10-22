@@ -1728,7 +1728,7 @@ function exporteerXLS() {
     geordend.push({ cat: delen[0] || '', prod: delen[1] || label, label, qty });
   });
 
-  geordend.forEach(p => rijen.push([`${p.cat} ${p.prod}`, p.qty % 1 === 0 ? p.qty : parseFloat(p.qty.toFixed(1))]));
+  geordend.forEach(p => rijen.push([`${p.cat} - ${p.prod}`, p.qty % 1 === 0 ? p.qty : parseFloat(p.qty.toFixed(1))]));
 
   // ── Lege rij ──
   rijen.push(['', '', '']);
