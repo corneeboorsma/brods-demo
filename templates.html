@@ -1852,12 +1852,12 @@ function exportPDFLijst() {
         if (i === 0) {
           return `<tr>
             <td class="cat-naam" rowspan="${regels.length}">${catNaam}</td>
-            <td class="prod-naam">${r.prod}</td>
+            <td class="prod-naam">${catNaam} - ${r.prod}</td>
             <td class="prod-qty">${qtyTekst}</td>
           </tr>`;
         }
         return `<tr>
-          <td class="prod-naam">${r.prod}</td>
+          <td class="prod-naam">${catNaam} - ${r.prod}</td>
           <td class="prod-qty">${qtyTekst}</td>
         </tr>`;
       }).join('');
