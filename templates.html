@@ -618,8 +618,7 @@
       </div>
       <div style="display:flex;gap:8px;">
         <button class="btn-nieuw" onclick="exporteerXLS()" style="background:var(--teal);">📥 Export XLS</button>
-        <button class="btn-nieuw" onclick="exportPDFPerBestelling()" style="background:var(--teal);">🖨️ PDF per bestelling</button>
-        <button class="btn-nieuw" onclick="exportPDFOverzicht()" style="background:var(--teal);">📋 PDF afhaloverzicht</button>
+        <button class="btn-nieuw" onclick="exportPDFLijst()" style="background:var(--teal);">🖨️ PDF bestellingen</button>
       </div>
     </div>
 
@@ -1730,155 +1729,70 @@ function pdfStijl() {
   return `
     <style>
       * { box-sizing: border-box; margin: 0; padding: 0; }
-      body { font-family: 'Arial', sans-serif; font-size: 12px; color: #1a1a1a; background: #fff; }
+      body { font-family: Arial, sans-serif; font-size: 12px; color: #1a1a1a; background: #fff; padding: 16mm; }
       h1 { font-size: 20px; font-weight: 700; margin-bottom: 2px; }
-      h2 { font-size: 15px; font-weight: 700; margin-bottom: 6px; color: #1e3a3f; }
-      h3 { font-size: 12px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: #888; margin: 10px 0 4px; }
-      .bon { page-break-after: always; break-after: page; padding: 28px 32px; max-width: 100%; }
-      .bon:last-child { page-break-after: auto; break-after: auto; }
-      .bon-header { border-bottom: 2px solid #1e3a3f; padding-bottom: 10px; margin-bottom: 14px; display: flex; justify-content: space-between; align-items: flex-end; }
-      .bon-meta { font-size: 11px; color: #555; line-height: 1.6; }
-      .bon-tijdslot { font-size: 13px; font-weight: 700; color: #e85d4a; }
-      .prod-tabel { width: 100%; border-collapse: collapse; margin-bottom: 8px; }
-      .prod-tabel th { font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: #888; padding: 5px 8px; border-bottom: 1px solid #ddd; text-align: left; }
-      .prod-tabel td { padding: 6px 8px; border-bottom: 1px solid #f0f0f0; }
-      .prod-tabel td.qty { text-align: center; font-weight: 700; font-size: 16px; color: #1e3a3f; width: 50px; }
-      .prod-tabel td.bedrag { text-align: right; width: 70px; }
-      .prod-tabel tr.cat-kop td { background: #f5f0e8; font-weight: 700; font-size: 11px; letter-spacing: 1px; text-transform: uppercase; color: #1e3a3f; padding: 5px 8px; }
-      .totaal-rij { display: flex; justify-content: space-between; padding: 10px 8px 0; border-top: 2px solid #1e3a3f; margin-top: 4px; }
-      .totaal-rij span:first-child { font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: #888; }
-      .totaal-rij span:last-child { font-size: 20px; font-weight: 700; color: #1e3a3f; }
-      .opmerking-blok { background: #fff3f2; border-left: 3px solid #e85d4a; padding: 8px 12px; margin-top: 10px; font-size: 12px; }
+      .lijst-header { border-bottom: 3px solid #1e3a3f; padding-bottom: 10px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: flex-end; }
       .logo-naam { font-size: 13px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: #1e3a3f; }
-
-      /* Overzicht */
-      .overzicht-page { padding: 24px 28px; }
-      .overzicht-header { border-bottom: 3px solid #1e3a3f; padding-bottom: 10px; margin-bottom: 16px; }
-      .slot-blok { margin-bottom: 24px; page-break-inside: avoid; }
-      .slot-titel { background: #1e3a3f; color: #fff; padding: 7px 12px; font-size: 13px; font-weight: 700; letter-spacing: 1px; margin-bottom: 0; }
-      .overzicht-tabel { width: 100%; border-collapse: collapse; }
-      .overzicht-tabel th { background: #f5f0e8; font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: #555; padding: 6px 10px; text-align: left; border-bottom: 1px solid #ddd; }
-      .overzicht-tabel td { padding: 7px 10px; border-bottom: 1px solid #ece3d6; font-size: 12px; vertical-align: top; }
-      .overzicht-tabel tr:last-child td { border-bottom: none; }
-      .overzicht-tabel tr:nth-child(even) td { background: #faf7f2; }
-      .opm-cel { color: #e85d4a; font-size: 11px; font-style: italic; }
+      .lijst-tabel { width: 100%; border-collapse: collapse; }
+      .lijst-tabel th { background: #1e3a3f; color: #fff; font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; padding: 7px 10px; text-align: left; }
+      .lijst-tabel td { padding: 8px 10px; border-bottom: 1px solid #ece3d6; vertical-align: top; font-size: 12px; }
+      .lijst-tabel tr:nth-child(even) td { background: #faf7f2; }
+      .opm-cel { color: #e85d4a; font-size: 11px; font-style: italic; margin-top: 3px; }
+      .totaal-rij td { border-top: 2px solid #1e3a3f; font-weight: 700; background: #f5f0e8 !important; }
       @page { margin: 12mm; size: A4; }
-      @media print {
-        body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-        .bon { page-break-after: always; break-after: page; }
-        .bon:last-child { page-break-after: auto; break-after: auto; }
-      }
+      @media print { body { padding: 0; } -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     </style>`;
 }
 
-function exportPDFPerBestelling() {
+function exportPDFLijst() {
   if (!alleBestellingen.length) { toonToast('Geen bestellingen om te exporteren'); return; }
 
-  const html = alleBestellingen.map(b => {
-    const naam = `${b.voornaam} ${b.achternaam}`;
-    const datum = new Date(b.besteld_op).toLocaleDateString('nl-NL');
+  const gesorteerd = [...alleBestellingen].sort((a, b) =>
+    (a.achternaam || '').localeCompare(b.achternaam || '', 'nl'));
 
-    // Groepeer regels per categorie
-    const catMap = {};
-    (b.regels || []).forEach(r => {
-      const delen = (r.label || '').split(' – ');
-      const cat  = delen[0] || 'Overig';
-      const prod = delen[1] || r.label || '';
-      if (!catMap[cat]) catMap[cat] = [];
-      catMap[cat].push({ prod, qty: r.qty, subtotaal: r.subtotaal || 0 });
-    });
+  const evenement = alleTemplates.find(t => t.id === gesorteerd[0]?.template_id)?.config?.evenement?.titel || 'Brodshoes';
+  const totaalAlle = gesorteerd.reduce((s, b) => s + (parseFloat(b.totaal) || 0), 0);
 
-    const tabelRijen = Object.entries(catMap).map(([cat, prods]) => `
-      <tr class="cat-kop"><td colspan="3">${cat}</td></tr>
-      ${prods.map(p => `<tr>
-        <td>${p.prod}</td>
-        <td class="qty">${p.qty % 1 === 0 ? p.qty : p.qty.toFixed(1)}×</td>
-        <td class="bedrag">€ ${p.subtotaal.toFixed(2).replace('.', ',')}</td>
-      </tr>`).join('')}`).join('');
+  const rijen = gesorteerd.map(b => {
+    const naam = `${b.achternaam}, ${b.voornaam}`;
+    const producten = (b.regels || []).map(r => {
+      const prod = (r.label || '').split(' – ')[1] || r.label;
+      const qty  = r.qty % 1 === 0 ? r.qty : r.qty.toFixed(1);
+      return `${qty}× ${prod}`;
+    }).join('<br>');
 
-    return `<div class="bon">
-      <div class="bon-header">
-        <div>
-          <div class="logo-naam">Brodshoes</div>
-          <h1>${naam}</h1>
-          <div class="bon-meta">${b.adres || ''} &nbsp;·&nbsp; ${b.email || ''} &nbsp;·&nbsp; ${b.telefoon || ''}</div>
-        </div>
-        <div style="text-align:right">
-          <div class="bon-tijdslot">⏱ ${b.tijdslot || '–'}</div>
-          <div class="bon-meta">Besteld: ${datum}</div>
-        </div>
-      </div>
-      <table class="prod-tabel">
-        <thead><tr><th>Product</th><th style="text-align:center">Aantal</th><th style="text-align:right">Bedrag</th></tr></thead>
-        <tbody>${tabelRijen}</tbody>
-      </table>
-      <div class="totaal-rij">
-        <span>Totaal</span>
-        <span>€ ${parseFloat(b.totaal).toFixed(2).replace('.', ',')}</span>
-      </div>
-      ${b.opmerking ? `<div class="opmerking-blok"><strong>⚠️ Opmerking:</strong> ${b.opmerking}</div>` : ''}
-    </div>`;
+    return `<tr>
+      <td><strong>${naam}</strong>${b.opmerking ? `<div class="opm-cel">⚠️ ${b.opmerking}</div>` : ''}</td>
+      <td>${b.tijdslot || '–'}</td>
+      <td>${b.telefoon || '–'}</td>
+      <td>${producten}</td>
+      <td style="text-align:right;font-weight:700;">€ ${parseFloat(b.totaal).toFixed(2).replace('.', ',')}</td>
+      <td style="text-align:center;font-size:16px;">☐</td>
+    </tr>`;
   }).join('');
 
-  const venster = window.open('', '_blank');
-  venster.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Bestellingen per bon</title>${pdfStijl()}</head><body>${html}</body></html>`);
-  venster.document.close();
-  venster.onload = () => venster.print();
-}
-
-function exportPDFOverzicht() {
-  if (!alleBestellingen.length) { toonToast('Geen bestellingen om te exporteren'); return; }
-
-  const tijdslots = [...new Set(alleBestellingen.map(b => b.tijdslot).filter(Boolean))].sort();
-  const evenement = alleTemplates.length ? (alleTemplates[0]?.config?.evenement?.titel || 'Brodshoes') : 'Brodshoes';
-  const totaalAlle = alleBestellingen.reduce((s, b) => s + (parseFloat(b.totaal) || 0), 0);
-
-  const slotHTML = tijdslots.map(ts => {
-    const bests = alleBestellingen.filter(b => b.tijdslot === ts);
-    const rijen = bests.map(b => {
-      const naam = `${b.voornaam} ${b.achternaam}`;
-      const producten = (b.regels || []).map(r => {
-        const prod = (r.label || '').split(' – ')[1] || r.label;
-        const qty  = r.qty % 1 === 0 ? r.qty : r.qty.toFixed(1);
-        return `${qty}× ${prod}`;
-      }).join('<br>');
-      return `<tr>
-        <td><strong>${naam}</strong>${b.opmerking ? `<br><span class="opm-cel">⚠️ ${b.opmerking}</span>` : ''}</td>
-        <td>${b.adres || '–'}</td>
-        <td>${producten}</td>
-        <td style="text-align:right;font-weight:700;">€ ${parseFloat(b.totaal).toFixed(2).replace('.', ',')}</td>
-        <td style="text-align:center;font-size:18px;">☐</td>
-      </tr>`;
-    }).join('');
-
-    const slotTotaal = bests.reduce((s, b) => s + (parseFloat(b.totaal) || 0), 0);
-
-    return `<div class="slot-blok">
-      <div class="slot-titel">🕐 ${ts} &nbsp;·&nbsp; ${bests.length} bestellingen &nbsp;·&nbsp; € ${slotTotaal.toFixed(2).replace('.', ',')}</div>
-      <table class="overzicht-tabel">
-        <thead><tr><th>Naam</th><th>Adres</th><th>Bestelling</th><th style="text-align:right">Totaal</th><th style="text-align:center">✓</th></tr></thead>
-        <tbody>${rijen}</tbody>
-      </table>
-    </div>`;
-  }).join('');
-
-  const html = `<div class="overzicht-page">
-    <div class="overzicht-header">
-      <div style="display:flex;justify-content:space-between;align-items:flex-end;">
-        <div>
-          <div class="logo-naam">Brodshoes</div>
-          <h1 style="font-size:22px;margin-top:2px;">${evenement} — Afhaloverzicht</h1>
-        </div>
-        <div style="text-align:right;font-size:12px;color:#555;">
-          ${alleBestellingen.length} bestellingen &nbsp;·&nbsp; Totaal: <strong>€ ${totaalAlle.toFixed(2).replace('.', ',')}</strong>
-        </div>
+  const html = `
+    <div class="lijst-header">
+      <div>
+        <div class="logo-naam">Brodshoes</div>
+        <h1>${evenement}</h1>
+      </div>
+      <div style="text-align:right;font-size:12px;color:#555;">
+        ${gesorteerd.length} bestellingen &nbsp;·&nbsp; Totaal: <strong>€ ${totaalAlle.toFixed(2).replace('.', ',')}</strong>
       </div>
     </div>
-    ${slotHTML}
-  </div>`;
+    <table class="lijst-tabel">
+      <thead><tr><th>Naam</th><th>Tijdslot</th><th>Telefoon</th><th>Bestelling</th><th style="text-align:right">Totaal</th><th style="text-align:center">✓</th></tr></thead>
+      <tbody>${rijen}</tbody>
+      <tfoot><tr class="totaal-rij">
+        <td colspan="4" style="font-size:11px;letter-spacing:1px;text-transform:uppercase;">Totaal</td>
+        <td style="text-align:right;">€ ${totaalAlle.toFixed(2).replace('.', ',')}</td>
+        <td></td>
+      </tr></tfoot>
+    </table>`;
 
   const venster = window.open('', '_blank');
-  venster.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Afhaloverzicht</title>${pdfStijl()}</head><body>${html}</body></html>`);
+  venster.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Bestellingen ${evenement}</title>${pdfStijl()}</head><body>${html}</body></html>`);
   venster.document.close();
   venster.onload = () => venster.print();
 }
