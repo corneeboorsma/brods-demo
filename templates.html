@@ -6,6 +6,7 @@
   <title>Templates | Brodshoes Beheer</title>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Lato:wght@300;400;600;700&display=swap" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
   <script src="supabase-config.js"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -1692,12 +1693,12 @@ async function vulTemplateFilter() {
 function exporteerXLS() {
   if (!alleBestellingen.length) { toonToast('Geen bestellingen om te exporteren'); return; }
 
+  const wb = XLSX.utils.book_new();
   const rijen = [];
-  const cel = v => `"${String(v ?? '').replace(/"/g, '""')}"`;
 
   // ── Sectie 1: Producttotalen ──
-  rijen.push([cel('PRODUCTTOTALEN'), '', '']);
-  rijen.push([cel('Categorie'), cel('Product'), cel('Totaal besteld')]);
+  rijen.push(['PRODUCTTOTALEN', '', '']);
+  rijen.push(['Categorie', 'Product', 'Totaal besteld']);
 
   const prodTotalen = {};
   alleBestellingen.forEach(b => {
@@ -1719,13 +1720,12 @@ function exporteerXLS() {
       }
     });
   });
-  // Eventuele resterende (niet in template)
   Object.entries(prodTotalen).forEach(([label, qty]) => {
     const delen = label.split(' – ');
     geordend.push({ cat: delen[0] || '', prod: delen[1] || label, label, qty });
   });
 
-  geordend.forEach(p => rijen.push([cel(p.cat), cel(p.prod), cel(p.qty % 1 === 0 ? p.qty : p.qty.toFixed(1))]));
+  geordend.forEach(p => rijen.push([p.cat, p.prod, p.qty % 1 === 0 ? p.qty : parseFloat(p.qty.toFixed(1))]));
 
   // ── Lege rij ──
   rijen.push(['', '', '']);
@@ -1733,21 +1733,31 @@ function exporteerXLS() {
   // ── Sectie 2: Opmerkingen ──
   const metOpmerking = alleBestellingen.filter(b => b.opmerking);
   if (metOpmerking.length) {
-    rijen.push([cel('OPMERKINGEN'), '', '']);
-    rijen.push([cel('Naam'), cel('Tijdslot'), cel('Opmerking')]);
+    rijen.push(['OPMERKINGEN', '', '']);
+    rijen.push(['Naam', 'Tijdslot', 'Opmerking']);
     metOpmerking.forEach(b => {
-      rijen.push([cel(`${b.voornaam} ${b.achternaam}`), cel(b.tijdslot || ''), cel(b.opmerking)]);
+      rijen.push([`${b.voornaam} ${b.achternaam}`, b.tijdslot || '', b.opmerking]);
     });
   }
 
-  const csvContent = rijen.map(r => Array.isArray(r) ? r.join(',') : r).join('\n');
-  const blob = new Blob(['﻿' + csvContent], { type: 'text/csv;charset=utf-8;' });
-  const url  = URL.createObjectURL(blob);
-  const a    = document.createElement('a');
-  a.href     = url;
-  a.download = `bestellingen_${new Date().toISOString().slice(0,10)}.csv`;
-  a.click();
-  URL.revokeObjectURL(url);
+  const ws = XLSX.utils.aoa_to_sheet(rijen);
+
+  // Kolombreedte
+  ws['!cols'] = [{ wch: 24 }, { wch: 32 }, { wch: 16 }];
+
+  // Vetgedrukte koprijen (rij 1 en na lege rij)
+  const vetRijen = [0, 1, geordend.length + 3, geordend.length + 4];
+  vetRijen.forEach(r => {
+    ['A', 'B', 'C'].forEach(col => {
+      const ref = `${col}${r + 1}`;
+      if (ws[ref]) {
+        ws[ref].s = { font: { bold: true } };
+      }
+    });
+  });
+
+  XLSX.utils.book_append_sheet(wb, ws, 'Bestellingen');
+  XLSX.writeFile(wb, `bestellingen_${new Date().toISOString().slice(0,10)}.xlsx`);
   toonToast('Export gedownload');
 }
 
