@@ -1354,7 +1354,7 @@ function toonConfirm(titel, tekst, cb) {
   document.getElementById('confirm-overlay').classList.add('open');
 }
 function sluitConfirm() { document.getElementById('confirm-overlay').classList.remove('open'); confirmCallback = null; }
-document.getElementById('confirm-ok').onclick = () => { sluitConfirm(); if (confirmCallback) confirmCallback(); };
+document.getElementById('confirm-ok').onclick = () => { const cb = confirmCallback; sluitConfirm(); if (cb) cb(); };
 
 // ══ Toast ══
 function toonToast(msg) {
