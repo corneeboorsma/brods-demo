@@ -1832,6 +1832,7 @@ function exportPDFLijst() {
     // Groepeer regels per categorie
     const regelPerCat = {};
     (b.regels || []).forEach(r => {
+      if (!r.qty || parseFloat(r.qty) <= 0) return;
       const delen = (r.label || '').split(' – ');
       const cat  = delen[0] || 'Overig';
       const prod = delen[1] || r.label;
