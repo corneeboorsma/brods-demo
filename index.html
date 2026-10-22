@@ -506,7 +506,7 @@
         </div>
 
         <div class="form-group">
-          <label>Kies uw tijdslot (zaterdag 18 april)</label>
+          <label id="tijdslot-label">Kies uw afhaalmoment</label>
           <div class="tijdslot-grid" id="tijdslot-grid"></div>
           <div class="tijdslot-fout" id="tijdslot-fout">Kies een tijdslot om door te gaan</div>
         </div>
@@ -679,6 +679,10 @@
 
         const tijdslotGrid = document.getElementById('tijdslot-grid');
         tijdslotGrid.innerHTML = '';
+        const tijdslotLabelEl = document.getElementById('tijdslot-label');
+        tijdslotLabelEl.textContent = cfg.evenement?.dag
+          ? `Kies uw afhaalmoment (${cfg.evenement.dag})`
+          : 'Kies uw afhaalmoment';
         cfg.tijdslots.forEach(slot => {
           const lbl = document.createElement('label');
           lbl.className = 'tijdslot-option';
