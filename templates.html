@@ -1832,17 +1832,29 @@ function openBewerkBestelling(id) {
   const b = alleBestellingen.find(x => x.id === id);
   if (!b) return;
   bewerkBestId = id;
-  // Zorg dat elke regel een prijs-per-stuk heeft (afleiden uit subtotaal/qty indien niet aanwezig)
-  bewerkRegels = JSON.parse(JSON.stringify(b.regels || [])).map(r => ({
-    ...r,
-    prijs: r.prijs || (r.qty ? (r.subtotaal || 0) / r.qty : 0),
-  }));
+
+  // Bouw een prijslijst op uit de template config als fallback
+  const tpl = alleTemplates.find(t => t.id === b.template_id);
+  const prijsLijst = {};
+  (tpl?.config?.categorieeen || []).forEach(cat => {
+    cat.producten.forEach(prod => {
+      const label = `${cat.naam} – ${prod.naam}`;
+      prijsLijst[label] = parseFloat(prod.prijs) || 0;
+    });
+  });
+
+  bewerkRegels = JSON.parse(JSON.stringify(b.regels || [])).map(r => {
+    const qty = parseFloat(r.qty) || 0;
+    const subtotaal = parseFloat(r.subtotaal) || 0;
+    // Stukprijs: eerst uit regel zelf, dan uit template, dan afleiden uit subtotaal/qty
+    const prijs = parseFloat(r.prijs) || prijsLijst[r.label] || (qty > 0 ? subtotaal / qty : 0);
+    return { ...r, qty, prijs, subtotaal: qty * prijs };
+  });
 
   document.getElementById('bewerk-best-titel').textContent =
     `Bestelling bewerken — ${b.voornaam} ${b.achternaam}`;
 
-  // Vul product-dropdown vanuit template config
-  const tpl = alleTemplates.find(t => t.id === b.template_id);
+  // Vul product-dropdown vanuit template config (tpl al gedeclareerd hierboven)
   const sel = document.getElementById('bewerk-product-keuze');
   sel.innerHTML = '<option value="">— Kies product om toe te voegen —</option>';
   (tpl?.config?.categorieeen || []).forEach(cat => {
@@ -1876,6 +1888,7 @@ function renderBewerkRegels() {
     <div class="bewerk-regel-rij">
       <div>
         <div class="bewerk-regel-naam">${r.label || ''}</div>
+        <div class="bewerk-regel-omschr">€ ${r.prijs.toFixed(2).replace('.', ',')} p.st. · subtotaal: € ${(r.subtotaal||0).toFixed(2).replace('.', ',')}</div>
       </div>
       <div class="bewerk-qty-control">
         <button class="bewerk-qty-btn" onclick="changeRegelQty(${i}, -0.5)">−</button>
