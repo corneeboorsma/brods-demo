@@ -1848,22 +1848,18 @@ function exportPDFLijst() {
 
     const catTabellen = catVolgorde.map(catNaam => {
       const regels = regelPerCat[catNaam];
-      const rijen = regels.map((r, i) => {
+      const rijen = regels.map(r => {
         const qty = (r.qty % 1 === 0 ? r.qty : parseFloat(r.qty).toFixed(1));
         const qtyTekst = parseFloat(qty) > 0 ? qty : '';
-        if (i === 0) {
-          return `<tr>
-            <td class="cat-naam" rowspan="${regels.length}">${catNaam}</td>
-            <td class="prod-naam">${catNaam} - ${r.prod}</td>
-            <td class="prod-qty">${qtyTekst}</td>
-          </tr>`;
-        }
         return `<tr>
           <td class="prod-naam">${catNaam} - ${r.prod}</td>
           <td class="prod-qty">${qtyTekst}</td>
         </tr>`;
       }).join('');
-      return `<table class="cat-tabel"><tbody>${rijen}</tbody></table>`;
+      return `<table class="cat-tabel"><tbody>
+        <tr><td class="cat-naam" colspan="2">${catNaam}</td></tr>
+        ${rijen}
+      </tbody></table>`;
     }).join('');
 
     return `<div class="bestelling-pagina${isLaatste ? '' : ' pagina-break'}">
