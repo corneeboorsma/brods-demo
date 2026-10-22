@@ -635,11 +635,10 @@
         document.querySelector('title').textContent = `${ev.titel} – Bestellen | Brodshoes`;
         document.getElementById('ev-titel').textContent = ev.titel;
         document.getElementById('ev-subtitel').innerHTML = ev.subtitel;
-        document.getElementById('ev-badge').textContent = ev.badge;
+        document.getElementById('ev-badge').innerHTML = `${ev.badge}<div id="ev-deadline" style="margin-top:6px;font-size:11px;font-weight:500;letter-spacing:1px;">Bestellen kan tot en met ${ev.deadline}</div>`;
         document.getElementById('ev-locatie-footer').textContent = ev.locatie;
         document.getElementById('ev-locatie-success-tag').textContent = `Brodshoes · ${ev.locatie}`;
         document.getElementById('ev-locatie-success').textContent = `Bevestiging verstuurd per e-mail · Brodshoes, ${ev.locatie}`;
-        document.getElementById('ev-deadline').textContent = `Bestellen kan tot en met ${ev.deadline}`;
         document.getElementById('ev-deadline-onder').textContent = `Bestellen kan tot en met ${ev.deadline}`;
 
         // Bouw producten dynamisch
