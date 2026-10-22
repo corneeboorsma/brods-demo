@@ -1790,18 +1790,29 @@ function pdfStijl() {
   return `
     <style>
       * { box-sizing: border-box; margin: 0; padding: 0; }
-      body { font-family: Arial, sans-serif; font-size: 12px; color: #1a1a1a; background: #fff; padding: 16mm; }
-      h1 { font-size: 20px; font-weight: 700; margin-bottom: 2px; }
-      .lijst-header { border-bottom: 3px solid #1e3a3f; padding-bottom: 10px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: flex-end; }
-      .logo-naam { font-size: 13px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: #1e3a3f; }
-      .lijst-tabel { width: 100%; border-collapse: collapse; }
-      .lijst-tabel th { background: #1e3a3f; color: #fff; font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; padding: 7px 10px; text-align: left; }
-      .lijst-tabel td { padding: 8px 10px; border-bottom: 1px solid #ece3d6; vertical-align: top; font-size: 12px; }
-      .lijst-tabel tr:nth-child(even) td { background: #faf7f2; }
-      .opm-cel { color: #e85d4a; font-size: 11px; font-style: italic; margin-top: 3px; }
-      .totaal-rij td { border-top: 2px solid #1e3a3f; font-weight: 700; background: #f5f0e8 !important; }
-      @page { margin: 12mm; size: A4; }
-      @media print { body { padding: 0; } -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      body { font-family: Arial, sans-serif; font-size: 13px; color: #1a1a1a; background: #fff; padding: 14mm 16mm; }
+      @page { margin: 0; size: A4; }
+      @media print { body { padding: 14mm 16mm; } -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .bestelling-pagina { min-height: 267mm; }
+      .pagina-break { page-break-after: always; }
+
+      /* Rechtsboven: totaal + naam */
+      .hoofd-blok { text-align: right; margin-bottom: 20mm; }
+      .totaal-groot { font-size: 32px; font-weight: 300; color: #1a1a1a; margin-bottom: 6mm; }
+      .achternaam-groot { font-size: 42px; font-weight: 700; color: #1a1a1a; line-height: 1.1; }
+      .voornaam-mid { font-size: 22px; font-weight: 400; color: #555; }
+
+      /* Opmerkingen sectie */
+      .sectie-label { font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: #1a1a1a; padding-bottom: 6px; border-bottom: 1px solid #bbb; margin-bottom: 10mm; }
+      .opm-tekst { font-size: 13px; color: #e85d4a; font-style: italic; margin-top: 4px; }
+
+      /* Categorie tabellen */
+      .cat-tabel { width: 100%; border-collapse: collapse; margin-bottom: 8mm; }
+      .cat-tabel td { padding: 6px 10px; border: 1px solid #ccc; font-size: 13px; color: #1a1a1a; }
+      .cat-naam { font-size: 13px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; width: 28%; background: #f0f0f0; }
+      .prod-naam { background: #fff; }
+      .prod-qty { width: 8%; text-align: right; background: #fff; color: #1a1a1a; font-weight: 700; }
+      .cat-naam-cel { background: #f0f0f0; }
     </style>`;
 }
 
@@ -1811,52 +1822,62 @@ function exportPDFLijst() {
   const gesorteerd = [...alleBestellingen].sort((a, b) =>
     (a.achternaam || '').localeCompare(b.achternaam || '', 'nl'));
 
-  const evenement = alleTemplates.find(t => t.id === gesorteerd[0]?.template_id)?.config?.evenement?.titel || 'Brodshoes';
-  const totaalAlle = gesorteerd.reduce((s, b) => s + (parseFloat(b.totaal) || 0), 0);
+  // Bouw categorie-structuur uit eerste template
+  const tpl = alleTemplates.find(t => t.id === gesorteerd[0]?.template_id);
+  const cats = tpl?.config?.categorieeen || [];
 
   const paginas = gesorteerd.map((b, idx) => {
-    const naam = `${b.achternaam}, ${b.voornaam}`;
-    const producten = (b.regels || []).map(r => {
-      const delen = (r.label || '').split(' – ');
-      const cat   = delen[0] || '';
-      const prod  = delen[1] || r.label;
-      const qty   = r.qty % 1 === 0 ? r.qty : parseFloat(r.qty).toFixed(1);
-      return `${qty}× ${cat} ${prod}`;
-    }).join('<br>');
-
     const isLaatste = idx === gesorteerd.length - 1;
 
+    // Groepeer regels per categorie
+    const regelPerCat = {};
+    (b.regels || []).forEach(r => {
+      const delen = (r.label || '').split(' – ');
+      const cat  = delen[0] || 'Overig';
+      const prod = delen[1] || r.label;
+      if (!regelPerCat[cat]) regelPerCat[cat] = [];
+      regelPerCat[cat].push({ prod, qty: r.qty });
+    });
+
+    // Bouw tabellen per categorie (volgorde van template)
+    const catVolgorde = cats.map(c => c.naam).filter(n => regelPerCat[n]);
+    Object.keys(regelPerCat).forEach(k => { if (!catVolgorde.includes(k)) catVolgorde.push(k); });
+
+    const catTabellen = catVolgorde.map(catNaam => {
+      const regels = regelPerCat[catNaam];
+      const rijen = regels.map((r, i) => {
+        const qty = (r.qty % 1 === 0 ? r.qty : parseFloat(r.qty).toFixed(1));
+        const qtyTekst = parseFloat(qty) > 0 ? qty : '';
+        if (i === 0) {
+          return `<tr>
+            <td class="cat-naam" rowspan="${regels.length}">${catNaam}</td>
+            <td class="prod-naam">${r.prod}</td>
+            <td class="prod-qty">${qtyTekst}</td>
+          </tr>`;
+        }
+        return `<tr>
+          <td class="prod-naam">${r.prod}</td>
+          <td class="prod-qty">${qtyTekst}</td>
+        </tr>`;
+      }).join('');
+      return `<table class="cat-tabel"><tbody>${rijen}</tbody></table>`;
+    }).join('');
+
     return `<div class="bestelling-pagina${isLaatste ? '' : ' pagina-break'}">
-      <div class="lijst-header">
-        <div>
-          <div class="logo-naam">Brodshoes</div>
-          <h1>${evenement}</h1>
-        </div>
-        <div style="text-align:right;font-size:12px;color:#555;">
-          Bestelling ${idx + 1} / ${gesorteerd.length}
-        </div>
+      <div class="hoofd-blok">
+        <div class="totaal-groot">€ ${parseFloat(b.totaal || 0).toFixed(2).replace('.', ',')}</div>
+        <div class="achternaam-groot">${b.achternaam || ''}</div>
+        <div class="voornaam-mid">${b.voornaam || ''}${b.tijdslot ? ' &nbsp;·&nbsp; ' + b.tijdslot : ''}</div>
       </div>
-      <table class="lijst-tabel">
-        <thead><tr><th style="width:38%">Naam</th><th style="width:52%">Bestelling</th><th style="text-align:right;width:7%">Totaal</th><th style="text-align:center;width:3%">✓</th></tr></thead>
-        <tbody>
-          <tr>
-            <td>
-              <strong style="font-size:16px;">${naam}</strong>
-              <div style="margin-top:5px;font-size:12px;color:#555;">${b.tijdslot || ''}</div>
-              <div style="font-size:12px;color:#555;">${b.telefoon || ''}</div>
-              ${b.opmerking ? `<div class="opm-cel">⚠️ ${b.opmerking}</div>` : ''}
-            </td>
-            <td>${producten}</td>
-            <td style="text-align:right;font-weight:700;">€ ${parseFloat(b.totaal).toFixed(2).replace('.', ',')}</td>
-            <td style="text-align:center;font-size:16px;">☐</td>
-          </tr>
-        </tbody>
-      </table>
+      <div class="sectie-label">Opmerkingen</div>
+      ${b.opmerking ? `<div class="opm-tekst">${b.opmerking}</div>` : ''}
+      <div style="margin-bottom:8mm;"></div>
+      ${catTabellen}
     </div>`;
   }).join('');
 
   const venster = window.open('', '_blank');
-  venster.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Bestellingen ${evenement}</title>${pdfStijl()}<style>.pagina-break{page-break-after:always;} .bestelling-pagina{margin-bottom:20px;}</style></head><body>${paginas}</body></html>`);
+  venster.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Bestellingen</title>${pdfStijl()}</head><body>${paginas}</body></html>`);
   venster.document.close();
   venster.onload = () => venster.print();
 }
