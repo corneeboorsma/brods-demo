@@ -1692,28 +1692,55 @@ async function vulTemplateFilter() {
 function exporteerXLS() {
   if (!alleBestellingen.length) { toonToast('Geen bestellingen om te exporteren'); return; }
 
-  // Bouw CSV data
-  const rijen = [
-    ['Voornaam','Achternaam','Email','Telefoon','Adres','Tijdslot','Bestelling','Totaal','Opmerking','Status','Besteld op']
-  ];
+  const rijen = [];
+  const cel = v => `"${String(v ?? '').replace(/"/g, '""')}"`;
 
+  // ── Sectie 1: Producttotalen ──
+  rijen.push([cel('PRODUCTTOTALEN'), '', '']);
+  rijen.push([cel('Categorie'), cel('Product'), cel('Totaal besteld')]);
+
+  const prodTotalen = {};
   alleBestellingen.forEach(b => {
-    const bestelStr = (b.regels || []).map(r => `${r.qty}x ${r.label}`).join('; ');
-    rijen.push([
-      b.voornaam, b.achternaam, b.email, b.telefoon || '',
-      b.adres || '', b.tijdslot || '',
-      bestelStr,
-      parseFloat(b.totaal).toFixed(2),
-      b.opmerking || '',
-      b.status,
-      new Date(b.besteld_op).toLocaleString('nl-NL')
-    ]);
+    (b.regels || []).forEach(r => {
+      const key = r.label || '';
+      prodTotalen[key] = (prodTotalen[key] || 0) + (r.qty || 0);
+    });
   });
 
-  const csvContent = rijen.map(r =>
-    r.map(cel => `"${String(cel).replace(/"/g, '""')}"`).join(',')
-  ).join('\n');
+  // Sorteer op volgorde van de template
+  const tpl = alleTemplates.find(t => alleBestellingen.some(b => b.template_id === t.id));
+  const geordend = [];
+  (tpl?.config?.categorieeen || []).forEach(cat => {
+    cat.producten.forEach(prod => {
+      const label = `${cat.naam} – ${prod.naam}`;
+      if (prodTotalen[label] !== undefined) {
+        geordend.push({ cat: cat.naam, prod: prod.naam, label, qty: prodTotalen[label] });
+        delete prodTotalen[label];
+      }
+    });
+  });
+  // Eventuele resterende (niet in template)
+  Object.entries(prodTotalen).forEach(([label, qty]) => {
+    const delen = label.split(' – ');
+    geordend.push({ cat: delen[0] || '', prod: delen[1] || label, label, qty });
+  });
 
+  geordend.forEach(p => rijen.push([cel(p.cat), cel(p.prod), cel(p.qty % 1 === 0 ? p.qty : p.qty.toFixed(1))]));
+
+  // ── Lege rij ──
+  rijen.push(['', '', '']);
+
+  // ── Sectie 2: Opmerkingen ──
+  const metOpmerking = alleBestellingen.filter(b => b.opmerking);
+  if (metOpmerking.length) {
+    rijen.push([cel('OPMERKINGEN'), '', '']);
+    rijen.push([cel('Naam'), cel('Tijdslot'), cel('Opmerking')]);
+    metOpmerking.forEach(b => {
+      rijen.push([cel(`${b.voornaam} ${b.achternaam}`), cel(b.tijdslot || ''), cel(b.opmerking)]);
+    });
+  }
+
+  const csvContent = rijen.map(r => Array.isArray(r) ? r.join(',') : r).join('\n');
   const blob = new Blob(['﻿' + csvContent], { type: 'text/csv;charset=utf-8;' });
   const url  = URL.createObjectURL(blob);
   const a    = document.createElement('a');
@@ -1805,7 +1832,11 @@ function openBewerkBestelling(id) {
   const b = alleBestellingen.find(x => x.id === id);
   if (!b) return;
   bewerkBestId = id;
-  bewerkRegels = JSON.parse(JSON.stringify(b.regels || []));
+  // Zorg dat elke regel een prijs-per-stuk heeft (afleiden uit subtotaal/qty indien niet aanwezig)
+  bewerkRegels = JSON.parse(JSON.stringify(b.regels || [])).map(r => ({
+    ...r,
+    prijs: r.prijs || (r.qty ? (r.subtotaal || 0) / r.qty : 0),
+  }));
 
   document.getElementById('bewerk-best-titel').textContent =
     `Bestelling bewerken — ${b.voornaam} ${b.achternaam}`;
