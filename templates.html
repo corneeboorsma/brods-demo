@@ -1323,8 +1323,11 @@ async function publiceer(id) {
 function verwijder(id, naam) {
   toonConfirm(
     'Template verwijderen',
-    `Weet u zeker dat u "${naam}" wilt verwijderen? Dit kan niet ongedaan worden gemaakt.`,
+    `Weet u zeker dat u "${naam}" wilt verwijderen? Alle bijbehorende bestellingen worden ook verwijderd.`,
     async () => {
+      // Verwijder eerst bestellingen die aan deze template hangen
+      const { error: errB } = await sb.from('bestellingen').delete().eq('template_id', id);
+      if (errB) { toonToast('Fout bij verwijderen bestellingen: ' + errB.message); return; }
       const { error } = await sb.from('templates').delete().eq('id', id);
       if (error) { toonToast('Fout: ' + error.message); return; }
       await log('template_verwijderd', 'template', id, naam);
