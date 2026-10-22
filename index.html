@@ -591,6 +591,24 @@
         if (opgeslagen) cfg = JSON.parse(opgeslagen);
       }
 
+      // Als thema een UUID is (custom thema), ophalen uit Supabase
+      const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-/i.test(cfg.thema);
+      if (isUuid) {
+        const { data: themaData } = await getSbClient()
+          .from('themas')
+          .select('achtergrond, kaart, kaart_mid, accent')
+          .eq('id', cfg.thema)
+          .single();
+        if (themaData) {
+          THEMAS[cfg.thema] = {
+            achtergrond: themaData.achtergrond,
+            kaart:       themaData.kaart,
+            kaartMid:    themaData.kaart_mid || themaData.kaart,
+            accent:      themaData.accent,
+          };
+        }
+      }
+
       pasThemaToe(cfg);
     }
 
@@ -646,7 +664,8 @@
             rij.innerHTML = `
               <div class="product-info">
                 <div class="product-omschrijving">${prod.naam}</div>
-                <div class="product-prijs">€ ${prijs.toFixed(2).replace('.', ',')}</div>
+                ${prod.omschrijving ? `<div class="product-prijs" style="font-style:italic;font-size:17px;margin-top:2px;">${prod.omschrijving}</div>` : ''}
+                <div class="product-prijs" style="${prod.omschrijving ? 'margin-top:6px;' : ''}">€ ${prijs.toFixed(2).replace('.', ',')}</div>
               </div>
               <div class="qty-control">
                 <button type="button" class="qty-btn" onclick="changeQty('${id}', -1)">−</button>
@@ -667,6 +686,15 @@
           lbl.innerHTML = `<input type="radio" name="tijdslot" value="${slot}" /><span class="tijdslot-label">${slot}</span>`;
           tijdslotGrid.appendChild(lbl);
         });
+        if (cfg.tijdslots.length === 1) {
+          tijdslotGrid.style.gridTemplateColumns = '1fr';
+          tijdslotGrid.style.maxWidth = '260px';
+          tijdslotGrid.style.margin = '0 auto';
+        } else {
+          tijdslotGrid.style.gridTemplateColumns = '';
+          tijdslotGrid.style.maxWidth = '';
+          tijdslotGrid.style.margin = '';
+        }
         if (tijdslotGrid.querySelector('input[type="radio"]')) {
           // geen required — eigen validatie in handleSubmit
         }

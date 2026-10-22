@@ -155,6 +155,46 @@
     }
     .kopieer-btn:hover { border-color: var(--teal); color: var(--teal); }
 
+    /* ── Bewerk bestelling modal ── */
+    .bewerk-regel-rij {
+      display: grid; grid-template-columns: 1fr auto auto; gap: 10px;
+      align-items: center; padding: 10px 0; border-bottom: 1px solid #ece3d6;
+    }
+    .bewerk-regel-rij:last-child { border-bottom: none; }
+    .bewerk-regel-naam { font-size: 14px; color: var(--text); }
+    .bewerk-regel-omschr { font-size: 12px; color: var(--muted); font-style: italic; margin-top: 2px; }
+    .bewerk-qty-control { display: flex; align-items: center; gap: 0; }
+    .bewerk-qty-btn {
+      width: 30px; height: 30px; background: #f5f0e8; border: 1px solid var(--border);
+      color: var(--text); font-size: 16px; cursor: pointer; display: flex;
+      align-items: center; justify-content: center;
+    }
+    .bewerk-qty-btn:hover { background: var(--teal); color: #fff; border-color: var(--teal); }
+    .bewerk-qty-val {
+      width: 40px; height: 30px; text-align: center; font-size: 14px; font-weight: 700;
+      border: 1px solid var(--border); border-left: none; border-right: none;
+      outline: none; font-family: 'Lato', sans-serif; background: #fff;
+      -moz-appearance: textfield;
+    }
+    .bewerk-qty-val::-webkit-outer-spin-button,
+    .bewerk-qty-val::-webkit-inner-spin-button { -webkit-appearance: none; }
+    .bewerk-verwijder-btn {
+      width: 28px; height: 28px; background: none; border: 1px solid #ddd;
+      color: #aaa; cursor: pointer; font-size: 16px; display: flex;
+      align-items: center; justify-content: center;
+    }
+    .bewerk-verwijder-btn:hover { border-color: var(--red); color: var(--red); }
+    .bewerk-toevoeg-rij {
+      display: grid; grid-template-columns: 1fr auto; gap: 8px;
+      align-items: center; margin-top: 12px; padding-top: 12px;
+      border-top: 1px solid var(--border);
+    }
+    .bewerk-totaal-balk {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 12px 0; margin-top: 8px; border-top: 2px solid var(--border);
+      font-weight: 700;
+    }
+
     /* ── Modal overlay ── */
     .modal-overlay {
       display: none; position: fixed; inset: 0;
@@ -238,7 +278,7 @@
       background: #fff; outline: none;
     }
     .product-rij-editor {
-      display: grid; grid-template-columns: 1fr 100px 32px; gap: 8px;
+      display: grid; grid-template-columns: 1fr 1fr 100px 32px; gap: 8px;
       align-items: center; padding: 8px 14px; border-bottom: 1px solid #ece3d6;
     }
     .product-rij-editor:last-child { border-bottom: none; }
@@ -574,6 +614,7 @@
           <option value="in_behandeling">In behandeling</option>
           <option value="klaar">Klaar</option>
         </select>
+        <input type="text" id="best-zoek" placeholder="Zoek op naam, e-mail, telefoon, adres…" oninput="renderBestellingen()" style="padding:8px 12px;border:1px solid var(--border);font-family:'Lato',sans-serif;font-size:13px;outline:none;min-width:280px;" />
       </div>
       <div style="display:flex;gap:8px;">
         <button class="btn-nieuw" onclick="exporteerXLS()" style="background:var(--teal);">📥 Export XLS</button>
@@ -794,6 +835,34 @@
     <div class="confirm-btns">
       <button class="actie-btn" onclick="sluitConfirm()">Annuleren</button>
       <button class="btn-nieuw" id="confirm-ok" onclick="">Bevestigen</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════ BEWERK BESTELLING MODAL ════ -->
+<div class="modal-overlay" id="bewerk-best-modal">
+  <div class="modal" style="max-width:560px">
+    <div class="modal-header">
+      <div class="modal-titel" id="bewerk-best-titel">Bestelling bewerken</div>
+      <button class="modal-sluit" onclick="sluitBewerkBestelling()">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="sectie-label-editor">Regels</div>
+      <div id="bewerk-regels-lijst"></div>
+      <div class="bewerk-toevoeg-rij">
+        <select id="bewerk-product-keuze" style="padding:8px 12px;border:1px solid var(--border);font-family:'Lato',sans-serif;font-size:13px;outline:none;width:100%;">
+          <option value="">— Kies product om toe te voegen —</option>
+        </select>
+        <button class="btn-primary" onclick="voegRegelToe()">+ Toevoegen</button>
+      </div>
+      <div class="bewerk-totaal-balk">
+        <span style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted)">Totaal</span>
+        <span style="font-family:'Cormorant Garamond',serif;font-size:24px;color:var(--teal)" id="bewerk-totaal">€ 0,00</span>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="actie-btn" onclick="sluitBewerkBestelling()">Annuleren</button>
+      <button class="btn-primary" onclick="slaBestellingOp()">Opslaan</button>
     </div>
   </div>
 </div>
@@ -1046,6 +1115,12 @@ function bouwCatsEditor() {
           oninput="edCats[${ci}].naam = this.value" />
         <button class="btn-remove" onclick="verwijderCat(${ci})">×</button>
       </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 100px 32px;gap:8px;padding:5px 14px;background:#f0ebe0;border-bottom:1px solid #ece3d6;">
+        <span style="font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#888;">Naam</span>
+        <span style="font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#888;">Omschrijving</span>
+        <span style="font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#888;">Prijs</span>
+        <span></span>
+      </div>
       <div id="ed-prods-${ci}"></div>
       <button class="btn-add" onclick="voegProdToe(${ci})">+ Product</button>`;
     el.appendChild(blok);
@@ -1062,6 +1137,7 @@ function bouwProdsEditor(ci) {
     rij.className = 'product-rij-editor';
     rij.innerHTML = `
       <input type="text" value="${p.naam}" placeholder="Productnaam" oninput="edCats[${ci}].producten[${pi}].naam=this.value" />
+      <input type="text" value="${p.omschrijving||''}" placeholder="Omschrijving (optioneel)" style="font-style:italic;color:#666;" oninput="edCats[${ci}].producten[${pi}].omschrijving=this.value" />
       <input type="text" value="${p.prijs}" placeholder="0.00" oninput="edCats[${ci}].producten[${pi}].prijs=this.value" />
       <button class="btn-remove" onclick="verwijderProd(${ci},${pi})">×</button>`;
     el.appendChild(rij);
@@ -1484,15 +1560,33 @@ function renderSamenvatting() {
   `;
 }
 
+function highlight(tekst, zoekterm) {
+  if (!zoekterm) return tekst;
+  const escaped = zoekterm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return tekst.replace(new RegExp(`(${escaped})`, 'gi'), '<mark style="background:#ffe066;padding:0 2px;border-radius:2px;">$1</mark>');
+}
+
 function renderBestellingen() {
-  const tbody = document.getElementById('best-tbody');
-  if (!alleBestellingen.length) {
-    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:32px;">Geen bestellingen gevonden.</td></tr>`;
+  const tbody   = document.getElementById('best-tbody');
+  const zoekRaw = (document.getElementById('best-zoek')?.value || '').trim().toLowerCase();
+
+  const gefilterd = alleBestellingen.filter(b => {
+    if (!zoekRaw) return true;
+    const naam = `${b.voornaam} ${b.achternaam}`.toLowerCase();
+    return naam.includes(zoekRaw)
+      || (b.email    || '').toLowerCase().includes(zoekRaw)
+      || (b.telefoon || '').toLowerCase().includes(zoekRaw)
+      || (b.adres    || '').toLowerCase().includes(zoekRaw);
+  });
+
+  if (!gefilterd.length) {
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:32px;">${zoekRaw ? 'Geen bestellingen gevonden voor "' + zoekRaw + '".' : 'Geen bestellingen gevonden.'}</td></tr>`;
     return;
   }
 
-  tbody.innerHTML = alleBestellingen.map((b, i) => {
+  tbody.innerHTML = gefilterd.map((b, i) => {
     const naam     = `${b.voornaam} ${b.achternaam}`;
+    const zoekterm = (document.getElementById('best-zoek')?.value || '').trim();
     const template = alleTemplates.find(t => t.id === b.template_id);
     const datum    = new Date(b.besteld_op).toLocaleString('nl-NL');
     const heeftOpmerking = !!b.opmerking;
@@ -1517,7 +1611,7 @@ function renderBestellingen() {
           <span class="best-toggle" id="toggle-${i}">▶</span>
         </td>
         <td>
-          <strong>${naam}</strong>
+          <strong>${highlight(naam, zoekterm)}</strong>
           ${heeftOpmerking ? ' <span style="color:var(--red)" title="${b.opmerking}">⚠️</span>' : ''}
           ${template ? `<br><span style="font-size:11px;color:var(--muted)">${template.naam}</span>` : ''}
         </td>
@@ -1532,11 +1626,11 @@ function renderBestellingen() {
             <div class="best-detail-grid">
               <div class="best-detail-blok">
                 <label>Contactgegevens</label>
-                <p>${naam}<br>${b.email}<br>${b.telefoon || '–'}</p>
+                <p>${highlight(naam, zoekterm)}<br>${highlight(b.email || '', zoekterm)}<br>${highlight(b.telefoon || '–', zoekterm)}</p>
               </div>
               <div class="best-detail-blok">
                 <label>Adres</label>
-                <p>${b.adres || '–'}</p>
+                <p>${highlight(b.adres || '–', zoekterm)}</p>
               </div>
               <div class="best-detail-blok">
                 <label>Status wijzigen</label>
@@ -1558,6 +1652,10 @@ function renderBestellingen() {
               </tr></tfoot>
             </table>
             ${b.opmerking ? `<div class="best-opmerking"><strong>⚠️ Opmerking:</strong> ${b.opmerking}</div>` : ''}
+            <div style="display:flex;gap:8px;margin-top:14px;">
+              <button class="actie-btn" onclick="event.stopPropagation();openBewerkBestelling('${b.id}')">✏️ Regels bewerken</button>
+              <button class="actie-btn rood" onclick="event.stopPropagation();verwijderBestelling('${b.id}', '${naam.replace(/'/g,"\\'")}')">🗑️ Verwijderen</button>
+            </div>
           </div>
         </td>
       </tr>`;
@@ -1623,6 +1721,132 @@ function exporteerXLS() {
   a.click();
   URL.revokeObjectURL(url);
   toonToast('Export gedownload');
+}
+
+// ══ Bewerk bestelling ══
+let bewerkBestId   = null;
+let bewerkRegels   = [];
+
+function openBewerkBestelling(id) {
+  const b = alleBestellingen.find(x => x.id === id);
+  if (!b) return;
+  bewerkBestId = id;
+  bewerkRegels = JSON.parse(JSON.stringify(b.regels || []));
+
+  document.getElementById('bewerk-best-titel').textContent =
+    `Bestelling bewerken — ${b.voornaam} ${b.achternaam}`;
+
+  // Vul product-dropdown vanuit template config
+  const tpl = alleTemplates.find(t => t.id === b.template_id);
+  const sel = document.getElementById('bewerk-product-keuze');
+  sel.innerHTML = '<option value="">— Kies product om toe te voegen —</option>';
+  (tpl?.config?.categorieeen || []).forEach(cat => {
+    cat.producten.forEach(prod => {
+      const label = `${cat.naam} – ${prod.naam}`;
+      const o = document.createElement('option');
+      o.value = JSON.stringify({ label, prijs: parseFloat(prod.prijs) || 0 });
+      o.textContent = `${label}  (€ ${parseFloat(prod.prijs).toFixed(2).replace('.', ',')})`;
+      sel.appendChild(o);
+    });
+  });
+
+  renderBewerkRegels();
+  document.getElementById('bewerk-best-modal').classList.add('open');
+}
+
+function sluitBewerkBestelling() {
+  document.getElementById('bewerk-best-modal').classList.remove('open');
+  bewerkBestId = null;
+  bewerkRegels = [];
+}
+
+function renderBewerkRegels() {
+  const lijst = document.getElementById('bewerk-regels-lijst');
+  if (!bewerkRegels.length) {
+    lijst.innerHTML = '<div style="text-align:center;padding:20px;color:var(--muted);font-size:13px;">Geen regels — voeg producten toe via de dropdown.</div>';
+    updateBewerkTotaal();
+    return;
+  }
+  lijst.innerHTML = bewerkRegels.map((r, i) => `
+    <div class="bewerk-regel-rij">
+      <div>
+        <div class="bewerk-regel-naam">${r.label || ''}</div>
+      </div>
+      <div class="bewerk-qty-control">
+        <button class="bewerk-qty-btn" onclick="changeRegelQty(${i}, -1)">−</button>
+        <input class="bewerk-qty-val" type="number" value="${r.qty}" min="0" max="99" step="0.5"
+          oninput="setRegelQty(${i}, this.value)" />
+        <button class="bewerk-qty-btn" onclick="changeRegelQty(${i}, 1)">+</button>
+      </div>
+      <button class="bewerk-verwijder-btn" onclick="verwijderRegel(${i})">×</button>
+    </div>`).join('');
+  updateBewerkTotaal();
+}
+
+function changeRegelQty(i, delta) {
+  const nieuw = Math.round(((bewerkRegels[i].qty || 0) + delta) * 2) / 2;
+  bewerkRegels[i].qty = Math.max(0, nieuw);
+  bewerkRegels[i].subtotaal = bewerkRegels[i].qty * (bewerkRegels[i].prijs || 0);
+  renderBewerkRegels();
+}
+
+function setRegelQty(i, val) {
+  const qty = Math.max(0, parseFloat(val) || 0);
+  bewerkRegels[i].qty = qty;
+  bewerkRegels[i].subtotaal = qty * (bewerkRegels[i].prijs || 0);
+  updateBewerkTotaal();
+}
+
+function verwijderRegel(i) {
+  bewerkRegels.splice(i, 1);
+  renderBewerkRegels();
+}
+
+function voegRegelToe() {
+  const sel = document.getElementById('bewerk-product-keuze');
+  if (!sel.value) return;
+  const { label, prijs } = JSON.parse(sel.value);
+  // Als product al bestaat, qty ophogen
+  const bestaand = bewerkRegels.find(r => r.label === label);
+  if (bestaand) {
+    bestaand.qty += 1;
+    bestaand.subtotaal = bestaand.qty * prijs;
+  } else {
+    bewerkRegels.push({ label, qty: 1, prijs, subtotaal: prijs });
+  }
+  sel.value = '';
+  renderBewerkRegels();
+}
+
+function updateBewerkTotaal() {
+  const totaal = bewerkRegels.reduce((s, r) => s + (r.subtotaal || 0), 0);
+  document.getElementById('bewerk-totaal').textContent =
+    '€ ' + totaal.toFixed(2).replace('.', ',');
+}
+
+async function slaBestellingOp() {
+  if (!bewerkBestId) return;
+  const totaal = bewerkRegels.reduce((s, r) => s + (r.subtotaal || 0), 0);
+  const { error } = await sb.from('bestellingen')
+    .update({ regels: bewerkRegels, totaal })
+    .eq('id', bewerkBestId);
+  if (error) { toonToast('Fout bij opslaan: ' + error.message); return; }
+  toonToast('Bestelling opgeslagen');
+  sluitBewerkBestelling();
+  laadBestellingen();
+}
+
+function verwijderBestelling(id, naam) {
+  toonConfirm(
+    'Bestelling verwijderen',
+    `Weet u zeker dat u de bestelling van "${naam}" wilt verwijderen? Dit kan niet ongedaan worden gemaakt.`,
+    async () => {
+      const { error } = await sb.from('bestellingen').delete().eq('id', id);
+      if (error) { toonToast('Fout: ' + error.message); return; }
+      toonToast('Bestelling verwijderd');
+      laadBestellingen();
+    }
+  );
 }
 
 // ══ Init ══
