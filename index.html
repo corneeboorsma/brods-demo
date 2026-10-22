@@ -525,6 +525,7 @@
         </div>
 
         <button type="submit" id="submit-btn">Bestelling plaatsen</button>
+        <p class="deadline-note" id="ev-deadline-onder"></p>
       </form>
     </div>
 
@@ -638,6 +639,7 @@
         document.getElementById('ev-locatie-success-tag').textContent = `Brodshoes · ${ev.locatie}`;
         document.getElementById('ev-locatie-success').textContent = `Bevestiging verstuurd per e-mail · Brodshoes, ${ev.locatie}`;
         document.getElementById('ev-deadline').textContent = `Bestellen kan tot en met ${ev.deadline}`;
+        document.getElementById('ev-deadline-onder').textContent = `Bestellen kan tot en met ${ev.deadline}`;
 
         // Bouw producten dynamisch
         const stap2 = document.getElementById('stap2-container');
