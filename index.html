@@ -462,9 +462,8 @@
 
       <form id="bestel-form" onsubmit="handleSubmit(event)">
 
-        <!-- Stap 1: Gegevens -->
+        <!-- Gegevens -->
         <div class="section-header">
-          <div class="section-tag">Stap 1</div>
           <h2>Uw gegevens</h2>
           <div class="divider-line"></div>
         </div>
@@ -501,7 +500,7 @@
 
         <!-- Tijdslot -->
         <div class="section-header">
-          <div class="section-tag" id="tijdslot-stap-nr">Stap 4</div>
+          <div class="section-tag" id="tijdslot-stap-nr" style="display:none"></div>
           <h2>Afhaalmoment</h2>
           <div class="divider-line"></div>
         </div>
@@ -650,7 +649,7 @@
         cfg.categorieeen.forEach((cat, ci) => {
           const header = document.createElement('div');
           header.className = 'section-header';
-          header.innerHTML = `<div class="section-tag">Stap ${stapNr++}</div><h2>${cat.naam}</h2><div class="divider-line"></div>`;
+          header.innerHTML = `<h2>${cat.naam}</h2><div class="divider-line"></div>`;
           stap2.appendChild(header);
 
           cat.producten.forEach((prod, pi) => {

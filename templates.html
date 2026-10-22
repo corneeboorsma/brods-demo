@@ -618,6 +618,8 @@
       </div>
       <div style="display:flex;gap:8px;">
         <button class="btn-nieuw" onclick="exporteerXLS()" style="background:var(--teal);">📥 Export XLS</button>
+        <button class="btn-nieuw" onclick="exportPDFPerBestelling()" style="background:var(--teal);">🖨️ PDF per bestelling</button>
+        <button class="btn-nieuw" onclick="exportPDFOverzicht()" style="background:var(--teal);">📋 PDF afhaloverzicht</button>
       </div>
     </div>
 
@@ -1723,6 +1725,164 @@ function exporteerXLS() {
   toonToast('Export gedownload');
 }
 
+// ══ PDF exports ══
+function pdfStijl() {
+  return `
+    <style>
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      body { font-family: 'Arial', sans-serif; font-size: 12px; color: #1a1a1a; background: #fff; }
+      h1 { font-size: 20px; font-weight: 700; margin-bottom: 2px; }
+      h2 { font-size: 15px; font-weight: 700; margin-bottom: 6px; color: #1e3a3f; }
+      h3 { font-size: 12px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: #888; margin: 10px 0 4px; }
+      .bon { page-break-after: always; break-after: page; padding: 28px 32px; max-width: 100%; }
+      .bon:last-child { page-break-after: auto; break-after: auto; }
+      .bon-header { border-bottom: 2px solid #1e3a3f; padding-bottom: 10px; margin-bottom: 14px; display: flex; justify-content: space-between; align-items: flex-end; }
+      .bon-meta { font-size: 11px; color: #555; line-height: 1.6; }
+      .bon-tijdslot { font-size: 13px; font-weight: 700; color: #e85d4a; }
+      .prod-tabel { width: 100%; border-collapse: collapse; margin-bottom: 8px; }
+      .prod-tabel th { font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: #888; padding: 5px 8px; border-bottom: 1px solid #ddd; text-align: left; }
+      .prod-tabel td { padding: 6px 8px; border-bottom: 1px solid #f0f0f0; }
+      .prod-tabel td.qty { text-align: center; font-weight: 700; font-size: 16px; color: #1e3a3f; width: 50px; }
+      .prod-tabel td.bedrag { text-align: right; width: 70px; }
+      .prod-tabel tr.cat-kop td { background: #f5f0e8; font-weight: 700; font-size: 11px; letter-spacing: 1px; text-transform: uppercase; color: #1e3a3f; padding: 5px 8px; }
+      .totaal-rij { display: flex; justify-content: space-between; padding: 10px 8px 0; border-top: 2px solid #1e3a3f; margin-top: 4px; }
+      .totaal-rij span:first-child { font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: #888; }
+      .totaal-rij span:last-child { font-size: 20px; font-weight: 700; color: #1e3a3f; }
+      .opmerking-blok { background: #fff3f2; border-left: 3px solid #e85d4a; padding: 8px 12px; margin-top: 10px; font-size: 12px; }
+      .logo-naam { font-size: 13px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: #1e3a3f; }
+
+      /* Overzicht */
+      .overzicht-page { padding: 24px 28px; }
+      .overzicht-header { border-bottom: 3px solid #1e3a3f; padding-bottom: 10px; margin-bottom: 16px; }
+      .slot-blok { margin-bottom: 24px; page-break-inside: avoid; }
+      .slot-titel { background: #1e3a3f; color: #fff; padding: 7px 12px; font-size: 13px; font-weight: 700; letter-spacing: 1px; margin-bottom: 0; }
+      .overzicht-tabel { width: 100%; border-collapse: collapse; }
+      .overzicht-tabel th { background: #f5f0e8; font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: #555; padding: 6px 10px; text-align: left; border-bottom: 1px solid #ddd; }
+      .overzicht-tabel td { padding: 7px 10px; border-bottom: 1px solid #ece3d6; font-size: 12px; vertical-align: top; }
+      .overzicht-tabel tr:last-child td { border-bottom: none; }
+      .overzicht-tabel tr:nth-child(even) td { background: #faf7f2; }
+      .opm-cel { color: #e85d4a; font-size: 11px; font-style: italic; }
+      @page { margin: 12mm; size: A4; }
+      @media print {
+        body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        .bon { page-break-after: always; break-after: page; }
+        .bon:last-child { page-break-after: auto; break-after: auto; }
+      }
+    </style>`;
+}
+
+function exportPDFPerBestelling() {
+  if (!alleBestellingen.length) { toonToast('Geen bestellingen om te exporteren'); return; }
+
+  const html = alleBestellingen.map(b => {
+    const naam = `${b.voornaam} ${b.achternaam}`;
+    const datum = new Date(b.besteld_op).toLocaleDateString('nl-NL');
+
+    // Groepeer regels per categorie
+    const catMap = {};
+    (b.regels || []).forEach(r => {
+      const delen = (r.label || '').split(' – ');
+      const cat  = delen[0] || 'Overig';
+      const prod = delen[1] || r.label || '';
+      if (!catMap[cat]) catMap[cat] = [];
+      catMap[cat].push({ prod, qty: r.qty, subtotaal: r.subtotaal || 0 });
+    });
+
+    const tabelRijen = Object.entries(catMap).map(([cat, prods]) => `
+      <tr class="cat-kop"><td colspan="3">${cat}</td></tr>
+      ${prods.map(p => `<tr>
+        <td>${p.prod}</td>
+        <td class="qty">${p.qty % 1 === 0 ? p.qty : p.qty.toFixed(1)}×</td>
+        <td class="bedrag">€ ${p.subtotaal.toFixed(2).replace('.', ',')}</td>
+      </tr>`).join('')}`).join('');
+
+    return `<div class="bon">
+      <div class="bon-header">
+        <div>
+          <div class="logo-naam">Brodshoes</div>
+          <h1>${naam}</h1>
+          <div class="bon-meta">${b.adres || ''} &nbsp;·&nbsp; ${b.email || ''} &nbsp;·&nbsp; ${b.telefoon || ''}</div>
+        </div>
+        <div style="text-align:right">
+          <div class="bon-tijdslot">⏱ ${b.tijdslot || '–'}</div>
+          <div class="bon-meta">Besteld: ${datum}</div>
+        </div>
+      </div>
+      <table class="prod-tabel">
+        <thead><tr><th>Product</th><th style="text-align:center">Aantal</th><th style="text-align:right">Bedrag</th></tr></thead>
+        <tbody>${tabelRijen}</tbody>
+      </table>
+      <div class="totaal-rij">
+        <span>Totaal</span>
+        <span>€ ${parseFloat(b.totaal).toFixed(2).replace('.', ',')}</span>
+      </div>
+      ${b.opmerking ? `<div class="opmerking-blok"><strong>⚠️ Opmerking:</strong> ${b.opmerking}</div>` : ''}
+    </div>`;
+  }).join('');
+
+  const venster = window.open('', '_blank');
+  venster.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Bestellingen per bon</title>${pdfStijl()}</head><body>${html}</body></html>`);
+  venster.document.close();
+  venster.onload = () => venster.print();
+}
+
+function exportPDFOverzicht() {
+  if (!alleBestellingen.length) { toonToast('Geen bestellingen om te exporteren'); return; }
+
+  const tijdslots = [...new Set(alleBestellingen.map(b => b.tijdslot).filter(Boolean))].sort();
+  const evenement = alleTemplates.length ? (alleTemplates[0]?.config?.evenement?.titel || 'Brodshoes') : 'Brodshoes';
+  const totaalAlle = alleBestellingen.reduce((s, b) => s + (parseFloat(b.totaal) || 0), 0);
+
+  const slotHTML = tijdslots.map(ts => {
+    const bests = alleBestellingen.filter(b => b.tijdslot === ts);
+    const rijen = bests.map(b => {
+      const naam = `${b.voornaam} ${b.achternaam}`;
+      const producten = (b.regels || []).map(r => {
+        const prod = (r.label || '').split(' – ')[1] || r.label;
+        const qty  = r.qty % 1 === 0 ? r.qty : r.qty.toFixed(1);
+        return `${qty}× ${prod}`;
+      }).join('<br>');
+      return `<tr>
+        <td><strong>${naam}</strong>${b.opmerking ? `<br><span class="opm-cel">⚠️ ${b.opmerking}</span>` : ''}</td>
+        <td>${b.adres || '–'}</td>
+        <td>${producten}</td>
+        <td style="text-align:right;font-weight:700;">€ ${parseFloat(b.totaal).toFixed(2).replace('.', ',')}</td>
+        <td style="text-align:center;font-size:18px;">☐</td>
+      </tr>`;
+    }).join('');
+
+    const slotTotaal = bests.reduce((s, b) => s + (parseFloat(b.totaal) || 0), 0);
+
+    return `<div class="slot-blok">
+      <div class="slot-titel">🕐 ${ts} &nbsp;·&nbsp; ${bests.length} bestellingen &nbsp;·&nbsp; € ${slotTotaal.toFixed(2).replace('.', ',')}</div>
+      <table class="overzicht-tabel">
+        <thead><tr><th>Naam</th><th>Adres</th><th>Bestelling</th><th style="text-align:right">Totaal</th><th style="text-align:center">✓</th></tr></thead>
+        <tbody>${rijen}</tbody>
+      </table>
+    </div>`;
+  }).join('');
+
+  const html = `<div class="overzicht-page">
+    <div class="overzicht-header">
+      <div style="display:flex;justify-content:space-between;align-items:flex-end;">
+        <div>
+          <div class="logo-naam">Brodshoes</div>
+          <h1 style="font-size:22px;margin-top:2px;">${evenement} — Afhaloverzicht</h1>
+        </div>
+        <div style="text-align:right;font-size:12px;color:#555;">
+          ${alleBestellingen.length} bestellingen &nbsp;·&nbsp; Totaal: <strong>€ ${totaalAlle.toFixed(2).replace('.', ',')}</strong>
+        </div>
+      </div>
+    </div>
+    ${slotHTML}
+  </div>`;
+
+  const venster = window.open('', '_blank');
+  venster.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Afhaloverzicht</title>${pdfStijl()}</head><body>${html}</body></html>`);
+  venster.document.close();
+  venster.onload = () => venster.print();
+}
+
 // ══ Bewerk bestelling ══
 let bewerkBestId   = null;
 let bewerkRegels   = [];
@@ -1773,10 +1933,10 @@ function renderBewerkRegels() {
         <div class="bewerk-regel-naam">${r.label || ''}</div>
       </div>
       <div class="bewerk-qty-control">
-        <button class="bewerk-qty-btn" onclick="changeRegelQty(${i}, -1)">−</button>
+        <button class="bewerk-qty-btn" onclick="changeRegelQty(${i}, -0.5)">−</button>
         <input class="bewerk-qty-val" type="number" value="${r.qty}" min="0" max="99" step="0.5"
           oninput="setRegelQty(${i}, this.value)" />
-        <button class="bewerk-qty-btn" onclick="changeRegelQty(${i}, 1)">+</button>
+        <button class="bewerk-qty-btn" onclick="changeRegelQty(${i}, 0.5)">+</button>
       </div>
       <button class="bewerk-verwijder-btn" onclick="verwijderRegel(${i})">×</button>
     </div>`).join('');
