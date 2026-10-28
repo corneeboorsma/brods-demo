@@ -572,6 +572,10 @@
 
     const urlSlug = new URLSearchParams(window.location.search).get('slug');
 
+    if (!urlSlug) {
+      window.location.href = 'login.html';
+    }
+
     async function laadEnRender() {
       let cfg = DEFAULT_CONFIG;
 
@@ -586,10 +590,6 @@
           cfg = data.config;
           window._TEMPLATE_ID = data.id;
         }
-      } else {
-        // Fallback: localStorage
-        const opgeslagen = localStorage.getItem('brodshoes_config');
-        if (opgeslagen) cfg = JSON.parse(opgeslagen);
       }
 
       // Als thema een UUID is (custom thema), ophalen uit Supabase
