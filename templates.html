@@ -358,12 +358,6 @@
       font-family: 'Cormorant Garamond', serif; font-size: 28px;
       font-weight: 700; color: var(--teal);
     }
-    .status-select {
-      border: 1px solid var(--border); padding: 4px 8px; font-size: 12px;
-      font-family: 'Lato', sans-serif; outline: none; cursor: pointer;
-      background: var(--white);
-    }
-
     /* Uitklapbare bestelling */
     .best-header-rij {
       cursor: pointer; transition: background 0.15s;
@@ -548,8 +542,7 @@
   </div>
   <div class="topbar-user">
     <span id="user-email"></span>
-    <a href="keuken.html" target="_blank" class="btn-secondary" style="text-decoration:none;">🍳 Keuken dashboard</a>
-    <button class="btn-secondary" onclick="uitloggen()">Uitloggen</button>
+<button class="btn-secondary" onclick="uitloggen()">Uitloggen</button>
   </div>
 </div>
 
@@ -609,13 +602,7 @@
         <select id="best-template-filter" onchange="laadBestellingen()" style="padding:8px 12px;border:1px solid var(--border);font-family:'Lato',sans-serif;font-size:13px;outline:none;">
           <option value="">Alle templates</option>
         </select>
-        <select id="best-status-filter" onchange="laadBestellingen()" style="padding:8px 12px;border:1px solid var(--border);font-family:'Lato',sans-serif;font-size:13px;outline:none;">
-          <option value="">Alle statussen</option>
-          <option value="nieuw">Nieuw</option>
-          <option value="in_behandeling">In behandeling</option>
-          <option value="klaar">Klaar</option>
-        </select>
-        <input type="text" id="best-zoek" placeholder="Zoek op naam, e-mail, telefoon, adres…" oninput="renderBestellingen()" style="padding:8px 12px;border:1px solid var(--border);font-family:'Lato',sans-serif;font-size:13px;outline:none;min-width:280px;" />
+<input type="text" id="best-zoek" placeholder="Zoek op naam, e-mail, telefoon, adres…" oninput="renderBestellingen()" style="padding:8px 12px;border:1px solid var(--border);font-family:'Lato',sans-serif;font-size:13px;outline:none;min-width:280px;" />
       </div>
       <div style="display:flex;gap:8px;">
         <button class="btn-nieuw" onclick="exporteerXLS()" style="background:var(--teal);">📥 Export XLS</button>
@@ -632,17 +619,11 @@
           <th>Naam</th>
           <th>Tijdslot</th>
           <th>Totaal</th>
-          <th>Status</th>
           <th>Besteld op</th>
         </tr>
       </thead>
       <tbody id="best-tbody">
-        <tr><td colspan="6" style="text-align:center;color:var(--muted);padding:32px;">Laden…</td></tr>
-      </tbody>
-    </table>
-  </div>
-
-  <!-- ════ TAB: ACTIVITEIT ════ -->
+        <tr><td colspan="5" style="text-align:center;color:var(--muted);padding:32px;">Laden…</td></tr>
   <div class="tab-panel" id="tab-activiteit">
     <div class="toolbar">
       <div style="font-size:13px;color:var(--muted);">Alle acties door alle gebruikers</div>
@@ -1540,11 +1521,9 @@ let alleBestellingen = [];
 
 async function laadBestellingen() {
   const templateFilter = document.getElementById('best-template-filter')?.value;
-  const statusFilter   = document.getElementById('best-status-filter')?.value;
 
   let query = sb.from('bestellingen').select('*').order('besteld_op', { ascending: false });
   if (templateFilter) query = query.eq('template_id', templateFilter);
-  if (statusFilter)   query = query.eq('status', statusFilter);
 
   const { data, error } = await query;
   if (error) { toonToast('Fout bij laden bestellingen'); return; }
@@ -1557,12 +1536,10 @@ function renderSamenvatting() {
   const totaalBestellingen = alleBestellingen.length;
   const totaalOmzet        = alleBestellingen.reduce((s, b) => s + (parseFloat(b.totaal) || 0), 0);
   const metOpmerking       = alleBestellingen.filter(b => b.opmerking).length;
-  const nieuw              = alleBestellingen.filter(b => b.status === 'nieuw').length;
 
   document.getElementById('best-samenvatting').innerHTML = `
     <div class="stat-tile"><div class="stat-tile-label">Bestellingen</div><div class="stat-tile-waarde">${totaalBestellingen}</div></div>
     <div class="stat-tile"><div class="stat-tile-label">Totaal omzet</div><div class="stat-tile-waarde">€ ${totaalOmzet.toFixed(2).replace('.', ',')}</div></div>
-    <div class="stat-tile"><div class="stat-tile-label">Nieuw</div><div class="stat-tile-waarde">${nieuw}</div></div>
     <div class="stat-tile"><div class="stat-tile-label">Met opmerking</div><div class="stat-tile-waarde">${metOpmerking}</div></div>
   `;
 }
@@ -1587,7 +1564,7 @@ function renderBestellingen() {
   });
 
   if (!gefilterd.length) {
-    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:32px;">${zoekRaw ? 'Geen bestellingen gevonden voor "' + zoekRaw + '".' : 'Geen bestellingen gevonden.'}</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:32px;">${zoekRaw ? 'Geen bestellingen gevonden voor "' + zoekRaw + '".' : 'Geen bestellingen gevonden.'}</td></tr>`;
     return;
   }
 
@@ -1597,12 +1574,6 @@ function renderBestellingen() {
     const template = alleTemplates.find(t => t.id === b.template_id);
     const datum    = new Date(b.besteld_op).toLocaleString('nl-NL');
     const heeftOpmerking = !!b.opmerking;
-
-    const statusBadge = {
-      nieuw:          '<span style="color:#2d7a3a;font-weight:700;">🆕 Nieuw</span>',
-      in_behandeling: '<span style="color:#a0670a;font-weight:700;">🔄 In behandeling</span>',
-      klaar:          '<span style="color:#888;font-weight:700;">✅ Klaar</span>',
-    }[b.status] || b.status;
 
     const regelsHTML = (b.regels || []).map(r =>
       `<tr>
@@ -1624,11 +1595,10 @@ function renderBestellingen() {
         </td>
         <td style="font-weight:600">${b.tijdslot || '–'}</td>
         <td style="font-family:'Cormorant Garamond',serif;font-size:16px;font-weight:700">€ ${parseFloat(b.totaal).toFixed(2).replace('.', ',')}</td>
-        <td>${statusBadge}</td>
         <td style="font-size:12px;color:var(--muted)">${datum}</td>
       </tr>
       <tr class="best-detail-rij">
-        <td colspan="6">
+        <td colspan="5">
           <div class="best-detail-inhoud" id="detail-${i}">
             <div class="best-detail-grid">
               <div class="best-detail-blok">
@@ -1640,13 +1610,7 @@ function renderBestellingen() {
                 <p>${highlight(b.adres || '–', zoekterm)}</p>
               </div>
               <div class="best-detail-blok">
-                <label>Status wijzigen</label>
-                <select class="status-select" onchange="updateStatus('${b.id}', this.value)" onclick="event.stopPropagation()">
-                  <option value="nieuw"          ${b.status==='nieuw'?'selected':''}>🆕 Nieuw</option>
-                  <option value="in_behandeling" ${b.status==='in_behandeling'?'selected':''}>🔄 In behandeling</option>
-                  <option value="klaar"          ${b.status==='klaar'?'selected':''}>✅ Klaar</option>
-                </select>
-                <br><a href="mailto:${b.email}" style="font-size:12px;color:var(--teal);margin-top:6px;display:inline-block;">✉️ Mail versturen</a>
+                <a href="mailto:${b.email}" style="font-size:12px;color:var(--teal);display:inline-block;">✉️ Mail versturen</a>
               </div>
             </div>
             <label style="font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:6px;">Bestelling</label>
@@ -1676,12 +1640,6 @@ function toggleBestelling(id) {
   const isOpen  = detail.classList.contains('open');
   detail.classList.toggle('open', !isOpen);
   toggle.classList.toggle('open', !isOpen);
-}
-
-async function updateStatus(id, status) {
-  const { error } = await sb.from('bestellingen').update({ status }).eq('id', id);
-  if (error) toonToast('Fout bij bijwerken status');
-  else { toonToast('Status bijgewerkt'); laadBestellingen(); }
 }
 
 async function vulTemplateFilter() {
