@@ -5,8 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Inloggen | Brodshoes Beheer</title>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Lato:wght@300;400;600;700&display=swap" rel="stylesheet" />
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="supabase-config.js"></script>
+  <script type="module">
+    import { auth } from './firebase-config.js';
+    import { signInWithEmailAndPassword, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+    window._fbAuth = auth;
+    window._fbSignIn = signInWithEmailAndPassword;
+    window._fbOnAuth = onAuthStateChanged;
+  </script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -146,15 +151,18 @@
     <p class="footer-tekst">Toegang alleen voor beheerders</p>
   </div>
 
-  <script>
+  <script type="module">
+    import { auth } from './firebase-config.js';
+    import { signInWithEmailAndPassword, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+
     // Al ingelogd? Stuur door naar templates
-    getSbClient().auth.getSession().then(({ data }) => {
-      if (data.session) window.location.href = 'templates.html';
+    onAuthStateChanged(auth, user => {
+      if (user) window.location.href = 'templates.html';
     });
 
-    async function login(e) {
+    window.login = async function(e) {
       e.preventDefault();
-      const btn = document.getElementById('login-btn');
+      const btn  = document.getElementById('login-btn');
       const fout = document.getElementById('fout-melding');
       fout.style.display = 'none';
       btn.textContent = 'Bezig…';
@@ -163,17 +171,16 @@
       const email = document.getElementById('email').value.trim();
       const ww    = document.getElementById('wachtwoord').value;
 
-      const { error } = await getSbClient().auth.signInWithPassword({ email, password: ww });
-
-      if (error) {
+      try {
+        await signInWithEmailAndPassword(auth, email, ww);
+        window.location.href = 'templates.html';
+      } catch (_) {
         fout.textContent = 'Onjuiste inloggegevens. Probeer het opnieuw.';
         fout.style.display = 'block';
         btn.textContent = 'Inloggen';
         btn.disabled = false;
-      } else {
-        window.location.href = 'templates.html';
       }
-    }
+    };
   </script>
 </body>
 </html>

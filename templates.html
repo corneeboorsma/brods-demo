@@ -5,9 +5,18 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Templates | Brodshoes Beheer</title>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Lato:wght@300;400;600;700&display=swap" rel="stylesheet" />
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-  <script src="supabase-config.js"></script>
+  <script type="module">
+    import { db, auth, storage } from './firebase-config.js';
+    import {
+      collection, getDocs, getDoc, addDoc, updateDoc, deleteDoc,
+      doc, query, orderBy, where, limit
+    } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+    import { onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+    import { ref, uploadBytes, getDownloadURL } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js';
+
+    window._fb = { db, auth, storage, collection, getDocs, getDoc, addDoc, updateDoc, deleteDoc, doc, query, orderBy, where, limit, onAuthStateChanged, signOut, ref, uploadBytes, getDownloadURL };
+  </script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -853,7 +862,8 @@
 <div class="toast" id="toast"></div>
 
 <script>
-const sb = getSbClient();
+// Firebase helpers — beschikbaar nadat het module-script klaar is
+function fb() { return window._fb; }
 
 const THEMAS = {
   pasen:    { naam: 'Pasen',    achtergrond: '#e8dcc8', kaart: '#1e3a3f', kaartMid: '#254a50', accent: '#e85d4a', kleuren: ['#1e3a3f','#e85d4a','#e8dcc8'] },
@@ -874,25 +884,30 @@ let edFotos = { header: null, footer: null }; // { file, url } per type
 // ══ Audit logging ══
 async function log(actie, object_type, object_id, object_naam, details) {
   try {
-    const { data: { user } } = await sb.auth.getUser();
-    await sb.from('audit_log').insert({
+    const user = fb().auth.currentUser;
+    await fb().addDoc(fb().collection(fb().db, 'audit_log'), {
       actie, object_type, object_id, object_naam,
       details: details || null,
       gebruiker: user?.email || null,
-      gebruiker_id: user?.id || null,
+      gebruiker_id: user?.uid || null,
+      uitgevoerd_op: new Date().toISOString(),
     });
   } catch (_) {}
 }
 
 // ══ Auth ══
 async function checkAuth() {
-  const { data } = await sb.auth.getSession();
-  if (!data.session) { window.location.href = 'login.html'; return; }
-  document.getElementById('user-email').textContent = data.session.user.email;
+  return new Promise(resolve => {
+    fb().onAuthStateChanged(fb().auth, user => {
+      if (!user) { window.location.href = 'login.html'; resolve(null); return; }
+      document.getElementById('user-email').textContent = user.email;
+      resolve(user);
+    });
+  });
 }
 
 async function uitloggen() {
-  await sb.auth.signOut();
+  await fb().signOut(fb().auth);
   window.location.href = 'login.html';
 }
 
@@ -918,9 +933,8 @@ function setFilter(f, el) {
 
 // ══ Templates laden ══
 async function laadTemplates() {
-  const { data, error } = await sb.from('templates').select('*').order('aangemaakt_op', { ascending: false });
-  if (error) { toonToast('Fout bij laden: ' + error.message); return; }
-  alleTemplates = data || [];
+  const snap = await fb().getDocs(fb().query(fb().collection(fb().db, 'templates'), fb().orderBy('aangemaakt_op', 'desc')));
+  alleTemplates = snap.docs.map(d => ({ id: d.id, ...d.data() }));
   renderTemplates();
 }
 
@@ -967,21 +981,20 @@ function renderTemplates() {
 
 // ══ Publicaties laden ══
 async function laadPublicaties() {
-  const { data, error } = await sb
-    .from('publicaties')
-    .select('*, templates(naam)')
-    .order('gepubliceerd_op', { ascending: false });
+  const snap = await fb().getDocs(fb().query(fb().collection(fb().db, 'publicaties'), fb().orderBy('gepubliceerd_op', 'desc')));
+  const pubs  = snap.docs.map(d => ({ id: d.id, ...d.data() }));
 
   const tbody = document.getElementById('pub-tbody');
-  if (error || !data?.length) {
+  if (!pubs.length) {
     tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:32px;">Nog geen publicaties.</td></tr>`;
     return;
   }
 
-  tbody.innerHTML = data.map(p => {
+  tbody.innerHTML = pubs.map(p => {
+    const tpl = alleTemplates.find(t => t.id === p.template_id);
     const url = `${window.location.origin}/${window.location.pathname.replace('templates.html','index.html')}?slug=${p.slug}`;
     return `<tr>
-      <td>${p.templates?.naam || '–'}</td>
+      <td>${tpl?.naam || '–'}</td>
       <td class="url-cel"><a href="${url}" target="_blank" style="color:var(--teal)">${url}</a></td>
       <td>${new Date(p.gepubliceerd_op).toLocaleString('nl-NL')}</td>
       <td style="font-size:12px;color:var(--muted)">${p.gepubliceerd_door_email || '–'}</td>
@@ -1186,15 +1199,15 @@ function fotoVerwijder(type) {
   toonFotoPreview(type, null);
 }
 
+// ══ Foto upload ══
 async function uploadFoto(type, templateId) {
   const { file } = edFotos[type];
-  if (!file) return edFotos[type].url; // geen nieuwe upload, bestaande URL teruggeven
+  if (!file) return edFotos[type].url;
   const ext  = file.name.split('.').pop();
-  const pad  = `${templateId}/${type}.${ext}`;
-  const { error } = await sb.storage.from('template-fotos').upload(pad, file, { upsert: true });
-  if (error) { toonToast(`Fout bij uploaden ${type}-foto`); return null; }
-  const { data } = sb.storage.from('template-fotos').getPublicUrl(pad);
-  return data.publicUrl;
+  const pad  = `template-fotos/${templateId}/${type}.${ext}`;
+  const storageRef = fb().ref(fb().storage, pad);
+  await fb().uploadBytes(storageRef, file);
+  return await fb().getDownloadURL(storageRef);
 }
 
 // ══ Opslaan ══
@@ -1203,19 +1216,19 @@ async function slaTemplateOp() {
   const slug = document.getElementById('ed-slug').value.trim();
   if (!naam || !slug) { toonToast('Naam en slug zijn verplicht'); return; }
 
-  const { data: { user } } = await sb.auth.getUser();
-
-  // Eerst opslaan om een ID te hebben voor de foto-paden
+  const user = fb().auth.currentUser;
   let templateId = bewerkId;
+
   if (!templateId) {
-    const { data, error } = await sb.from('templates')
-      .insert({ naam, slug, config: {}, status: 'concept', aangemaakt_door: user.id })
-      .select('id').single();
-    if (error) { toonToast('Fout: ' + error.message); return; }
-    templateId = data.id;
+    const ref = await fb().addDoc(fb().collection(fb().db, 'templates'), {
+      naam, slug, config: {}, status: 'concept',
+      aangemaakt_door: user.uid,
+      aangemaakt_op: new Date().toISOString(),
+      bijgewerkt_op: new Date().toISOString(),
+    });
+    templateId = ref.id;
   }
 
-  // Foto's uploaden naar Supabase Storage
   toonToast('Foto\'s uploaden…');
   const headerUrl = await uploadFoto('header', templateId);
   const footerUrl = await uploadFoto('footer', templateId);
@@ -1237,8 +1250,9 @@ async function slaTemplateOp() {
     tijdslots: edSlots,
   };
 
-  const { error } = await sb.from('templates').update({ naam, slug, config }).eq('id', templateId);
-  if (error) { toonToast('Fout: ' + error.message); return; }
+  await fb().updateDoc(fb().doc(fb().db, 'templates', templateId), {
+    naam, slug, config, bijgewerkt_op: new Date().toISOString(),
+  });
 
   const actie = bewerkId ? 'template_bewerkt' : 'template_aangemaakt';
   await log(actie, 'template', templateId, naam, { slug });
@@ -1257,13 +1271,13 @@ function bekijken(slug) {
 async function dupliceer(id) {
   const t = alleTemplates.find(x => x.id === id);
   if (!t) return;
-  const { data: { user } } = await sb.auth.getUser();
+  const user = fb().auth.currentUser;
   const nieuwSlug = t.slug + '-kopie-' + Date.now().toString().slice(-4);
-  const { error } = await sb.from('templates').insert({
+  await fb().addDoc(fb().collection(fb().db, 'templates'), {
     naam: 'Kopie van ' + t.naam, slug: nieuwSlug,
-    config: t.config, status: 'concept', aangemaakt_door: user.id
+    config: t.config, status: 'concept', aangemaakt_door: user.uid,
+    aangemaakt_op: new Date().toISOString(), bijgewerkt_op: new Date().toISOString(),
   });
-  if (error) { toonToast('Fout: ' + error.message); return; }
   await log('template_gedupliceerd', 'template', id, t.naam, { nieuwe_slug: nieuwSlug });
   toonToast('Template gedupliceerd');
   laadTemplates();
@@ -1271,8 +1285,7 @@ async function dupliceer(id) {
 
 async function archiveer(id) {
   const t = alleTemplates.find(x => x.id === id);
-  const { error } = await sb.from('templates').update({ status: 'gearchiveerd' }).eq('id', id);
-  if (error) { toonToast('Fout: ' + error.message); return; }
+  await fb().updateDoc(fb().doc(fb().db, 'templates', id), { status: 'gearchiveerd', bijgewerkt_op: new Date().toISOString() });
   await log('template_gearchiveerd', 'template', id, t?.naam);
   toonToast('Template gearchiveerd');
   laadTemplates();
@@ -1280,8 +1293,7 @@ async function archiveer(id) {
 
 async function herstel(id) {
   const t = alleTemplates.find(x => x.id === id);
-  const { error } = await sb.from('templates').update({ status: 'concept' }).eq('id', id);
-  if (error) { toonToast('Fout: ' + error.message); return; }
+  await fb().updateDoc(fb().doc(fb().db, 'templates', id), { status: 'concept', bijgewerkt_op: new Date().toISOString() });
   await log('template_hersteld', 'template', id, t?.naam);
   toonToast('Template hersteld naar concept');
   laadTemplates();
@@ -1290,10 +1302,14 @@ async function herstel(id) {
 async function publiceer(id) {
   const t = alleTemplates.find(x => x.id === id);
   if (!t) return;
-  const { data: { user } } = await sb.auth.getUser();
-  const { error: e1 } = await sb.from('templates').update({ status: 'gepubliceerd' }).eq('id', id);
-  const { error: e2 } = await sb.from('publicaties').insert({ template_id: id, slug: t.slug, gepubliceerd_door: user.id, gepubliceerd_door_email: user.email });
-  if (e1 || e2) { toonToast('Fout bij publiceren'); return; }
+  const user = fb().auth.currentUser;
+  await fb().updateDoc(fb().doc(fb().db, 'templates', id), { status: 'gepubliceerd', bijgewerkt_op: new Date().toISOString() });
+  await fb().addDoc(fb().collection(fb().db, 'publicaties'), {
+    template_id: id, slug: t.slug,
+    gepubliceerd_door: user.uid,
+    gepubliceerd_door_email: user.email,
+    gepubliceerd_op: new Date().toISOString(),
+  });
   await log('template_gepubliceerd', 'template', id, t.naam, { slug: t.slug });
   const url = `${window.location.origin}${window.location.pathname.replace('templates.html','index.html')}?slug=${t.slug}`;
   navigator.clipboard.writeText(url).catch(() => {});
@@ -1306,13 +1322,14 @@ function verwijder(id, naam) {
     'Template verwijderen',
     `Weet u zeker dat u "${naam}" wilt verwijderen? Alle bijbehorende bestellingen worden ook verwijderd.`,
     async () => {
-      // Verwijder eerst bestellingen, dan publicaties, dan template
-      const { error: errB } = await sb.from('bestellingen').delete().eq('template_id', id);
-      if (errB) { toonToast('Fout bij verwijderen bestellingen: ' + errB.message); return; }
-      const { error: errP } = await sb.from('publicaties').delete().eq('template_id', id);
-      if (errP) { toonToast('Fout bij verwijderen publicaties: ' + errP.message); return; }
-      const { error } = await sb.from('templates').delete().eq('id', id);
-      if (error) { toonToast('Fout: ' + error.message); return; }
+      // Verwijder bestellingen
+      const bestSnap = await fb().getDocs(fb().query(fb().collection(fb().db, 'bestellingen'), fb().where('template_id', '==', id)));
+      for (const d of bestSnap.docs) await fb().deleteDoc(d.ref);
+      // Verwijder publicaties
+      const pubSnap = await fb().getDocs(fb().query(fb().collection(fb().db, 'publicaties'), fb().where('template_id', '==', id)));
+      for (const d of pubSnap.docs) await fb().deleteDoc(d.ref);
+      // Verwijder template
+      await fb().deleteDoc(fb().doc(fb().db, 'templates', id));
       await log('template_verwijderd', 'template', id, naam);
       toonToast('Template verwijderd');
       laadTemplates();
@@ -1361,13 +1378,14 @@ const ACTIE_CONFIG = {
 
 async function laadActiviteit() {
   const typeFilter = document.getElementById('act-type-filter')?.value;
-  let query = sb.from('audit_log').select('*').order('uitgevoerd_op', { ascending: false }).limit(200);
-  if (typeFilter) query = query.eq('actie', typeFilter);
+  let q = fb().query(fb().collection(fb().db, 'audit_log'), fb().orderBy('uitgevoerd_op', 'desc'), fb().limit(200));
+  if (typeFilter) q = fb().query(fb().collection(fb().db, 'audit_log'), fb().where('actie', '==', typeFilter), fb().orderBy('uitgevoerd_op', 'desc'), fb().limit(200));
 
-  const { data, error } = await query;
-  const el = document.getElementById('act-tijdlijn');
+  const snap = await fb().getDocs(q);
+  const data = snap.docs.map(d => d.data());
+  const el   = document.getElementById('act-tijdlijn');
 
-  if (error || !data?.length) {
+  if (!data?.length) {
     el.innerHTML = `<div class="leeg"><p>Nog geen activiteit gelogd.</p></div>`;
     return;
   }
@@ -1397,9 +1415,8 @@ let alleThemas = [];
 let bewerkThemaId = null;
 
 async function laadThemas() {
-  const { data, error } = await sb.from('themas').select('*').order('aangemaakt_op', { ascending: true });
-  if (error) { toonToast('Fout bij laden thema\'s: ' + error.message); return; }
-  alleThemas = data || [];
+  const snap = await fb().getDocs(fb().query(fb().collection(fb().db, 'themas'), fb().orderBy('aangemaakt_op', 'asc')));
+  alleThemas = snap.docs.map(d => ({ id: d.id, ...d.data() }));
   renderThemas();
 }
 
@@ -1481,21 +1498,21 @@ async function slaThemaOp() {
   const achtergrond = document.getElementById('th-achtergrond').value;
   const kaart       = document.getElementById('th-kaart').value;
   const accent      = document.getElementById('th-accent').value;
-  // kaart_mid: mix tussen kaart en achtergrond
   const kaart_mid   = kaart;
 
   if (!naam) { toonToast('Geef het thema een naam'); return; }
 
-  const { data: { user } } = await sb.auth.getUser();
-  let error;
+  const user = fb().auth.currentUser;
 
   if (bewerkThemaId) {
-    ({ error } = await sb.from('themas').update({ naam, achtergrond, kaart, kaart_mid, accent }).eq('id', bewerkThemaId));
+    await fb().updateDoc(fb().doc(fb().db, 'themas', bewerkThemaId), { naam, achtergrond, kaart, kaart_mid, accent });
   } else {
-    ({ error } = await sb.from('themas').insert({ naam, achtergrond, kaart, kaart_mid, accent, is_standaard: false, aangemaakt_door: user.id }));
+    await fb().addDoc(fb().collection(fb().db, 'themas'), {
+      naam, achtergrond, kaart, kaart_mid, accent, is_standaard: false,
+      aangemaakt_door: user.uid, aangemaakt_op: new Date().toISOString(),
+    });
   }
 
-  if (error) { toonToast('Fout: ' + error.message); return; }
   await log(bewerkThemaId ? 'thema_bewerkt' : 'thema_aangemaakt', 'thema', bewerkThemaId || null, naam);
   sluitThemaModal();
   toonToast(bewerkThemaId ? 'Thema bijgewerkt' : 'Thema aangemaakt');
@@ -1507,8 +1524,7 @@ function verwijderThema(id, naam) {
     'Thema verwijderen',
     `Weet u zeker dat u het thema "${naam}" wilt verwijderen?`,
     async () => {
-      const { error } = await sb.from('themas').delete().eq('id', id);
-      if (error) { toonToast('Fout: ' + error.message); return; }
+      await fb().deleteDoc(fb().doc(fb().db, 'themas', id));
       await log('thema_verwijderd', 'thema', id, naam);
       toonToast('Thema verwijderd');
       laadThemas();
@@ -1521,13 +1537,11 @@ let alleBestellingen = [];
 
 async function laadBestellingen() {
   const templateFilter = document.getElementById('best-template-filter')?.value;
+  let q = fb().query(fb().collection(fb().db, 'bestellingen'), fb().orderBy('besteld_op', 'desc'));
+  if (templateFilter) q = fb().query(fb().collection(fb().db, 'bestellingen'), fb().where('template_id', '==', templateFilter), fb().orderBy('besteld_op', 'desc'));
 
-  let query = sb.from('bestellingen').select('*').order('besteld_op', { ascending: false });
-  if (templateFilter) query = query.eq('template_id', templateFilter);
-
-  const { data, error } = await query;
-  if (error) { toonToast('Fout bij laden bestellingen'); return; }
-  alleBestellingen = data || [];
+  const snap = await fb().getDocs(q);
+  alleBestellingen = snap.docs.map(d => ({ id: d.id, ...d.data() }));
   renderBestellingen();
   renderSamenvatting();
 }
@@ -1960,10 +1974,7 @@ function updateBewerkTotaal() {
 async function slaBestellingOp() {
   if (!bewerkBestId) return;
   const totaal = bewerkRegels.reduce((s, r) => s + (r.subtotaal || 0), 0);
-  const { error } = await sb.from('bestellingen')
-    .update({ regels: bewerkRegels, totaal })
-    .eq('id', bewerkBestId);
-  if (error) { toonToast('Fout bij opslaan: ' + error.message); return; }
+  await fb().updateDoc(fb().doc(fb().db, 'bestellingen', bewerkBestId), { regels: bewerkRegels, totaal });
   toonToast('Bestelling opgeslagen');
   sluitBewerkBestelling();
   laadBestellingen();
@@ -1974,8 +1985,7 @@ function verwijderBestelling(id, naam) {
     'Bestelling verwijderen',
     `Weet u zeker dat u de bestelling van "${naam}" wilt verwijderen? Dit kan niet ongedaan worden gemaakt.`,
     async () => {
-      const { error } = await sb.from('bestellingen').delete().eq('id', id);
-      if (error) { toonToast('Fout: ' + error.message); return; }
+      await fb().deleteDoc(fb().doc(fb().db, 'bestellingen', id));
       toonToast('Bestelling verwijderd');
       laadBestellingen();
     }
@@ -1987,7 +1997,6 @@ checkAuth().then(async () => {
   await laadTemplates();
   await laadThemas();
   vulTemplateFilter();
-});
-</script>
+});</script>
 </body>
 </html>

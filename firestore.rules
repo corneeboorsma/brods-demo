@@ -1,0 +1,35 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Templates: publiek lezen als gepubliceerd, schrijven alleen ingelogd
+    match /templates/{templateId} {
+      allow read: if resource.data.status == 'gepubliceerd'
+                  || request.auth != null;
+      allow create, update, delete: if request.auth != null;
+    }
+
+    // Publicaties: publiek lezen, schrijven alleen ingelogd
+    match /publicaties/{pubId} {
+      allow read: if true;
+      allow create, delete: if request.auth != null;
+    }
+
+    // Bestellingen: iedereen mag aanmaken (bestelpagina), lezen/bewerken alleen ingelogd
+    match /bestellingen/{bestId} {
+      allow create: if true;
+      allow read, update, delete: if request.auth != null;
+    }
+
+    // Themas: publiek lezen, schrijven alleen ingelogd
+    match /themas/{themaId} {
+      allow read: if true;
+      allow create, update, delete: if request.auth != null;
+    }
+
+    // Audit log: alleen ingelogd
+    match /audit_log/{logId} {
+      allow read, write: if request.auth != null;
+    }
+  }
+}

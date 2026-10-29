@@ -3,8 +3,18 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="supabase-config.js"></script>
+  <script type="module">
+    import { db } from './firebase-config.js';
+    import { collection, query, where, getDocs, addDoc, doc, getDoc } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+    window._fbDb = db;
+    window._fbCollection = collection;
+    window._fbQuery = query;
+    window._fbWhere = where;
+    window._fbGetDocs = getDocs;
+    window._fbAddDoc = addDoc;
+    window._fbDoc = doc;
+    window._fbGetDoc = getDoc;
+  </script>
   <title>Pasen 2026 – Salade Bestellen | Brodshoes</title>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Lato:wght@300;400;600;700&display=swap" rel="stylesheet" />
   <style>
@@ -580,32 +590,33 @@
       let cfg = DEFAULT_CONFIG;
 
       if (urlSlug) {
-        const { data, error } = await getSbClient()
-          .from('templates')
-          .select('id, config')
-          .eq('slug', urlSlug)
-          .eq('status', 'gepubliceerd')
-          .single();
-        if (!error && data?.config) {
-          cfg = data.config;
-          window._TEMPLATE_ID = data.id;
+        const db    = window._fbDb;
+        const q     = window._fbQuery(
+          window._fbCollection(db, 'templates'),
+          window._fbWhere('slug', '==', urlSlug),
+          window._fbWhere('status', '==', 'gepubliceerd')
+        );
+        const snap = await window._fbGetDocs(q);
+        if (!snap.empty) {
+          const docData = snap.docs[0].data();
+          if (docData.config) {
+            cfg = docData.config;
+            window._TEMPLATE_ID = snap.docs[0].id;
+          }
         }
       }
 
-      // Als thema een UUID is (custom thema), ophalen uit Supabase
+      // Als thema een Firestore doc-ID is (custom thema), ophalen
       const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-/i.test(cfg.thema);
       if (isUuid) {
-        const { data: themaData } = await getSbClient()
-          .from('themas')
-          .select('achtergrond, kaart, kaart_mid, accent')
-          .eq('id', cfg.thema)
-          .single();
-        if (themaData) {
+        const themaSnap = await window._fbGetDoc(window._fbDoc(window._fbDb, 'themas', cfg.thema));
+        if (themaSnap.exists()) {
+          const t = themaSnap.data();
           THEMAS[cfg.thema] = {
-            achtergrond: themaData.achtergrond,
-            kaart:       themaData.kaart,
-            kaartMid:    themaData.kaart_mid || themaData.kaart,
-            accent:      themaData.accent,
+            achtergrond: t.achtergrond,
+            kaart:       t.kaart,
+            kaartMid:    t.kaart_mid || t.kaart,
+            accent:      t.accent,
           };
         }
       }
@@ -774,19 +785,21 @@
       btn.textContent = 'Bezig met versturen…';
       btn.disabled = true;
 
-      // Sla bestelling op in Supabase
-      const { error } = await getSbClient().from('bestellingen').insert({
-        template_id:   window._TEMPLATE_ID || null,
-        template_slug: urlSlug || null,
-        voornaam, achternaam, email, telefoon, adres,
-        regels,
-        totaal,
-        tijdslot,
-        opmerking: opmerking || null,
-      });
-
-      if (error) {
-        console.error('Bestelling opslaan mislukt:', error.message);
+      // Sla bestelling op in Firestore
+      try {
+        await window._fbAddDoc(window._fbCollection(window._fbDb, 'bestellingen'), {
+          template_id:   window._TEMPLATE_ID || null,
+          template_slug: urlSlug || null,
+          voornaam, achternaam, email, telefoon, adres,
+          regels,
+          totaal,
+          tijdslot,
+          opmerking: opmerking || null,
+          besteld_op: new Date().toISOString(),
+          status: 'nieuw',
+        });
+      } catch (err) {
+        console.error('Bestelling opslaan mislukt:', err.message);
       }
 
       document.getElementById('form-section').style.display = 'none';
