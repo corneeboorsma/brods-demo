@@ -1993,10 +1993,16 @@ function verwijderBestelling(id, naam) {
 }
 
 // ══ Init ══
-checkAuth().then(async () => {
-  await laadTemplates();
-  await laadThemas();
-  vulTemplateFilter();
+function waitForFb(cb) {
+  if (window._fb) { cb(); return; }
+  setTimeout(() => waitForFb(cb), 50);
+}
+waitForFb(() => {
+  checkAuth().then(async () => {
+    await laadTemplates();
+    await laadThemas();
+    vulTemplateFilter();
+  });
 });</script>
 </body>
 </html>
