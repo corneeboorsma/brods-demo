@@ -898,7 +898,8 @@ async function log(actie, object_type, object_id, object_naam, details) {
 // ══ Auth ══
 async function checkAuth() {
   return new Promise(resolve => {
-    fb().onAuthStateChanged(fb().auth, user => {
+    const unsubscribe = fb().onAuthStateChanged(fb().auth, user => {
+      unsubscribe();
       if (!user) { window.location.href = 'login.html'; resolve(null); return; }
       document.getElementById('user-email').textContent = user.email;
       resolve(user);
