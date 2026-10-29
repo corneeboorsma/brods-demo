@@ -815,7 +815,11 @@
     }
 
     // Start
-    laadEnRender();
+    function waitForFb(cb) {
+      if (window._fbDb) { cb(); return; }
+      setTimeout(() => waitForFb(cb), 50);
+    }
+    waitForFb(() => laadEnRender());
   </script>
 </body>
 </html>
