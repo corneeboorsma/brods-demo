@@ -925,7 +925,7 @@ function toonTab(naam, el) {
   el.classList.add('active');
   if (naam === 'publicaties')  laadPublicaties();
   if (naam === 'bestellingen') laadBestellingen();
-  if (naam === 'themas')       laadThemas();
+  if (naam === 'themas')       { console.log('themas tab aangeklikt, alleThemas:', alleThemas.length); laadThemas(); }
   if (naam === 'activiteit')   laadActiviteit();
 }
 
