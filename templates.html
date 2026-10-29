@@ -925,7 +925,7 @@ function toonTab(naam, el) {
   el.classList.add('active');
   if (naam === 'publicaties')  laadPublicaties();
   if (naam === 'bestellingen') laadBestellingen();
-  if (naam === 'themas')       { console.log('themas tab aangeklikt, alleThemas:', alleThemas.length); laadThemas(); }
+  if (naam === 'themas')       laadThemas();
   if (naam === 'activiteit')   laadActiviteit();
 }
 
@@ -1429,7 +1429,6 @@ async function laadThemas() {
     const snap = await fb().getDocs(fb().collection(fb().db, 'themas'));
     alleThemas = snap.docs.map(d => ({ id: d.id, ...d.data() }));
     alleThemas.sort((a, b) => (a.aangemaakt_op || '').localeCompare(b.aangemaakt_op || ''));
-    console.log('Themas geladen:', alleThemas.length);
     renderThemas();
   } catch(e) {
     console.error('Fout bij laden themas:', e);
