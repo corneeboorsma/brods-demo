@@ -998,7 +998,7 @@ async function laadPublicaties() {
 
   tbody.innerHTML = pubs.map(p => {
     const tpl = alleTemplates.find(t => t.id === p.template_id);
-    const url = `${window.location.origin}/${window.location.pathname.replace('templates.html','index.html')}?slug=${p.slug}`;
+    const url = `${window.location.origin}/${window.location.pathname.replace('templates.html','index.html')}#${p.slug}`;
     return `<tr>
       <td>${tpl?.naam || '–'}</td>
       <td class="url-cel"><a href="${url}" target="_blank" style="color:var(--teal)">${url}</a></td>
@@ -1270,7 +1270,7 @@ async function slaTemplateOp() {
 
 // ══ Acties ══
 function bekijken(slug) {
-  const url = `${window.location.origin}${window.location.pathname.replace('templates.html','index.html')}?slug=${slug}`;
+  const url = `${window.location.origin}${window.location.pathname.replace('templates.html','index.html')}#${slug}`;
   window.open(url, '_blank');
 }
 
@@ -1317,7 +1317,7 @@ async function publiceer(id) {
     gepubliceerd_op: new Date().toISOString(),
   });
   await log('template_gepubliceerd', 'template', id, t.naam, { slug: t.slug });
-  const url = `${window.location.origin}${window.location.pathname.replace('templates.html','index.html')}?slug=${t.slug}`;
+  const url = `${window.location.origin}${window.location.pathname.replace('templates.html','index.html')}#${t.slug}`;
   navigator.clipboard.writeText(url).catch(() => {});
   toonToast('Gepubliceerd! URL gekopieerd: ' + t.slug);
   laadTemplates();
@@ -1344,7 +1344,7 @@ function verwijder(id, naam) {
 }
 
 function kopieerUrl(slug) {
-  const url = `${window.location.origin}${window.location.pathname.replace('templates.html','index.html')}?slug=${slug}`;
+  const url = `${window.location.origin}${window.location.pathname.replace('templates.html','index.html')}#${slug}`;
   navigator.clipboard.writeText(url).catch(() => {});
   toonToast('URL gekopieerd');
 }
