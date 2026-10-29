@@ -580,7 +580,7 @@
       tijdslots: ['14:00 – 14:30', '14:30 – 15:00', '15:00 – 15:30', '15:30 – 16:00'],
     };
 
-    const urlSlug = new URLSearchParams(window.location.search).get('slug');
+    const urlSlug = window.location.hash.replace('#', '') || new URLSearchParams(window.location.search).get('slug');
 
     if (!urlSlug) {
       window.location.href = 'login.html';
