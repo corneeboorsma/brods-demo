@@ -1,0 +1,7 @@
+Options -Indexes
+RewriteEngine On
+
+# Stuur /bestellen/kerst-2026-2 naar /bestellen/index.html?slug=kerst-2026-2
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^([a-z0-9-]+)$ index.html?slug=$1 [L,QSA]

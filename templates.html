@@ -870,6 +870,12 @@
 // Firebase helpers — beschikbaar nadat het module-script klaar is
 function fb() { return window._fb; }
 
+// Bouw bestelpagina URL: werkt op GitHub Pages én op brodshoes.nl/bestellen/
+function bestelUrl(slug) {
+  const base = window.location.pathname.replace('templates.html', '');
+  return `${window.location.origin}${base}${slug}`;
+}
+
 const THEMAS = {
   pasen:    { naam: 'Pasen',    achtergrond: '#e8dcc8', kaart: '#1e3a3f', kaartMid: '#254a50', accent: '#e85d4a', kleuren: ['#1e3a3f','#e85d4a','#e8dcc8'] },
   kerst:    { naam: 'Kerst',    achtergrond: '#1a0a0a', kaart: '#2d0d0d', kaartMid: '#3d1515', accent: '#c9a84c', kleuren: ['#2d0d0d','#c9a84c','#1a0a0a'] },
@@ -998,7 +1004,7 @@ async function laadPublicaties() {
 
   tbody.innerHTML = pubs.map(p => {
     const tpl = alleTemplates.find(t => t.id === p.template_id);
-    const url = `${window.location.origin}/${window.location.pathname.replace('templates.html','index.html')}#${p.slug}`;
+    const url = bestelUrl(p.slug);
     return `<tr>
       <td>${tpl?.naam || '–'}</td>
       <td class="url-cel"><a href="${url}" target="_blank" style="color:var(--teal)">${url}</a></td>
@@ -1270,7 +1276,7 @@ async function slaTemplateOp() {
 
 // ══ Acties ══
 function bekijken(slug) {
-  const url = `${window.location.origin}${window.location.pathname.replace('templates.html','index.html')}#${slug}`;
+  const url = bestelUrl(slug);
   window.open(url, '_blank');
 }
 
@@ -1317,7 +1323,7 @@ async function publiceer(id) {
     gepubliceerd_op: new Date().toISOString(),
   });
   await log('template_gepubliceerd', 'template', id, t.naam, { slug: t.slug });
-  const url = `${window.location.origin}${window.location.pathname.replace('templates.html','index.html')}#${t.slug}`;
+  const url = bestelUrl(t.slug);
   navigator.clipboard.writeText(url).catch(() => {});
   toonToast('Gepubliceerd! URL gekopieerd: ' + t.slug);
   laadTemplates();
@@ -1344,7 +1350,7 @@ function verwijder(id, naam) {
 }
 
 function kopieerUrl(slug) {
-  const url = `${window.location.origin}${window.location.pathname.replace('templates.html','index.html')}#${slug}`;
+  const url = bestelUrl(slug);
   navigator.clipboard.writeText(url).catch(() => {});
   toonToast('URL gekopieerd');
 }
