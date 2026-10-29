@@ -1379,19 +1379,23 @@ const ACTIE_CONFIG = {
 
 async function laadActiviteit() {
   const typeFilter = document.getElementById('act-type-filter')?.value;
-  let q = fb().query(fb().collection(fb().db, 'audit_log'), fb().orderBy('uitgevoerd_op', 'desc'), fb().limit(200));
-  if (typeFilter) q = fb().query(fb().collection(fb().db, 'audit_log'), fb().where('actie', '==', typeFilter), fb().orderBy('uitgevoerd_op', 'desc'), fb().limit(200));
-
-  const snap = await fb().getDocs(q);
+  let snap;
+  if (typeFilter) {
+    snap = await fb().getDocs(fb().query(fb().collection(fb().db, 'audit_log'), fb().where('actie', '==', typeFilter)));
+  } else {
+    snap = await fb().getDocs(fb().collection(fb().db, 'audit_log'));
+  }
   const data = snap.docs.map(d => d.data());
-  const el   = document.getElementById('act-tijdlijn');
+  data.sort((a, b) => (b.uitgevoerd_op || '').localeCompare(a.uitgevoerd_op || ''));
+  const beperkt = data.slice(0, 200);
+  const el = document.getElementById('act-tijdlijn');
 
-  if (!data?.length) {
+  if (!beperkt?.length) {
     el.innerHTML = `<div class="leeg"><p>Nog geen activiteit gelogd.</p></div>`;
     return;
   }
 
-  const items = data.map(item => {
+  const items = beperkt.map(item => {
     const cfg    = ACTIE_CONFIG[item.actie] || { icon: '•', kleur: '#888', label: item.actie };
     const datum  = new Date(item.uitgevoerd_op);
     const dag    = datum.toLocaleDateString('nl-NL', { day: 'numeric', month: 'short', year: 'numeric' });
@@ -1416,8 +1420,9 @@ let alleThemas = [];
 let bewerkThemaId = null;
 
 async function laadThemas() {
-  const snap = await fb().getDocs(fb().query(fb().collection(fb().db, 'themas'), fb().orderBy('aangemaakt_op', 'asc')));
+  const snap = await fb().getDocs(fb().collection(fb().db, 'themas'));
   alleThemas = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  alleThemas.sort((a, b) => (a.aangemaakt_op || '').localeCompare(b.aangemaakt_op || ''));
   renderThemas();
 }
 
