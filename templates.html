@@ -1420,10 +1420,16 @@ let alleThemas = [];
 let bewerkThemaId = null;
 
 async function laadThemas() {
-  const snap = await fb().getDocs(fb().collection(fb().db, 'themas'));
-  alleThemas = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-  alleThemas.sort((a, b) => (a.aangemaakt_op || '').localeCompare(b.aangemaakt_op || ''));
-  renderThemas();
+  try {
+    const snap = await fb().getDocs(fb().collection(fb().db, 'themas'));
+    alleThemas = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    alleThemas.sort((a, b) => (a.aangemaakt_op || '').localeCompare(b.aangemaakt_op || ''));
+    console.log('Themas geladen:', alleThemas.length);
+    renderThemas();
+  } catch(e) {
+    console.error('Fout bij laden themas:', e);
+    toonToast('Fout bij laden themas: ' + e.message);
+  }
 }
 
 function renderThemas() {
