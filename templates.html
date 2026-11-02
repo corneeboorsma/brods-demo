@@ -990,6 +990,10 @@ const WEBHOOK_URL = 'https://resendwebhook-xib7mk6vva-uc.a.run.app';
 // Bouw bestelpagina URL: werkt op GitHub Pages én op brodshoes.nl/bestellen/
 function bestelUrl(slug) {
   const base = window.location.pathname.replace('templates.html', '');
+  const isGithubPages = window.location.hostname.includes('github.io');
+  if (isGithubPages) {
+    return `${window.location.origin}${base}index.html#${slug}`;
+  }
   return `${window.location.origin}${base}${slug}`;
 }
 
