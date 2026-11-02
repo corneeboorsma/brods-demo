@@ -1848,9 +1848,15 @@ function renderBestellingen() {
               <div class="best-detail-blok">
                 <label>Mail acties</label>
                 <div style="display:flex;flex-direction:column;gap:6px;">
-                  <button class="actie-btn" onclick="event.stopPropagation();stuurMailOpnieuw('${b.id}', '${b.email}', 'bevestiging')" title="Stuur bevestigingsmail opnieuw">✉️ Bevestiging</button>
-                  <button class="actie-btn" onclick="event.stopPropagation();stuurMailOpnieuw('${b.id}', '${b.email}', 'herinnering')" title="Stuur herinneringsmail">🔔 Herinnering</button>
-                  <button class="actie-btn" onclick="event.stopPropagation();openMailHistory('${b.id}', '${naam.replace(/'/g, "\\'")}')">📋 Historie</button>
+                  <div style="display:flex;gap:4px;">
+                    <button class="actie-btn" style="font-size:10px;padding:5px 9px;" onclick="event.stopPropagation();stuurMailOpnieuw('${b.id}', '${b.email}', 'bevestiging')" title="Stuur bevestigingsmail">✉️ Bevestiging</button>
+                    <button class="actie-btn" style="font-size:10px;padding:5px 9px;" onclick="event.stopPropagation();toonBestellingMailVoorbeeld('${b.id}', 'bevestiging')" title="Voorbeeld bevestigingsmail">👁️</button>
+                  </div>
+                  <div style="display:flex;gap:4px;">
+                    <button class="actie-btn" style="font-size:10px;padding:5px 9px;" onclick="event.stopPropagation();stuurMailOpnieuw('${b.id}', '${b.email}', 'herinnering')" title="Stuur herinneringsmail">🔔 Herinnering</button>
+                    <button class="actie-btn" style="font-size:10px;padding:5px 9px;" onclick="event.stopPropagation();toonBestellingMailVoorbeeld('${b.id}', 'herinnering')" title="Voorbeeld herinneringsmail">👁️</button>
+                  </div>
+                  <button class="actie-btn" style="font-size:10px;padding:5px 9px;" onclick="event.stopPropagation();openMailHistory('${b.id}', '${naam.replace(/'/g, "\\'")}')">📋 Historie</button>
                 </div>
               </div>
             </div>
@@ -2366,6 +2372,39 @@ async function openMailHistory(bestellingId, naam) {
 
 function sluitMailHistory() {
   document.getElementById('mail-history-modal').classList.remove('open');
+}
+
+function toonBestellingMailVoorbeeld(bestellingId, type) {
+  const b = alleBestellingen.find(x => x.id === bestellingId);
+  if (!b) return;
+  const template = alleTemplates.find(t => t.id === b.template_id);
+  const mailConfig = template?.mail_config || null;
+
+  const html = bouwVoorbeeldMailHTML(
+    { ...b, totaal: parseFloat(b.totaal) || 0 },
+    template || {},
+    mailConfig,
+    type
+  );
+
+  const ev = template?.config?.evenement || {};
+  const onderwerp = type === 'bevestiging'
+    ? (mailConfig?.onderwerp_bevestiging || `Bevestiging uw bestelling – Brodshoes ${ev.titel || ''}`)
+    : (mailConfig?.onderwerp_herinnering || 'Herinnering: uw afhaalmoment nadert – Brodshoes');
+
+  const venster = window.open('', '_blank');
+  venster.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8">
+    <title>Voorbeeld: ${type}</title>
+    <style>
+      body { margin: 0; background: #e0d8c8; }
+      .preview-balk { background: #1e3a3f; color: #fff; padding: 12px 24px; font-size: 13px; display: flex; align-items: center; gap: 16px; font-family: Arial, sans-serif; }
+      .preview-balk strong { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: rgba(255,255,255,0.5); }
+    </style>
+  </head><body>
+    <div class="preview-balk"><strong>Onderwerp:</strong> <span>${onderwerp}</span></div>
+    ${html}
+  </body></html>`);
+  venster.document.close();
 }
 
 function kopieerPlaceholder(tekst) {
