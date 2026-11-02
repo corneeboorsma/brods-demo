@@ -1,0 +1,1203 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Werkinstructie — Brodshoes Bestelsysteem</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Lato:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --teal: #1e3a3f;
+      --teal-light: #2d5560;
+      --accent: #e85d4a;
+      --cream: #f5f0e8;
+      --text: #1a1a1a;
+      --muted: #888;
+      --border: #ddd;
+    }
+
+    body {
+      font-family: 'Lato', sans-serif;
+      font-size: 13px;
+      color: var(--text);
+      background: #fff;
+      line-height: 1.7;
+    }
+
+    /* ── Titelblad ── */
+    .titelblad {
+      background: var(--teal);
+      color: #fff;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 80px 80px;
+      page-break-after: always;
+    }
+    .titelblad-tag {
+      font-size: 11px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.4);
+      margin-bottom: 32px;
+    }
+    .titelblad h1 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 64px;
+      font-weight: 700;
+      line-height: 1.1;
+      margin-bottom: 16px;
+    }
+    .titelblad-sub {
+      font-size: 18px;
+      color: rgba(255,255,255,0.6);
+      margin-bottom: 64px;
+      font-weight: 300;
+    }
+    .titelblad-meta {
+      font-size: 12px;
+      color: rgba(255,255,255,0.35);
+      letter-spacing: 1px;
+    }
+    .titelblad-lijn {
+      width: 60px;
+      height: 2px;
+      background: var(--accent);
+      margin: 32px 0;
+    }
+
+    /* ── Inhoudsopgave ── */
+    .inhoudsopgave {
+      padding: 60px 80px;
+      page-break-after: always;
+      min-height: 100vh;
+    }
+    .inhoudsopgave h2 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 32px;
+      font-weight: 700;
+      margin-bottom: 40px;
+      color: var(--teal);
+    }
+    .io-sectie {
+      margin-bottom: 8px;
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+    }
+    .io-nr {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      color: var(--accent);
+      min-width: 24px;
+    }
+    .io-titel {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--teal);
+    }
+    .io-dots {
+      flex: 1;
+      border-bottom: 1px dotted var(--border);
+      margin: 0 8px 4px;
+    }
+    .io-pagina {
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .io-sub {
+      margin-left: 32px;
+      margin-bottom: 4px;
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+    }
+    .io-sub .io-titel {
+      font-size: 13px;
+      font-weight: 400;
+      color: var(--text);
+    }
+
+    /* ── Pagina algemeen ── */
+    .pagina {
+      padding: 60px 80px;
+      page-break-before: always;
+    }
+    .pagina:first-of-type {
+      page-break-before: auto;
+    }
+
+    /* ── Sectieheader ── */
+    .sectie-header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 32px;
+      padding-bottom: 16px;
+      border-bottom: 2px solid var(--teal);
+    }
+    .sectie-nr {
+      background: var(--accent);
+      color: #fff;
+      font-size: 13px;
+      font-weight: 700;
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .sectie-header h2 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--teal);
+    }
+    .sectie-header .sectie-sub {
+      font-size: 12px;
+      color: var(--muted);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-top: 2px;
+    }
+
+    /* ── Subsectie ── */
+    h3 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--teal);
+      margin: 28px 0 12px;
+    }
+    h4 {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin: 20px 0 8px;
+    }
+
+    /* ── Tekst ── */
+    p { margin-bottom: 12px; }
+
+    /* ── Stappenlijst ── */
+    .stappen { list-style: none; margin: 12px 0 20px; }
+    .stappen li {
+      display: flex;
+      gap: 14px;
+      margin-bottom: 10px;
+      align-items: flex-start;
+    }
+    .stap-nr {
+      background: var(--teal);
+      color: #fff;
+      font-size: 10px;
+      font-weight: 700;
+      min-width: 22px;
+      height: 22px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+    .stap-tekst { font-size: 13px; line-height: 1.6; }
+
+    /* ── Opsommingslijst ── */
+    ul.lijst { margin: 8px 0 16px 0; list-style: none; }
+    ul.lijst li {
+      padding: 5px 0 5px 18px;
+      position: relative;
+      border-bottom: 1px solid #f0ece4;
+      font-size: 13px;
+    }
+    ul.lijst li::before {
+      content: '–';
+      position: absolute;
+      left: 0;
+      color: var(--accent);
+      font-weight: 700;
+    }
+
+    /* ── Tip/waarschuwing blok ── */
+    .tip {
+      background: #f0f7f4;
+      border-left: 3px solid #2d7a4f;
+      padding: 12px 16px;
+      margin: 16px 0;
+      font-size: 12px;
+    }
+    .tip strong { color: #2d7a4f; }
+    .let-op {
+      background: #fff8f0;
+      border-left: 3px solid var(--accent);
+      padding: 12px 16px;
+      margin: 16px 0;
+      font-size: 12px;
+    }
+    .let-op strong { color: var(--accent); }
+
+    /* ── Veldentabel ── */
+    .velden-tabel {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 12px 0 20px;
+      font-size: 12px;
+    }
+    .velden-tabel th {
+      background: var(--teal);
+      color: #fff;
+      padding: 8px 12px;
+      text-align: left;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+    }
+    .velden-tabel td {
+      padding: 8px 12px;
+      border-bottom: 1px solid #ece3d6;
+      vertical-align: top;
+    }
+    .velden-tabel tr:last-child td { border-bottom: none; }
+    .velden-tabel tr:nth-child(even) td { background: #faf7f2; }
+    .veld-naam { font-weight: 600; color: var(--teal); }
+    .veld-verplicht { color: var(--accent); font-size: 10px; font-weight: 700; }
+
+    /* ── Badge ── */
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+    .badge-groen { background: #e6f4ea; color: #2d7a3a; }
+    .badge-grijs { background: #f0f0f0; color: #666; }
+    .badge-oranje { background: #fff3e0; color: #e65100; }
+    .badge-rood { background: #fde8e8; color: var(--accent); }
+    .badge-blauw { background: #e8f4fd; color: #1a6ea8; }
+
+    /* ── Schermkaart ── */
+    .schermkaart {
+      border: 1px solid var(--border);
+      margin: 20px 0;
+    }
+    .schermkaart-header {
+      background: var(--teal);
+      color: #fff;
+      padding: 10px 16px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+    .schermkaart-body {
+      padding: 16px;
+      background: #faf7f2;
+    }
+
+    /* ── Flow diagram ── */
+    .flow {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      margin: 20px 0;
+      flex-wrap: wrap;
+    }
+    .flow-stap {
+      background: var(--teal);
+      color: #fff;
+      padding: 10px 16px;
+      font-size: 11px;
+      font-weight: 700;
+      text-align: center;
+      min-width: 100px;
+    }
+    .flow-pijl {
+      color: var(--accent);
+      font-size: 18px;
+      padding: 0 4px;
+      font-weight: 700;
+    }
+
+    /* ── Print ── */
+    @page {
+      size: A4;
+      margin: 0;
+    }
+    @media print {
+      body { font-size: 12px; }
+      .titelblad { min-height: 100vh; }
+      .pagina { page-break-before: always; }
+      a { color: inherit; text-decoration: none; }
+    }
+
+    /* ── Afdrukknop (alleen op scherm) ── */
+    .print-knop {
+      position: fixed;
+      bottom: 32px;
+      right: 32px;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      padding: 14px 24px;
+      font-family: 'Lato', sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      cursor: pointer;
+      z-index: 999;
+    }
+    @media print { .print-knop { display: none; } }
+
+    /* ── Paginanummer ── */
+    .pagina-footer {
+      margin-top: 40px;
+      padding-top: 12px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      font-size: 10px;
+      color: var(--muted);
+      letter-spacing: 1px;
+    }
+  </style>
+</head>
+<body>
+
+<button class="print-knop" onclick="window.print()">Opslaan als PDF</button>
+
+<!-- ════════════════════════════════════════════
+     TITELBLAD
+════════════════════════════════════════════ -->
+<div class="titelblad">
+  <div class="titelblad-tag">Brodshoes · Interne documentatie</div>
+  <h1>Werkinstructie<br>Bestelsysteem</h1>
+  <div class="titelblad-sub">Handleiding voor beheerders van het online bestelplatform</div>
+  <div class="titelblad-lijn"></div>
+  <div class="titelblad-meta">
+    Versie 1.0 &nbsp;·&nbsp; November 2026 &nbsp;·&nbsp; Vertrouwelijk — uitsluitend voor intern gebruik
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════
+     INHOUDSOPGAVE
+════════════════════════════════════════════ -->
+<div class="inhoudsopgave">
+  <h2>Inhoudsopgave</h2>
+
+  <div class="io-sectie">
+    <span class="io-nr">1</span>
+    <span class="io-titel">Overzicht van het systeem</span>
+    <span class="io-dots"></span>
+    <span class="io-pagina">3</span>
+  </div>
+  <div class="io-sectie">
+    <span class="io-nr">2</span>
+    <span class="io-titel">Inloggen</span>
+    <span class="io-dots"></span>
+    <span class="io-pagina">4</span>
+  </div>
+  <div class="io-sectie">
+    <span class="io-nr">3</span>
+    <span class="io-titel">Een evenement aanmaken (template)</span>
+    <span class="io-dots"></span>
+    <span class="io-pagina">5</span>
+  </div>
+  <div class="io-sub">
+    <span class="io-nr" style="color:var(--muted)">3.1</span>
+    <span class="io-titel">Instellingen</span>
+    <span class="io-dots"></span>
+    <span class="io-pagina">5</span>
+  </div>
+  <div class="io-sub">
+    <span class="io-nr" style="color:var(--muted)">3.2</span>
+    <span class="io-titel">E-mail instellen</span>
+    <span class="io-dots"></span>
+    <span class="io-pagina">7</span>
+  </div>
+  <div class="io-sub">
+    <span class="io-nr" style="color:var(--muted)">3.3</span>
+    <span class="io-titel">Publiceren</span>
+    <span class="io-dots"></span>
+    <span class="io-pagina">8</span>
+  </div>
+  <div class="io-sectie">
+    <span class="io-nr">4</span>
+    <span class="io-titel">Bestellingen beheren</span>
+    <span class="io-dots"></span>
+    <span class="io-pagina">9</span>
+  </div>
+  <div class="io-sub">
+    <span class="io-nr" style="color:var(--muted)">4.1</span>
+    <span class="io-titel">Bestellingen bekijken en zoeken</span>
+    <span class="io-dots"></span>
+    <span class="io-pagina">9</span>
+  </div>
+  <div class="io-sub">
+    <span class="io-nr" style="color:var(--muted)">4.2</span>
+    <span class="io-titel">E-mails versturen</span>
+    <span class="io-dots"></span>
+    <span class="io-pagina">10</span>
+  </div>
+  <div class="io-sub">
+    <span class="io-nr" style="color:var(--muted)">4.3</span>
+    <span class="io-titel">Bestelling bewerken of verwijderen</span>
+    <span class="io-dots"></span>
+    <span class="io-pagina">11</span>
+  </div>
+  <div class="io-sub">
+    <span class="io-nr" style="color:var(--muted)">4.4</span>
+    <span class="io-titel">Exporteren (XLS en PDF)</span>
+    <span class="io-dots"></span>
+    <span class="io-pagina">11</span>
+  </div>
+  <div class="io-sectie">
+    <span class="io-nr">5</span>
+    <span class="io-titel">Thema's beheren</span>
+    <span class="io-dots"></span>
+    <span class="io-pagina">12</span>
+  </div>
+  <div class="io-sectie">
+    <span class="io-nr">6</span>
+    <span class="io-titel">Gebruikers beheren</span>
+    <span class="io-dots"></span>
+    <span class="io-pagina">13</span>
+  </div>
+  <div class="io-sectie">
+    <span class="io-nr">7</span>
+    <span class="io-titel">Activiteitenlog</span>
+    <span class="io-dots"></span>
+    <span class="io-pagina">14</span>
+  </div>
+  <div class="io-sectie">
+    <span class="io-nr">8</span>
+    <span class="io-titel">De bestelpagina (klantenscherm)</span>
+    <span class="io-dots"></span>
+    <span class="io-pagina">15</span>
+  </div>
+  <div class="io-sectie">
+    <span class="io-nr">9</span>
+    <span class="io-titel">Werkvolgorde per evenement</span>
+    <span class="io-dots"></span>
+    <span class="io-pagina">16</span>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════
+     1. OVERZICHT
+════════════════════════════════════════════ -->
+<div class="pagina">
+  <div class="sectie-header">
+    <div class="sectie-nr">1</div>
+    <div>
+      <div class="sectie-sub">Introductie</div>
+      <h2>Overzicht van het systeem</h2>
+    </div>
+  </div>
+
+  <p>Het Brodshoes bestelsysteem is een online platform waarmee klanten producten kunnen bestellen voor een specifiek evenement — zoals Pasen, Kerst of Oud & Nieuw. Beheerders configureren het aanbod, publiceren een bestelformulier en beheren de inkomende bestellingen.</p>
+
+  <p>Het systeem bestaat uit twee onderdelen:</p>
+
+  <div class="schermkaart">
+    <div class="schermkaart-header">Klantenscherm — de bestelpagina</div>
+    <div class="schermkaart-body">
+      <p>Het publieke formulier dat klanten invullen. Elke publicatie heeft een eigen URL (bijv. <strong>brodshoes.nl/pasen-2026</strong>). De inhoud — producten, prijzen, tijdslots, foto's — wordt volledig bepaald door de beheerder.</p>
+    </div>
+  </div>
+
+  <div class="schermkaart">
+    <div class="schermkaart-header">Beheerpaneel — templates.html</div>
+    <div class="schermkaart-body">
+      <p>Het interne beheerscherm. Alleen toegankelijk na inloggen. Hier maak je evenementen aan, beheer je bestellingen, verstuur je e-mails en beheer je gebruikers.</p>
+    </div>
+  </div>
+
+  <h3>Structuur van het beheerpaneel</h3>
+  <p>Het beheerpaneel is opgedeeld in zes tabbladen:</p>
+
+  <table class="velden-tabel">
+    <thead>
+      <tr><th>Tabblad</th><th>Functie</th></tr>
+    </thead>
+    <tbody>
+      <tr><td class="veld-naam">Bestellingen</td><td>Alle inkomende bestellingen bekijken, zoeken, exporteren en e-mails versturen</td></tr>
+      <tr><td class="veld-naam">Templates</td><td>Evenementen aanmaken, bewerken en publiceren</td></tr>
+      <tr><td class="veld-naam">Publicaties</td><td>Overzicht van alle gepubliceerde bestelpagina's met directe links</td></tr>
+      <tr><td class="veld-naam">Thema's</td><td>Kleurenschema's aanmaken en beheren voor de bestelpagina</td></tr>
+      <tr><td class="veld-naam">Activiteit</td><td>Logboek van alle acties door alle beheerders</td></tr>
+      <tr><td class="veld-naam">Gebruikers</td><td>Beheeraccounts aanmaken en verwijderen</td></tr>
+    </tbody>
+  </table>
+
+  <div class="pagina-footer">
+    <span>Brodshoes · Werkinstructie Bestelsysteem</span>
+    <span>Sectie 1 — Overzicht</span>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════
+     2. INLOGGEN
+════════════════════════════════════════════ -->
+<div class="pagina">
+  <div class="sectie-header">
+    <div class="sectie-nr">2</div>
+    <div>
+      <div class="sectie-sub">Toegang</div>
+      <h2>Inloggen</h2>
+    </div>
+  </div>
+
+  <p>Het beheerpaneel is alleen toegankelijk voor beheerders met een geldig account. Open de beheerpagina in uw browser. U wordt automatisch doorgestuurd naar het inlogscherm als u nog niet bent ingelogd.</p>
+
+  <h3>Inloggen</h3>
+  <ol class="stappen">
+    <li><div class="stap-nr">1</div><div class="stap-tekst">Open het beheerpaneel in uw browser.</div></li>
+    <li><div class="stap-nr">2</div><div class="stap-tekst">Voer uw <strong>e-mailadres</strong> in (het adres waarop u bent aangemeld).</div></li>
+    <li><div class="stap-nr">3</div><div class="stap-tekst">Voer uw <strong>wachtwoord</strong> in.</div></li>
+    <li><div class="stap-nr">4</div><div class="stap-tekst">Klik op <strong>Inloggen</strong>. U wordt doorgestuurd naar het beheerpaneel.</div></li>
+  </ol>
+
+  <div class="let-op">
+    <strong>Let op:</strong> Heeft u nog geen account? Vraag een andere beheerder om een account voor u aan te maken via het tabblad <em>Gebruikers</em>. U kunt zichzelf geen toegang geven.
+  </div>
+
+  <div class="tip">
+    <strong>Tip:</strong> Als u al eerder was ingelogd en uw browser nog een actieve sessie heeft, wordt u automatisch doorgestuurd naar het beheerpaneel zonder dat u opnieuw hoeft in te loggen.
+  </div>
+
+  <h3>Uitloggen</h3>
+  <p>Klik rechtsboven op de knop <strong>Uitloggen</strong> naast uw e-mailadres. U wordt teruggestuurd naar het inlogscherm. Sluit daarna het browservenster.</p>
+
+  <div class="pagina-footer">
+    <span>Brodshoes · Werkinstructie Bestelsysteem</span>
+    <span>Sectie 2 — Inloggen</span>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════
+     3. TEMPLATE AANMAKEN
+════════════════════════════════════════════ -->
+<div class="pagina">
+  <div class="sectie-header">
+    <div class="sectie-nr">3</div>
+    <div>
+      <div class="sectie-sub">Tabblad: Templates</div>
+      <h2>Een evenement aanmaken</h2>
+    </div>
+  </div>
+
+  <p>Elk evenement waarvoor klanten kunnen bestellen, wordt beheerd als een <strong>template</strong>. Een template bevat alle informatie die op de bestelpagina verschijnt: producten, prijzen, tijdslots, foto's en e-mailteksten. Een template heeft altijd een van de volgende statussen:</p>
+
+  <ul class="lijst">
+    <li><span class="badge badge-grijs">Concept</span> &nbsp;— in aanmaak, nog niet zichtbaar voor klanten</li>
+    <li><span class="badge badge-groen">Gepubliceerd</span> &nbsp;— live, klanten kunnen bestellen</li>
+    <li><span class="badge badge-oranje">Gearchiveerd</span> &nbsp;— afgesloten, niet meer te bestellen</li>
+  </ul>
+
+  <h3>Nieuwe template aanmaken</h3>
+  <ol class="stappen">
+    <li><div class="stap-nr">1</div><div class="stap-tekst">Ga naar het tabblad <strong>Templates</strong>.</div></li>
+    <li><div class="stap-nr">2</div><div class="stap-tekst">Klik op <strong>+ Nieuwe template</strong> (rode knop rechtsboven).</div></li>
+    <li><div class="stap-nr">3</div><div class="stap-tekst">De editor opent zich. Vul alle velden in (zie hieronder).</div></li>
+    <li><div class="stap-nr">4</div><div class="stap-tekst">Klik op <strong>Opslaan</strong>. De template wordt opgeslagen als concept.</div></li>
+  </ol>
+
+  <h4>3.1 — Tabblad Instellingen</h4>
+
+  <table class="velden-tabel">
+    <thead>
+      <tr><th style="width:30%">Veld</th><th style="width:10%">Verplicht</th><th>Toelichting</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="veld-naam">Naam template</td>
+        <td class="veld-verplicht">Ja</td>
+        <td>Interne naam, alleen zichtbaar in het beheerpaneel. Bijv. <em>Kerst 2026</em>.</td>
+      </tr>
+      <tr>
+        <td class="veld-naam">Slug (URL)</td>
+        <td class="veld-verplicht">Ja</td>
+        <td>Wordt automatisch gegenereerd op basis van de naam. Bepaalt het adres van de bestelpagina, bijv. <em>kerst-2026</em>. Alleen kleine letters, cijfers en koppeltekens. Eenmaal gepubliceerd niet meer wijzigen.</td>
+      </tr>
+      <tr>
+        <td class="veld-naam">Thema</td>
+        <td class="veld-verplicht">Ja</td>
+        <td>Kleurenschema van de bestelpagina. Kies een van de beschikbare thema's. Nieuwe thema's maakt u aan via het tabblad <em>Thema's</em>.</td>
+      </tr>
+      <tr>
+        <td class="veld-naam">Paginatitel</td>
+        <td class="veld-verplicht">Ja</td>
+        <td>Grote koptekst op de bestelpagina. Bijv. <em>Kerst 2026</em>.</td>
+      </tr>
+      <tr>
+        <td class="veld-naam">Subtitel / omschrijving</td>
+        <td></td>
+        <td>Korte beschrijving onder de paginatitel. Bijv. <em>Bestel uw feestelijke kerstschotels bij Brodshoes.</em></td>
+      </tr>
+      <tr>
+        <td class="veld-naam">Afhaaldag</td>
+        <td></td>
+        <td>De dag waarop klanten hun bestelling ophalen. Bijv. <em>zaterdag 20 december</em>.</td>
+      </tr>
+      <tr>
+        <td class="veld-naam">Locatie</td>
+        <td></td>
+        <td>Afhaallocatie. Bijv. <em>Rijssen</em>.</td>
+      </tr>
+      <tr>
+        <td class="veld-naam">Deadline bestellen</td>
+        <td></td>
+        <td>Uiterste besteldatum, zichtbaar als melding op de bestelpagina. Bijv. <em>zondag 14 december 2026</em>.</td>
+      </tr>
+      <tr>
+        <td class="veld-naam">Badge tekst</td>
+        <td></td>
+        <td>Korte samenvatting in de afhaalbadge. Bijv. <em>Afhalen zaterdag 20 december · 10:00 – 14:00 uur</em>.</td>
+      </tr>
+      <tr>
+        <td class="veld-naam">Header foto</td>
+        <td></td>
+        <td>Afbeelding bovenaan de bestelpagina én in de bevestigingsmail. Aanbevolen formaat: 1200 × 400 px. Upload via de blauwe uploadzone.</td>
+      </tr>
+      <tr>
+        <td class="veld-naam">Footer foto</td>
+        <td></td>
+        <td>Afbeelding onderaan de bestelpagina én in de bevestigingsmail. Aanbevolen formaat: 1200 × 300 px.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="pagina-footer">
+    <span>Brodshoes · Werkinstructie Bestelsysteem</span>
+    <span>Sectie 3 — Een evenement aanmaken</span>
+  </div>
+</div>
+
+<div class="pagina">
+
+  <h3>Producten en categorieën</h3>
+  <p>Producten zijn gegroepeerd in categorieën (bijv. <em>Huzarensalade</em>, <em>Waldorfsalade</em>). Per categorie voegt u producten toe.</p>
+
+  <ol class="stappen">
+    <li><div class="stap-nr">1</div><div class="stap-tekst">Klik op <strong>+ Categorie toevoegen</strong> om een nieuwe categorie aan te maken. Geef de categorie een naam.</div></li>
+    <li><div class="stap-nr">2</div><div class="stap-tekst">Klik op <strong>+ Product toevoegen</strong> binnen de categorie om een product toe te voegen.</div></li>
+    <li><div class="stap-nr">3</div><div class="stap-tekst">Vul per product in: <strong>naam</strong>, optionele <strong>omschrijving</strong> en <strong>prijs</strong> (in euro's, zonder symbool).</div></li>
+    <li><div class="stap-nr">4</div><div class="stap-tekst">Verwijder een product of categorie met de <strong>×</strong>-knop. Er moet altijd minimaal één categorie en één product aanwezig zijn.</div></li>
+  </ol>
+
+  <h3>Tijdslots</h3>
+  <p>Tijdslots zijn de afhaalmoment-opties die klanten kunnen kiezen. Voeg een tijdslot toe per regel, bijv. <em>10:00 – 10:30</em>. Verwijder tijdslots met de <strong>×</strong>-knop.</p>
+
+  <div class="tip">
+    <strong>Tip:</strong> Plan tijdslots ruim genoeg om drukte te spreiden. Een kwartier per tijdslot werkt goed bij grotere aantallen bestellingen.
+  </div>
+
+  <h4>3.2 — Tabblad E-mail</h4>
+  <p>In de editor-modal vindt u naast <em>Instellingen</em> ook een tabblad <strong>E-mail</strong>. Hier stelt u de teksten in voor de automatische e-mails die klanten ontvangen.</p>
+
+  <table class="velden-tabel">
+    <thead>
+      <tr><th style="width:35%">Veld</th><th>Toelichting</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="veld-naam">Onderwerp bevestiging</td>
+        <td>De onderwerpregel van de bevestigingsmail. Bijv. <em>Uw bestelling bij Brodshoes — Kerst 2026</em>.</td>
+      </tr>
+      <tr>
+        <td class="veld-naam">Intro bevestigingsmail</td>
+        <td>De aanheftekst in de bevestigingsmail, boven het bestellingoverzicht. Gebruik <strong>{{voornaam}}</strong> om de naam van de klant in te voegen.</td>
+      </tr>
+      <tr>
+        <td class="veld-naam">Onderwerp herinnering</td>
+        <td>De onderwerpregel van de herinneringsmail.</td>
+      </tr>
+      <tr>
+        <td class="veld-naam">Intro herinneringsmail</td>
+        <td>De aanheftekst in de herinneringsmail.</td>
+      </tr>
+      <tr>
+        <td class="veld-naam">Afsluiting</td>
+        <td>Afsluitende tekst die in beide mails onderaan verschijnt. Bijv. <em>Met vriendelijke groet, Team Brodshoes</em>.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h4>Beschikbare placeholders</h4>
+  <p>Gebruik de volgende codes in uw teksten. Ze worden automatisch vervangen door de gegevens van de betreffende klant:</p>
+
+  <table class="velden-tabel">
+    <thead>
+      <tr><th>Code</th><th>Wordt vervangen door</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>{{voornaam}}</code></td><td>Voornaam van de klant</td></tr>
+      <tr><td><code>{{achternaam}}</code></td><td>Achternaam van de klant</td></tr>
+      <tr><td><code>{{naam}}</code></td><td>Volledige naam (voor- en achternaam)</td></tr>
+      <tr><td><code>{{tijdslot}}</code></td><td>Gekozen afhaalmoment</td></tr>
+      <tr><td><code>{{totaal}}</code></td><td>Totaalbedrag van de bestelling</td></tr>
+      <tr><td><code>{{evenement_dag}}</code></td><td>Afhaaldag van het evenement</td></tr>
+      <tr><td><code>{{evenement_locatie}}</code></td><td>Locatie van het evenement</td></tr>
+      <tr><td><code>{{evenement_badge}}</code></td><td>Volledige badge-tekst</td></tr>
+      <tr><td><code>{{evenement_deadline}}</code></td><td>Besteldatum</td></tr>
+    </tbody>
+  </table>
+
+  <div class="tip">
+    <strong>Tip:</strong> Klik op een placeholder in de editor om deze direct naar uw klembord te kopiëren. Plak hem vervolgens in de gewenste tekst.
+  </div>
+
+  <p>Gebruik de knoppen <strong>👁️ Voorbeeld bevestigingsmail</strong> en <strong>👁️ Voorbeeld herinneringsmail</strong> om een voorvertoning te openen met voorbeelddata. Zo ziet u exact hoe de mail er bij klanten uitziet vóórdat u hem verstuurt.</p>
+
+  <div class="pagina-footer">
+    <span>Brodshoes · Werkinstructie Bestelsysteem</span>
+    <span>Sectie 3 — Een evenement aanmaken (vervolg)</span>
+  </div>
+</div>
+
+<div class="pagina">
+  <h4>3.3 — Publiceren</h4>
+  <p>Zodra de template volledig is ingevuld, kunt u deze publiceren. Pas dan wordt de bestelpagina zichtbaar voor klanten.</p>
+
+  <ol class="stappen">
+    <li><div class="stap-nr">1</div><div class="stap-tekst">Ga naar het tabblad <strong>Templates</strong>.</div></li>
+    <li><div class="stap-nr">2</div><div class="stap-tekst">Zoek de template op en klik op <strong>🚀 Publiceren</strong>.</div></li>
+    <li><div class="stap-nr">3</div><div class="stap-tekst">De status verandert naar <span class="badge badge-groen">Gepubliceerd</span> en de URL wordt automatisch naar uw klembord gekopieerd.</div></li>
+    <li><div class="stap-nr">4</div><div class="stap-tekst">Deel de URL met klanten via e-mail, social media of uw website.</div></li>
+  </ol>
+
+  <div class="let-op">
+    <strong>Let op:</strong> Eenmaal gepubliceerd blijft de bestelpagina live totdat u de template archiveert. Archiveren doet u via de knop <strong>📦 Archiveren</strong> op de templatekaart.
+  </div>
+
+  <h3>Template dupliceren</h3>
+  <p>Heeft u al eerder een evenement aangemaakt? Dan kunt u een bestaande template dupliceren als startpunt voor een nieuw evenement. Klik op <strong>📋 Dupliceren</strong> op de templatekaart. Er wordt een kopie aangemaakt met de status <span class="badge badge-grijs">Concept</span>. Pas de naam, datum, producten en teksten aan en publiceer opnieuw.</p>
+
+  <h3>Template verwijderen</h3>
+  <p>Klik op <strong>🗑️ Verwijderen</strong> en bevestig de actie. Let op: hierbij worden ook alle bijbehorende bestellingen en publicaties permanent verwijderd. Overweeg archiveren als alternatief.</p>
+
+  <div class="pagina-footer">
+    <span>Brodshoes · Werkinstructie Bestelsysteem</span>
+    <span>Sectie 3 — Een evenement aanmaken (vervolg)</span>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════
+     4. BESTELLINGEN
+════════════════════════════════════════════ -->
+<div class="pagina">
+  <div class="sectie-header">
+    <div class="sectie-nr">4</div>
+    <div>
+      <div class="sectie-sub">Tabblad: Bestellingen</div>
+      <h2>Bestellingen beheren</h2>
+    </div>
+  </div>
+
+  <p>Het tabblad <strong>Bestellingen</strong> is het centrale werkscherm voor de dagelijkse verwerking. Hier ziet u alle inkomende bestellingen, kunt u zoeken en filteren, e-mails versturen en exporteren.</p>
+
+  <h4>4.1 — Bestellingen bekijken en zoeken</h4>
+
+  <ol class="stappen">
+    <li><div class="stap-nr">1</div><div class="stap-tekst">Selecteer een template in het <strong>filterdropdown</strong> linksboven. Bestellingen worden pas geladen nadat u een template heeft gekozen.</div></li>
+    <li><div class="stap-nr">2</div><div class="stap-tekst">Boven de tabel verschijnen drie <strong>statistiektegels</strong>: het totaal aantal bestellingen, de totale omzet en het aantal bestellingen met een opmerking.</div></li>
+    <li><div class="stap-nr">3</div><div class="stap-tekst">Gebruik het <strong>zoekveld</strong> om te filteren op naam, e-mailadres, telefoonnummer of adres. De gevonden tekst wordt geel gemarkeerd in de tabel.</div></li>
+    <li><div class="stap-nr">4</div><div class="stap-tekst">Klik op een rij om de bestelling <strong>uit te klappen</strong> en de details te bekijken.</div></li>
+  </ol>
+
+  <h3>Detailpaneel van een bestelling</h3>
+  <p>Bij het uitklappen van een bestelling ziet u:</p>
+
+  <ul class="lijst">
+    <li><strong>Contactgegevens</strong> — naam, e-mailadres en telefoonnummer</li>
+    <li><strong>Adres</strong> — woonadres en plaatsnaam</li>
+    <li><strong>Mailacties</strong> — knoppen om bevestiging of herinnering te versturen en te bekijken (zie §4.2)</li>
+    <li><strong>Bestelregels</strong> — overzicht van alle producten met aantallen en subtotalen</li>
+    <li><strong>Opmerking</strong> — indien aanwezig, gemarkeerd met een waarschuwingsicoontje (⚠️) in de tabelrij</li>
+  </ul>
+
+  <h3>Mailstatus</h3>
+  <p>In de kolom <strong>Mail</strong> van de tabel ziet u per bestelling de status van de bevestigingsmail. Een kleine <strong>H</strong>-badge geeft de status van de herinneringsmail aan.</p>
+
+  <table class="velden-tabel">
+    <thead>
+      <tr><th>Badge</th><th>Betekenis</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><span class="badge badge-grijs">–</span></td><td>Nog geen mail verstuurd</td></tr>
+      <tr><td><span class="badge badge-blauw">Verzonden</span></td><td>Mail is verstuurd, bezorging in behandeling</td></tr>
+      <tr><td><span class="badge badge-groen">Afgeleverd</span></td><td>Mail is succesvol afgeleverd in de inbox</td></tr>
+      <tr><td><span class="badge badge-groen">Geopend</span></td><td>Klant heeft de mail geopend</td></tr>
+      <tr><td><span class="badge badge-rood">Fout</span></td><td>Versturen mislukt — zie mail historie voor details</td></tr>
+      <tr><td><span class="badge badge-rood">Bounced</span></td><td>E-mailadres ongeldig of inbox vol</td></tr>
+    </tbody>
+  </table>
+
+  <div class="pagina-footer">
+    <span>Brodshoes · Werkinstructie Bestelsysteem</span>
+    <span>Sectie 4 — Bestellingen beheren</span>
+  </div>
+</div>
+
+<div class="pagina">
+  <h4>4.2 — E-mails versturen</h4>
+
+  <h3>Bevestigingsmail</h3>
+  <p>De bevestigingsmail wordt <strong>automatisch verstuurd</strong> zodra een klant een bestelling plaatst. U hoeft hier niets voor te doen. Als de automatische mail niet is aangekomen (status <span class="badge badge-rood">Fout</span>), kunt u hem handmatig opnieuw versturen.</p>
+
+  <ol class="stappen">
+    <li><div class="stap-nr">1</div><div class="stap-tekst">Klap de bestelling uit in de tabel.</div></li>
+    <li><div class="stap-nr">2</div><div class="stap-tekst">Klik op <strong>✉️ Bevestiging versturen</strong> om de bevestigingsmail opnieuw te sturen.</div></li>
+    <li><div class="stap-nr">3</div><div class="stap-tekst">Klik op <strong>👁️ Voorbeeld</strong> naast de knop om een voorvertoning te openen op basis van de werkelijke besteldata.</div></li>
+  </ol>
+
+  <h3>Herinneringsmail</h3>
+  <p>Een herinneringsmail stuurt u handmatig, bijvoorbeeld een of twee dagen voor het afhaalmoment.</p>
+
+  <ol class="stappen">
+    <li><div class="stap-nr">1</div><div class="stap-tekst">Klap de bestelling uit in de tabel.</div></li>
+    <li><div class="stap-nr">2</div><div class="stap-tekst">Klik op <strong>🔔 Herinnering versturen</strong> om de herinneringsmail te versturen.</div></li>
+    <li><div class="stap-nr">3</div><div class="stap-tekst">Gebruik <strong>👁️ Voorbeeld</strong> om de mail eerst te controleren.</div></li>
+  </ol>
+
+  <h3>Batch herinneringsmail</h3>
+  <p>Stuurt u een herinnering aan alle klanten tegelijk? Gebruik de batch-functie rechtsboven in de toolbar.</p>
+
+  <ol class="stappen">
+    <li><div class="stap-nr">1</div><div class="stap-tekst">Zorg dat u een template heeft geselecteerd in het filterdropdown.</div></li>
+    <li><div class="stap-nr">2</div><div class="stap-tekst">Klik op <strong>✉️ Herinneringsmail</strong> (blauwe knop in de toolbar).</div></li>
+    <li><div class="stap-nr">3</div><div class="stap-tekst">Een statusbalk verschijnt en toont de voortgang per klant. Klanten die al een herinnering ontvingen worden automatisch overgeslagen.</div></li>
+  </ol>
+
+  <div class="tip">
+    <strong>Tip:</strong> Controleer altijd eerst de voorbeeldmail voordat u een batch verstuurt. Zo weet u zeker dat de teksten en het afhaalmoment kloppen.
+  </div>
+
+  <h3>Mail historie</h3>
+  <p>Klik op <strong>📋 Mail historie</strong> in het detailpaneel van een bestelling om een overzicht te zien van alle verstuurde mails voor die bestelling. Per mail ziet u: type (bevestiging of herinnering), onderwerp, datum/tijd, bezorgstatus en eventuele foutmeldingen.</p>
+
+  <h4>4.3 — Bestelling bewerken of verwijderen</h4>
+
+  <h3>Bestelregels aanpassen</h3>
+  <p>Klik op <strong>✏️ Regels bewerken</strong> in het detailpaneel. Een modal verschijnt met alle bestelregels. U kunt aantallen aanpassen (met stappen van 0,5), producten verwijderen uit de bestelling of nieuwe producten toevoegen via het dropdown. Het totaalbedrag wordt live herberekend. Klik op <strong>Opslaan</strong> om de wijzigingen op te slaan.</p>
+
+  <h3>Bestelling verwijderen</h3>
+  <p>Klik op <strong>🗑️ Verwijderen</strong> in het detailpaneel en bevestig de actie. De bestelling wordt permanent verwijderd uit het systeem.</p>
+
+  <h4>4.4 — Exporteren</h4>
+
+  <h3>Export naar Excel (XLS)</h3>
+  <p>Klik op <strong>📥 Export XLS</strong> in de toolbar. Er wordt een Excel-bestand gedownload met drie overzichten:</p>
+  <ul class="lijst">
+    <li><strong>Producttotalen</strong> — totaal aantal per product over alle bestellingen</li>
+    <li><strong>Halve aantallen</strong> — bestellingen met 0,5-stappen (bijv. halve liter)</li>
+    <li><strong>Opmerkingen</strong> — alle bestellingen met een opmerking van de klant</li>
+  </ul>
+
+  <h3>Export naar PDF</h3>
+  <p>Klik op <strong>🖨️ PDF bestellingen</strong>. De browser opent een afdrukklare versie met één pagina per bestelling, gesorteerd op achternaam. Per pagina ziet u: naam, tijdslot, totaalbedrag en een overzicht van alle bestelregels per categorie. Gebruik de afdrukfunctie van uw browser om op te slaan als PDF of direct af te drukken.</p>
+
+  <div class="pagina-footer">
+    <span>Brodshoes · Werkinstructie Bestelsysteem</span>
+    <span>Sectie 4 — Bestellingen beheren (vervolg)</span>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════
+     5. THEMA'S
+════════════════════════════════════════════ -->
+<div class="pagina">
+  <div class="sectie-header">
+    <div class="sectie-nr">5</div>
+    <div>
+      <div class="sectie-sub">Tabblad: Thema's</div>
+      <h2>Thema's beheren</h2>
+    </div>
+  </div>
+
+  <p>Een thema bepaalt de kleurstelling van de bestelpagina: achtergrondkleur, kaartkleur en accentkleur. Het systeem bevat standaard thema's (zoals Kerst, Pasen, Zomer), maar u kunt ook eigen thema's aanmaken.</p>
+
+  <h3>Nieuw thema aanmaken</h3>
+  <ol class="stappen">
+    <li><div class="stap-nr">1</div><div class="stap-tekst">Ga naar het tabblad <strong>Thema's</strong>.</div></li>
+    <li><div class="stap-nr">2</div><div class="stap-tekst">Klik op <strong>+ Nieuw thema</strong>.</div></li>
+    <li><div class="stap-nr">3</div><div class="stap-tekst">Geef het thema een naam (bijv. <em>Valentijn 2027</em>).</div></li>
+    <li><div class="stap-nr">4</div><div class="stap-tekst">Kies drie kleuren via de kleurenkiezers: <strong>Achtergrond</strong>, <strong>Kaart</strong> en <strong>Accent</strong>.</div></li>
+    <li><div class="stap-nr">5</div><div class="stap-tekst">Bekijk de <strong>live preview</strong> aan de rechterkant van de modal om te zien hoe de bestelpagina eruit ziet met de gekozen kleuren.</div></li>
+    <li><div class="stap-nr">6</div><div class="stap-tekst">Klik op <strong>Opslaan</strong>. Het thema is direct beschikbaar in de template-editor.</div></li>
+  </ol>
+
+  <h3>Bestaand thema bewerken</h3>
+  <p>Klik op <strong>✏️ Bewerken</strong> op de themakaart. Pas de naam of kleuren aan en sla op. Alle templates die dit thema gebruiken worden automatisch bijgewerkt.</p>
+
+  <h3>Thema verwijderen</h3>
+  <p>Klik op <strong>🗑️ Verwijderen</strong> op de themakaart en bevestig. Let op: verwijder geen thema dat nog in gebruik is bij een actieve (gepubliceerde) template.</p>
+
+  <h3>Kleurkeuze richtlijn</h3>
+  <table class="velden-tabel">
+    <thead>
+      <tr><th>Kleur</th><th>Functie op de bestelpagina</th></tr>
+    </thead>
+    <tbody>
+      <tr><td class="veld-naam">Achtergrond</td><td>Paginaachtergrond, tekstkleur van de sectiestitel</td></tr>
+      <tr><td class="veld-naam">Kaart</td><td>Productkaarten, afhaalbadge, koptekst in de mail</td></tr>
+      <tr><td class="veld-naam">Accent</td><td>Knoppen, prijzen, gemarkeerde onderdelen</td></tr>
+    </tbody>
+  </table>
+
+  <div class="tip">
+    <strong>Tip:</strong> Gebruik de live preview om de leesbaarheid te controleren. Zorg dat de tekst op de kaartkleur altijd goed leesbaar is (voldoende contrast).
+  </div>
+
+  <div class="pagina-footer">
+    <span>Brodshoes · Werkinstructie Bestelsysteem</span>
+    <span>Sectie 5 — Thema's beheren</span>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════
+     6. GEBRUIKERS
+════════════════════════════════════════════ -->
+<div class="pagina">
+  <div class="sectie-header">
+    <div class="sectie-nr">6</div>
+    <div>
+      <div class="sectie-sub">Tabblad: Gebruikers</div>
+      <h2>Gebruikers beheren</h2>
+    </div>
+  </div>
+
+  <p>In het tabblad <strong>Gebruikers</strong> beheert u wie toegang heeft tot het beheerpaneel. Iedereen in deze lijst kan inloggen en bestellingen en templates beheren. Voeg alleen vertrouwde medewerkers toe.</p>
+
+  <h3>Nieuwe gebruiker aanmaken</h3>
+  <ol class="stappen">
+    <li><div class="stap-nr">1</div><div class="stap-tekst">Ga naar het tabblad <strong>Gebruikers</strong>.</div></li>
+    <li><div class="stap-nr">2</div><div class="stap-tekst">Klik op <strong>+ Nieuwe gebruiker</strong>.</div></li>
+    <li><div class="stap-nr">3</div><div class="stap-tekst">Voer het <strong>e-mailadres</strong> in van de nieuwe gebruiker.</div></li>
+    <li><div class="stap-nr">4</div><div class="stap-tekst">Kies een <strong>wachtwoord</strong> van minimaal 6 tekens.</div></li>
+    <li><div class="stap-nr">5</div><div class="stap-tekst">Klik op <strong>Aanmaken</strong>. De gebruiker verschijnt direct in de lijst en kan nu inloggen.</div></li>
+    <li><div class="stap-nr">6</div><div class="stap-tekst">Deel het e-mailadres en wachtwoord veilig met de betreffende medewerker. Vraag hen het wachtwoord bij de eerste login te wijzigen.</div></li>
+  </ol>
+
+  <div class="let-op">
+    <strong>Let op:</strong> Er is geen automatisch welkomstmailtje. U moet het wachtwoord zelf doorgeven aan de nieuwe gebruiker.
+  </div>
+
+  <h3>Gebruiker verwijderen</h3>
+  <ol class="stappen">
+    <li><div class="stap-nr">1</div><div class="stap-tekst">Zoek de gebruiker in de tabel.</div></li>
+    <li><div class="stap-nr">2</div><div class="stap-tekst">Klik op de <strong>🗑️</strong>-knop in de laatste kolom.</div></li>
+    <li><div class="stap-nr">3</div><div class="stap-tekst">Bevestig de actie in het bevestigingsvenster.</div></li>
+  </ol>
+
+  <div class="let-op">
+    <strong>Let op:</strong> U kunt uw eigen account niet verwijderen. De kolom toont dan <em>Uzelf</em> zonder verwijderknop. Vraag een andere beheerder om uw account te verwijderen als dat nodig is.
+  </div>
+
+  <h3>Overzicht gebruikerstabel</h3>
+  <table class="velden-tabel">
+    <thead>
+      <tr><th>Kolom</th><th>Betekenis</th></tr>
+    </thead>
+    <tbody>
+      <tr><td class="veld-naam">E-mailadres</td><td>Het inlogadres van de gebruiker</td></tr>
+      <tr><td class="veld-naam">Aangemaakt op</td><td>Datum waarop het account is aangemaakt</td></tr>
+      <tr><td class="veld-naam">Laatste login</td><td>Datum van de meest recente aanmelding. Handig om inactieve accounts te signaleren.</td></tr>
+    </tbody>
+  </table>
+
+  <div class="pagina-footer">
+    <span>Brodshoes · Werkinstructie Bestelsysteem</span>
+    <span>Sectie 6 — Gebruikers beheren</span>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════
+     7. ACTIVITEIT
+════════════════════════════════════════════ -->
+<div class="pagina">
+  <div class="sectie-header">
+    <div class="sectie-nr">7</div>
+    <div>
+      <div class="sectie-sub">Tabblad: Activiteit</div>
+      <h2>Activiteitenlog</h2>
+    </div>
+  </div>
+
+  <p>Het tabblad <strong>Activiteit</strong> toont een chronologisch logboek van alle acties die beheerders hebben uitgevoerd in het systeem. U kunt hier zien wie wat heeft gedaan en wanneer.</p>
+
+  <h3>Wat wordt gelogd?</h3>
+  <ul class="lijst">
+    <li>Template aangemaakt, bewerkt, gepubliceerd, gedupliceerd, gearchiveerd, hersteld of verwijderd</li>
+    <li>Thema aangemaakt, bewerkt of verwijderd</li>
+  </ul>
+
+  <h3>Filteren</h3>
+  <p>Gebruik het dropdown rechtsboven om de tijdlijn te filteren op een specifiek actietype. Selecteer <em>Alle acties</em> om het volledige logboek te zien.</p>
+
+  <h3>Tijdlijn lezen</h3>
+  <p>Elke entry in de tijdlijn toont:</p>
+  <ul class="lijst">
+    <li><strong>Datum en tijdstip</strong> van de actie</li>
+    <li><strong>Actielabel</strong> — wat er is gedaan (bijv. <em>Template gepubliceerd</em>)</li>
+    <li><strong>Naam</strong> van het betrokken object (de template of het thema)</li>
+    <li><strong>Uitvoerder</strong> — het e-mailadres van de beheerder die de actie heeft uitgevoerd</li>
+  </ul>
+
+  <div class="tip">
+    <strong>Tip:</strong> Het logboek toont maximaal 200 recente acties. Gebruik het filter om gerichte informatie te vinden.
+  </div>
+
+  <div class="pagina-footer">
+    <span>Brodshoes · Werkinstructie Bestelsysteem</span>
+    <span>Sectie 7 — Activiteitenlog</span>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════
+     8. BESTELPAGINA
+════════════════════════════════════════════ -->
+<div class="pagina">
+  <div class="sectie-header">
+    <div class="sectie-nr">8</div>
+    <div>
+      <div class="sectie-sub">Klantenscherm</div>
+      <h2>De bestelpagina</h2>
+    </div>
+  </div>
+
+  <p>De bestelpagina is het scherm dat klanten zien wanneer zij de gepubliceerde URL openen. De inhoud wordt volledig bepaald door de bijbehorende template. Als beheerder hoeft u hier niets aan te doen — de pagina werkt automatisch zodra de template is gepubliceerd.</p>
+
+  <h3>Wat ziet de klant?</h3>
+  <ul class="lijst">
+    <li><strong>Header foto</strong> — decoratieve afbeelding bovenaan de pagina</li>
+    <li><strong>Evenementnaam en omschrijving</strong> — titel en subtitel van het evenement</li>
+    <li><strong>Afhaal-badge</strong> — samenvatting van dag, tijdslots en deadline</li>
+    <li><strong>Bestelformulier</strong> — contactgegevens (naam, e-mail, telefoon, adres) en productaantallen per categorie</li>
+    <li><strong>Tijdslot-kiezer</strong> — klikbare blokken om een afhaalmoment te kiezen</li>
+    <li><strong>Totaalbedrag</strong> — wordt automatisch bijgewerkt bij elke hoeveelheidswijziging</li>
+    <li><strong>Opmerkingenveld</strong> — optioneel vrij tekstveld voor bijzondere wensen</li>
+    <li><strong>Verzendknop</strong> — plaatst de bestelling en stuurt een bevestigingsmail</li>
+    <li><strong>Bevestigingsscherm</strong> — samenvatting van de bestelling na verzending</li>
+    <li><strong>Footer foto</strong> — decoratieve afbeelding onderaan de pagina</li>
+  </ul>
+
+  <h3>Automatische bevestigingsmail</h3>
+  <p>Zodra een klant op <em>Bestelling plaatsen</em> klikt, ontvangt hij of zij direct een bevestigingsmail met het bestellingoverzicht, het afhaalmoment en de contactgegevens. De tekst van deze mail stelt u in via het tabblad <em>E-mail</em> in de template-editor (zie §3.2).</p>
+
+  <h3>URL-structuur</h3>
+  <p>Elke bestelpagina heeft een eigen URL op basis van de slug van de template. Afhankelijk van de hostingomgeving heeft de URL de volgende vorm:</p>
+  <ul class="lijst">
+    <li>Op een productieserver: <strong>brodshoes.nl/pasen-2026</strong></li>
+    <li>Op GitHub Pages (testomgeving): <strong>gebruikersnaam.github.io/repo/index.html#pasen-2026</strong></li>
+  </ul>
+
+  <div class="pagina-footer">
+    <span>Brodshoes · Werkinstructie Bestelsysteem</span>
+    <span>Sectie 8 — De bestelpagina</span>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════
+     9. WERKVOLGORDE
+════════════════════════════════════════════ -->
+<div class="pagina">
+  <div class="sectie-header">
+    <div class="sectie-nr">9</div>
+    <div>
+      <div class="sectie-sub">Samenvatting</div>
+      <h2>Werkvolgorde per evenement</h2>
+    </div>
+  </div>
+
+  <p>Hieronder vindt u de aanbevolen werkvolgorde voor het opzetten en afhandelen van een volledig evenement, van aanmaak tot en met de dag van afhalen.</p>
+
+  <h3>Fase 1 — Voorbereiding (enkele weken voor het evenement)</h3>
+  <div class="flow">
+    <div class="flow-stap">Template aanmaken</div>
+    <div class="flow-pijl">→</div>
+    <div class="flow-stap">Producten & prijzen invullen</div>
+    <div class="flow-pijl">→</div>
+    <div class="flow-stap">Tijdslots instellen</div>
+    <div class="flow-pijl">→</div>
+    <div class="flow-stap">Foto's uploaden</div>
+    <div class="flow-pijl">→</div>
+    <div class="flow-stap">E-mailteksten schrijven</div>
+  </div>
+
+  <ol class="stappen">
+    <li><div class="stap-nr">1</div><div class="stap-tekst">Maak een nieuwe template aan (of dupliceer een bestaande) via het tabblad <strong>Templates</strong>.</div></li>
+    <li><div class="stap-nr">2</div><div class="stap-tekst">Vul alle evenementgegevens in: naam, datum, locatie, deadline en badge-tekst.</div></li>
+    <li><div class="stap-nr">3</div><div class="stap-tekst">Voeg categorieën en producten toe met de juiste prijzen.</div></li>
+    <li><div class="stap-nr">4</div><div class="stap-tekst">Stel de tijdslots in voor de afhaaldag.</div></li>
+    <li><div class="stap-nr">5</div><div class="stap-tekst">Upload een header- en footerfoto (aanbevolen formaten: 1200×400 en 1200×300 px).</div></li>
+    <li><div class="stap-nr">6</div><div class="stap-tekst">Schrijf de e-mailteksten (intro bevestiging, intro herinnering, afsluiting) in het tabblad E-mail van de editor. Controleer de voorbeeldmails.</div></li>
+    <li><div class="stap-nr">7</div><div class="stap-tekst">Sla op als concept en laat intern controleren.</div></li>
+  </ol>
+
+  <h3>Fase 2 — Publicatie (op de openingsdatum)</h3>
+  <div class="flow">
+    <div class="flow-stap">Template publiceren</div>
+    <div class="flow-pijl">→</div>
+    <div class="flow-stap">URL delen met klanten</div>
+  </div>
+
+  <ol class="stappen">
+    <li><div class="stap-nr">1</div><div class="stap-tekst">Klik op <strong>🚀 Publiceren</strong> op de templatekaart. De URL wordt gekopieerd naar uw klembord.</div></li>
+    <li><div class="stap-nr">2</div><div class="stap-tekst">Deel de URL via e-mail, nieuwsbrief, social media of uw website.</div></li>
+    <li><div class="stap-nr">3</div><div class="stap-tekst">Controleer of de bestelpagina correct wordt weergegeven door de URL zelf te openen.</div></li>
+  </ol>
+
+  <h3>Fase 3 — Bestelperiode (lopende periode)</h3>
+  <ol class="stappen">
+    <li><div class="stap-nr">1</div><div class="stap-tekst">Controleer dagelijks de nieuwe bestellingen in het tabblad <strong>Bestellingen</strong>.</div></li>
+    <li><div class="stap-nr">2</div><div class="stap-tekst">Bestellingen met een opmerking (⚠️) verdienen extra aandacht — lees de opmerking in het detailpaneel.</div></li>
+    <li><div class="stap-nr">3</div><div class="stap-tekst">Herstel mislukte bevestigingsmails (status <span class="badge badge-rood">Fout</span>) door op <strong>✉️ Bevestiging versturen</strong> te klikken.</div></li>
+  </ol>
+
+  <h3>Fase 4 — Aanloop naar afhaaldag</h3>
+  <ol class="stappen">
+    <li><div class="stap-nr">1</div><div class="stap-tekst">Exporteer de bestellingen naar Excel via <strong>📥 Export XLS</strong> voor intern gebruik.</div></li>
+    <li><div class="stap-nr">2</div><div class="stap-tekst">Stuur één of twee dagen voor het afhaalmoment een <strong>batch herinneringsmail</strong> via de knop <em>✉️ Herinneringsmail</em> in de toolbar.</div></li>
+    <li><div class="stap-nr">3</div><div class="stap-tekst">Print de bestellingen als PDF via <strong>🖨️ PDF bestellingen</strong> voor gebruik op de afhaaldag.</div></li>
+  </ol>
+
+  <h3>Fase 5 — Na de afhaaldag</h3>
+  <ol class="stappen">
+    <li><div class="stap-nr">1</div><div class="stap-tekst">Archiveer de template via <strong>📦 Archiveren</strong>. De bestelpagina is daarna niet meer toegankelijk voor klanten.</div></li>
+    <li><div class="stap-nr">2</div><div class="stap-tekst">Bewaar het Excel-export voor de administratie.</div></li>
+  </ol>
+
+  <div class="tip">
+    <strong>Tip voor volgend jaar:</strong> Dupliceer de gearchiveerde template als startpunt voor het volgende evenement. Pas alleen de datums, foto's en eventuele prijswijzigingen aan.
+  </div>
+
+  <div class="pagina-footer">
+    <span>Brodshoes · Werkinstructie Bestelsysteem</span>
+    <span>Sectie 9 — Werkvolgorde per evenement</span>
+  </div>
+</div>
+
+</body>
+</html>
