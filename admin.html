@@ -591,12 +591,6 @@
               <input type="text" id="ev-badge" placeholder="Afhalen zaterdag 18 april · 14:00 – 16:00 uur" />
             </div>
           </div>
-          <div class="form-row enkel">
-            <div class="form-group">
-              <label>Formspree endpoint (vervang PLACEHOLDER)</label>
-              <input type="text" id="ev-formspree" placeholder="https://formspree.io/f/JOUWCODE" />
-            </div>
-          </div>
         </div>
       </div>
     </div>
@@ -692,7 +686,6 @@ const DEFAULT_CONFIG = {
     locatie: 'Rijssen',
     deadline: 'zondag 13 april 2026',
     badge: 'Afhalen zaterdag 18 april · 14:00 – 16:00 uur',
-    formspree: 'https://formspree.io/f/PLACEHOLDER',
   },
   categorieeen: [
     {
@@ -795,7 +788,6 @@ function vulFormulierenIn() {
   document.getElementById('ev-locatie').value    = ev.locatie || '';
   document.getElementById('ev-deadline').value   = ev.deadline || '';
   document.getElementById('ev-badge').value      = ev.badge || '';
-  document.getElementById('ev-formspree').value  = ev.formspree || '';
 }
 
 function leesFormulieren() {
@@ -806,7 +798,6 @@ function leesFormulieren() {
     locatie:   document.getElementById('ev-locatie').value.trim(),
     deadline:  document.getElementById('ev-deadline').value.trim(),
     badge:     document.getElementById('ev-badge').value.trim(),
-    formspree: document.getElementById('ev-formspree').value.trim(),
   };
 }
 

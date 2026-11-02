@@ -840,12 +840,6 @@
           <input type="text" id="ed-badge" placeholder="Afhalen zaterdag 18 april · 14:00–16:00" />
         </div>
       </div>
-      <div class="form-row enkel">
-        <div class="form-group">
-          <label>Formspree endpoint</label>
-          <input type="text" id="ed-formspree" placeholder="https://formspree.io/f/JOUWCODE" />
-        </div>
-      </div>
 
       <div class="sectie-label-editor">Producten</div>
       <div id="ed-categorieen"></div>
@@ -1184,7 +1178,6 @@ function openNieuw() {
   document.getElementById('ed-locatie').value = '';
   document.getElementById('ed-deadline').value = '';
   document.getElementById('ed-badge').value = '';
-  document.getElementById('ed-formspree').value = '';
   document.getElementById('ed-mail-onderwerp-bevestiging').value = '';
   document.getElementById('ed-mail-intro').value = '';
   document.getElementById('ed-mail-onderwerp-herinnering').value = '';
@@ -1216,7 +1209,6 @@ function openBewerken(id) {
   document.getElementById('ed-locatie').value = ev.locatie || '';
   document.getElementById('ed-deadline').value = ev.deadline || '';
   document.getElementById('ed-badge').value = ev.badge || '';
-  document.getElementById('ed-formspree').value = ev.formspree || '';
   // Mail config
   const mc = t.mail_config || {};
   document.getElementById('ed-mail-onderwerp-bevestiging').value = mc.onderwerp_bevestiging || '';
@@ -1427,7 +1419,6 @@ async function slaTemplateOp() {
       locatie:   document.getElementById('ed-locatie').value.trim(),
       deadline:  document.getElementById('ed-deadline').value.trim(),
       badge:     document.getElementById('ed-badge').value.trim(),
-      formspree: document.getElementById('ed-formspree').value.trim(),
     },
     categorieeen: edCats,
     tijdslots: edSlots,
