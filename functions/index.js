@@ -158,7 +158,7 @@ function bouwMailHTML(bestelling, template, mailConfig) {
 
 async function stuurMail(resend, naar, onderwerp, html, metaData) {
   const result = await resend.emails.send({
-    from: 'Brodshoes <bestellingen@brodshoes.nl>',
+    from: 'Brodshoes <info@brodshoes.nl>',
     to: [naar],
     subject: onderwerp,
     html,
