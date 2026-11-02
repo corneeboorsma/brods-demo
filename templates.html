@@ -1636,13 +1636,12 @@ function renderThemas() {
         <div class="thema-kleur-dot" style="background:${t.achtergrond}"></div>
         <div class="thema-kleur-dot" style="background:${t.kaart}"></div>
         <div class="thema-kleur-dot" style="background:${t.accent}"></div>
-        ${t.is_standaard ? '<span class="thema-standaard-badge">Standaard</span>' : ''}
       </div>
       <div class="thema-kaart-body">
         <div class="thema-kaart-naam">${t.naam}</div>
         <div class="thema-kaart-acties">
-          ${!t.is_standaard ? `<button class="actie-btn" onclick="openBewerkThema('${t.id}')">✏️ Bewerken</button>` : ''}
-          ${!t.is_standaard ? `<button class="actie-btn rood" onclick="verwijderThema('${t.id}', '${t.naam}')">🗑️ Verwijderen</button>` : '<span style="font-size:11px;color:var(--muted);">Niet aanpasbaar</span>'}
+          <button class="actie-btn" onclick="openBewerkThema('${t.id}')">✏️ Bewerken</button>
+          <button class="actie-btn rood" onclick="verwijderThema('${t.id}', '${t.naam}')">🗑️ Verwijderen</button>
         </div>
       </div>`;
     grid.appendChild(kaart);
@@ -1847,12 +1846,18 @@ function renderBestellingen() {
                 <p>${highlight(b.adres || '–', zoekterm)}</p>
               </div>
             </div>
-            <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;">
-              <button class="actie-btn" onclick="event.stopPropagation();stuurMailOpnieuw('${b.id}', '${b.email}', 'bevestiging')">✉️ Bevestiging versturen</button>
-              <button class="actie-btn" onclick="event.stopPropagation();toonBestellingMailVoorbeeld('${b.id}', 'bevestiging')">👁️ Voorbeeld bevestiging</button>
-              <button class="actie-btn" onclick="event.stopPropagation();stuurMailOpnieuw('${b.id}', '${b.email}', 'herinnering')">🔔 Herinnering versturen</button>
-              <button class="actie-btn" onclick="event.stopPropagation();toonBestellingMailVoorbeeld('${b.id}', 'herinnering')">👁️ Voorbeeld herinnering</button>
-              <button class="actie-btn" onclick="event.stopPropagation();openMailHistory('${b.id}', '${naam.replace(/'/g, "\\'")}')">📋 Mail historie</button>
+            <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end;margin-bottom:16px;">
+              <div style="display:flex;gap:6px;">
+                <button class="actie-btn" onclick="event.stopPropagation();stuurMailOpnieuw('${b.id}', '${b.email}', 'bevestiging')">✉️ Bevestiging versturen</button>
+                <button class="actie-btn" onclick="event.stopPropagation();toonBestellingMailVoorbeeld('${b.id}', 'bevestiging')">👁️ Voorbeeld</button>
+              </div>
+              <div style="display:flex;gap:6px;">
+                <button class="actie-btn" onclick="event.stopPropagation();stuurMailOpnieuw('${b.id}', '${b.email}', 'herinnering')">🔔 Herinnering versturen</button>
+                <button class="actie-btn" onclick="event.stopPropagation();toonBestellingMailVoorbeeld('${b.id}', 'herinnering')">👁️ Voorbeeld</button>
+              </div>
+              <div>
+                <button class="actie-btn" onclick="event.stopPropagation();openMailHistory('${b.id}', '${naam.replace(/'/g, "\\'")}')">📋 Mail historie</button>
+              </div>
             </div>
             <label style="font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:6px;">Bestelling</label>
             <table class="best-regels-tabel">
@@ -1991,7 +1996,7 @@ function pdfStijl() {
   return `
     <style>
       * { box-sizing: border-box; margin: 0; padding: 0; }
-      body { font-family: Arial, sans-serif; font-size: 13px; color: #1a1a1a; background: #fff; padding: 14mm 16mm; }
+      body { font-family: 'Lato', Arial, sans-serif; font-size: 13px; color: #1a1a1a; background: #fff; padding: 14mm 16mm; }
       @page { margin: 14mm 16mm; size: A4; }
       @media print { body { padding: 0; } -webkit-print-color-adjust: exact; print-color-adjust: exact; }
       .bestelling-pagina { min-height: 267mm; }
@@ -2389,9 +2394,10 @@ function toonBestellingMailVoorbeeld(bestellingId, type) {
   const venster = window.open('', '_blank');
   venster.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8">
     <title>Voorbeeld: ${type}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Lato:wght@300;400;600;700&display=swap" rel="stylesheet">
     <style>
       body { margin: 0; background: #e0d8c8; }
-      .preview-balk { background: #1e3a3f; color: #fff; padding: 12px 24px; font-size: 13px; display: flex; align-items: center; gap: 16px; font-family: Arial, sans-serif; }
+      .preview-balk { background: #1e3a3f; color: #fff; padding: 12px 24px; font-size: 13px; display: flex; align-items: center; gap: 16px; font-family: 'Lato', sans-serif; }
       .preview-balk strong { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: rgba(255,255,255,0.5); }
     </style>
   </head><body>
@@ -2447,8 +2453,9 @@ function toonMailVoorbeeld(type) {
   const venster = window.open('', '_blank');
   venster.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8">
     <title>Voorbeeld: ${type}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Lato:wght@300;400;600;700&display=swap" rel="stylesheet">
     <style>
-      body { margin: 0; background: #e0d8c8; font-family: Arial, sans-serif; }
+      body { margin: 0; background: #e0d8c8; font-family: 'Lato', sans-serif; }
       .preview-balk { background: #1e3a3f; color: #fff; padding: 12px 24px; font-size: 13px; display: flex; align-items: center; gap: 16px; }
       .preview-balk strong { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: rgba(255,255,255,0.5); }
     </style>
