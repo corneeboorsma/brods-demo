@@ -19,6 +19,12 @@ service cloud.firestore {
     match /bestellingen/{bestId} {
       allow create: if true;
       allow read, update, delete: if request.auth != null;
+
+      // Mail history subcollectie: alleen Cloud Functions schrijven, ingelogd lezen
+      match /mail_history/{histId} {
+        allow read: if request.auth != null;
+        allow write: if false; // Alleen via Cloud Functions (Admin SDK)
+      }
     }
 
     // Themas: publiek lezen, schrijven alleen ingelogd
@@ -30,6 +36,12 @@ service cloud.firestore {
     // Audit log: alleen ingelogd
     match /audit_log/{logId} {
       allow read, write: if request.auth != null;
+    }
+
+    // Config (webhook tokens etc.): alleen Cloud Functions schrijven, ingelogd lezen
+    match /_config/{configId} {
+      allow read: if request.auth != null;
+      allow write: if false; // Alleen via Admin SDK
     }
   }
 }

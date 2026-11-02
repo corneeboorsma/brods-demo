@@ -10,12 +10,12 @@
     import { db, auth, storage } from './firebase-config.js';
     import {
       collection, getDocs, getDoc, addDoc, updateDoc, deleteDoc,
-      doc, query, orderBy, where, limit
+      doc, query, orderBy, where, limit, collectionGroup
     } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
     import { onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
     import { ref, uploadBytes, getDownloadURL } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js';
 
-    window._fb = { db, auth, storage, collection, getDocs, getDoc, addDoc, updateDoc, deleteDoc, doc, query, orderBy, where, limit, onAuthStateChanged, signOut, ref, uploadBytes, getDownloadURL };
+    window._fb = { db, auth, storage, collection, getDocs, getDoc, addDoc, updateDoc, deleteDoc, doc, query, orderBy, where, limit, collectionGroup, onAuthStateChanged, signOut, ref, uploadBytes, getDownloadURL };
   </script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -539,6 +539,48 @@
       font-family: 'Lato', sans-serif;
     }
     .foto-verwijder-btn:hover { color: var(--red); border-color: var(--red); }
+
+    /* Mail status badges */
+    .mail-badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;
+      padding: 2px 7px; border-radius: 2px;
+    }
+    .mail-badge.geen       { background: #f5f5f5; color: #aaa; }
+    .mail-badge.verzonden   { background: #e8f4fd; color: #1a6ea8; }
+    .mail-badge.afgeleverd  { background: #e6f4ea; color: #2d7a3a; }
+    .mail-badge.geopend     { background: #d4f0de; color: #1a6e38; }
+    .mail-badge.fout        { background: #fde8e8; color: #c0392b; }
+    .mail-badge.gebounced   { background: #fde8e8; color: #c0392b; }
+
+    /* Mail history panel */
+    .mail-history-panel {
+      background: #f9f6f0; border: 1px solid var(--border);
+      padding: 14px 16px; margin-top: 12px;
+    }
+    .mail-history-item {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 8px 0; border-bottom: 1px solid #ece3d6; font-size: 13px;
+    }
+    .mail-history-item:last-child { border-bottom: none; }
+    .mail-history-meta { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+    /* Batch mail toolbar */
+    .batch-mail-balk {
+      background: #fff3cd; border: 1px solid #ffc107;
+      padding: 12px 16px; margin-bottom: 16px;
+      display: flex; align-items: center; justify-content: space-between; gap: 12px;
+      display: none;
+    }
+    .batch-mail-balk.zichtbaar { display: flex; }
+
+    /* Editor modal mail sectie */
+    .mail-placeholder-tag {
+      display: inline-block; background: var(--teal); color: #fff;
+      font-size: 10px; font-family: monospace; padding: 2px 6px;
+      border-radius: 2px; cursor: pointer; margin: 2px;
+    }
+    .mail-placeholder-tag:hover { background: var(--teal-dark); }
   </style>
 </head>
 <body>
@@ -614,11 +656,13 @@
 <input type="text" id="best-zoek" placeholder="Zoek op naam, e-mail, telefoon, adres…" oninput="renderBestellingen()" style="padding:8px 12px;border:1px solid var(--border);font-family:'Lato',sans-serif;font-size:13px;outline:none;min-width:280px;" />
       </div>
       <div style="display:flex;gap:8px;">
+        <button class="btn-nieuw" onclick="stuurBatchHerinnering()" style="background:#1a6ea8;" id="btn-batch-herinnering" title="Stuur herinneringsmail naar alle klanten zonder herinnering">✉️ Herinneringsmail</button>
         <button class="btn-nieuw" onclick="exporteerXLS()" style="background:var(--teal);">📥 Export XLS</button>
         <button class="btn-nieuw" onclick="exportPDFLijst()" style="background:var(--teal);">🖨️ PDF bestellingen</button>
       </div>
     </div>
 
+    <div id="batch-mail-status" class="batch-mail-balk"></div>
     <div id="best-samenvatting" style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px;"></div>
 
     <table class="pub-tabel" id="best-tabel">
@@ -628,11 +672,12 @@
           <th>Naam</th>
           <th>Tijdslot</th>
           <th>Totaal</th>
+          <th>Mail</th>
           <th>Besteld op</th>
         </tr>
       </thead>
       <tbody id="best-tbody">
-        <tr><td colspan="5" style="text-align:center;color:var(--muted);padding:32px;">Laden…</td></tr>
+        <tr><td colspan="6" style="text-align:center;color:var(--muted);padding:32px;">Laden…</td></tr>
       </tbody>
     </table>
   </div>
@@ -816,6 +861,56 @@
       <div class="tijdslot-lijst-modal" id="ed-tijdslots"></div>
       <button class="btn-add" style="margin-top:8px;width:100%;" onclick="voegTijdslotToe()">+ Tijdslot toevoegen</button>
 
+      <div class="sectie-label-editor">E-mail instellingen</div>
+      <p style="font-size:12px;color:var(--muted);margin-bottom:12px;">
+        Pas de e-mailteksten aan voor deze template. Laat leeg voor de standaardtekst.
+        Klik op een placeholder om hem te kopiëren.
+      </p>
+      <div style="margin-bottom:10px;">
+        <div style="font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;">Beschikbare placeholders</div>
+        <div id="mail-placeholder-lijst">
+          <span class="mail-placeholder-tag" onclick="kopieerPlaceholder('{{voornaam}}')">{{voornaam}}</span>
+          <span class="mail-placeholder-tag" onclick="kopieerPlaceholder('{{achternaam}}')">{{achternaam}}</span>
+          <span class="mail-placeholder-tag" onclick="kopieerPlaceholder('{{naam}}')">{{naam}}</span>
+          <span class="mail-placeholder-tag" onclick="kopieerPlaceholder('{{tijdslot}}')">{{tijdslot}}</span>
+          <span class="mail-placeholder-tag" onclick="kopieerPlaceholder('{{totaal}}')">{{totaal}}</span>
+          <span class="mail-placeholder-tag" onclick="kopieerPlaceholder('{{evenement_dag}}')">{{evenement_dag}}</span>
+          <span class="mail-placeholder-tag" onclick="kopieerPlaceholder('{{evenement_locatie}}')">{{evenement_locatie}}</span>
+          <span class="mail-placeholder-tag" onclick="kopieerPlaceholder('{{evenement_badge}}')">{{evenement_badge}}</span>
+          <span class="mail-placeholder-tag" onclick="kopieerPlaceholder('{{evenement_deadline}}')">{{evenement_deadline}}</span>
+        </div>
+      </div>
+      <div class="form-row enkel">
+        <div class="form-group">
+          <label>Onderwerp bevestigingsmail</label>
+          <input type="text" id="ed-mail-onderwerp-bevestiging" placeholder="Bevestiging uw bestelling – Brodshoes {{evenement_titel}}" />
+        </div>
+      </div>
+      <div class="form-row enkel">
+        <div class="form-group">
+          <label>Intro bevestigingsmail</label>
+          <textarea id="ed-mail-intro" rows="3" placeholder="Beste {{voornaam}}, bedankt voor uw bestelling…"></textarea>
+        </div>
+      </div>
+      <div class="form-row enkel">
+        <div class="form-group">
+          <label>Onderwerp herinneringsmail</label>
+          <input type="text" id="ed-mail-onderwerp-herinnering" placeholder="Herinnering: uw afhaalmoment nadert – Brodshoes" />
+        </div>
+      </div>
+      <div class="form-row enkel">
+        <div class="form-group">
+          <label>Intro herinneringsmail</label>
+          <textarea id="ed-mail-herinnering-intro" rows="3" placeholder="Beste {{voornaam}}, een korte herinnering dat uw afhaalmoment nadert…"></textarea>
+        </div>
+      </div>
+      <div class="form-row enkel">
+        <div class="form-group">
+          <label>Afsluiting (beide mails)</label>
+          <textarea id="ed-mail-afsluiting" rows="2" placeholder="Met vriendelijke groet, Team Brodshoes"></textarea>
+        </div>
+      </div>
+
     </div>
     <div class="modal-footer">
       <button class="actie-btn" onclick="sluitModal()">Annuleren</button>
@@ -866,9 +961,31 @@
 
 <div class="toast" id="toast"></div>
 
+<!-- ════ MAIL HISTORY MODAL ════ -->
+<div class="modal-overlay" id="mail-history-modal">
+  <div class="modal" style="max-width:520px">
+    <div class="modal-header">
+      <div class="modal-titel" id="mail-history-titel">Mail geschiedenis</div>
+      <button class="modal-sluit" onclick="sluitMailHistory()">×</button>
+    </div>
+    <div class="modal-body">
+      <div id="mail-history-inhoud">
+        <div style="text-align:center;padding:20px;color:var(--muted);">Laden…</div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="actie-btn" onclick="sluitMailHistory()">Sluiten</button>
+    </div>
+  </div>
+</div>
+
 <script>
 // Firebase helpers — beschikbaar nadat het module-script klaar is
 function fb() { return window._fb; }
+
+// Cloud Function URLs (2nd gen)
+const FUNCTIONS_BASE = 'https://stuurhandmatigemail-xib7mk6vva-uc.a.run.app';
+const WEBHOOK_URL = 'https://resendwebhook-xib7mk6vva-uc.a.run.app';
 
 // Bouw bestelpagina URL: werkt op GitHub Pages én op brodshoes.nl/bestellen/
 function bestelUrl(slug) {
@@ -891,6 +1008,7 @@ let edCats = [];
 let edSlots = [];
 let alleTemplates = [];
 let edFotos = { header: null, footer: null }; // { file, url } per type
+let mailWebhookToken = null;
 
 // ══ Audit logging ══
 async function log(actie, object_type, object_id, object_naam, details) {
@@ -1034,6 +1152,11 @@ function openNieuw() {
   document.getElementById('ed-deadline').value = '';
   document.getElementById('ed-badge').value = '';
   document.getElementById('ed-formspree').value = '';
+  document.getElementById('ed-mail-onderwerp-bevestiging').value = '';
+  document.getElementById('ed-mail-intro').value = '';
+  document.getElementById('ed-mail-onderwerp-herinnering').value = '';
+  document.getElementById('ed-mail-herinnering-intro').value = '';
+  document.getElementById('ed-mail-afsluiting').value = '';
   bouwThemaGridModal();
   bouwCatsEditor();
   bouwSlotsEditor();
@@ -1061,6 +1184,13 @@ function openBewerken(id) {
   document.getElementById('ed-deadline').value = ev.deadline || '';
   document.getElementById('ed-badge').value = ev.badge || '';
   document.getElementById('ed-formspree').value = ev.formspree || '';
+  // Mail config
+  const mc = t.mail_config || {};
+  document.getElementById('ed-mail-onderwerp-bevestiging').value = mc.onderwerp_bevestiging || '';
+  document.getElementById('ed-mail-intro').value = mc.intro || '';
+  document.getElementById('ed-mail-onderwerp-herinnering').value = mc.onderwerp_herinnering || '';
+  document.getElementById('ed-mail-herinnering-intro').value = mc.herinnering_intro || '';
+  document.getElementById('ed-mail-afsluiting').value = mc.afsluiting || '';
   bouwThemaGridModal();
   bouwCatsEditor();
   bouwSlotsEditor();
@@ -1262,8 +1392,16 @@ async function slaTemplateOp() {
     tijdslots: edSlots,
   };
 
+  const mailConfig = {
+    onderwerp_bevestiging: document.getElementById('ed-mail-onderwerp-bevestiging').value.trim(),
+    intro:                 document.getElementById('ed-mail-intro').value.trim(),
+    onderwerp_herinnering: document.getElementById('ed-mail-onderwerp-herinnering').value.trim(),
+    herinnering_intro:     document.getElementById('ed-mail-herinnering-intro').value.trim(),
+    afsluiting:            document.getElementById('ed-mail-afsluiting').value.trim(),
+  };
+
   await fb().updateDoc(fb().doc(fb().db, 'templates', templateId), {
-    naam, slug, config, bijgewerkt_op: new Date().toISOString(),
+    naam, slug, config, mail_config: mailConfig, bijgewerkt_op: new Date().toISOString(),
   });
 
   const actie = bewerkId ? 'template_bewerkt' : 'template_aangemaakt';
@@ -1600,7 +1738,7 @@ function renderBestellingen() {
   });
 
   if (!gefilterd.length) {
-    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:32px;">${zoekRaw ? 'Geen bestellingen gevonden voor "' + zoekRaw + '".' : 'Geen bestellingen gevonden.'}</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:32px;">${zoekRaw ? 'Geen bestellingen gevonden voor "' + zoekRaw + '".' : 'Geen bestellingen gevonden.'}</td></tr>`;
     return;
   }
 
@@ -1611,6 +1749,13 @@ function renderBestellingen() {
     const datum    = new Date(b.besteld_op).toLocaleString('nl-NL');
     const heeftOpmerking = !!b.opmerking;
 
+    // Mail status badge
+    const mailStatus = b.mail_bevestiging_status || 'geen';
+    const mailStatusLabel = {
+      geen: '–', verzonden: 'Verzonden', afgeleverd: 'Afgeleverd',
+      geopend: 'Geopend', fout: 'Fout', gebounced: 'Bounced', spam_klacht: 'Spam'
+    }[mailStatus] || mailStatus;
+
     const regelsHTML = (b.regels || []).map(r =>
       `<tr>
         <td>${r.label || ''}</td>
@@ -1618,6 +1763,11 @@ function renderBestellingen() {
         <td style="text-align:right">€ ${(r.subtotaal || 0).toFixed(2).replace('.', ',')}</td>
       </tr>`
     ).join('');
+
+    // Herinneringsstatus
+    const herinneringStatus = b.mail_herinnering_status;
+    const herinneringLabel = herinneringStatus
+      ? `<span class="mail-badge ${herinneringStatus}" style="margin-left:4px;" title="Herinnering: ${herinneringStatus}">H</span>` : '';
 
     return `
       <tr class="best-header-rij" onclick="toggleBestelling('detail-${i}')">
@@ -1631,10 +1781,13 @@ function renderBestellingen() {
         </td>
         <td style="font-weight:600">${b.tijdslot || '–'}</td>
         <td style="font-family:'Cormorant Garamond',serif;font-size:16px;font-weight:700">€ ${parseFloat(b.totaal).toFixed(2).replace('.', ',')}</td>
+        <td style="white-space:nowrap">
+          <span class="mail-badge ${mailStatus}">${mailStatusLabel}</span>${herinneringLabel}
+        </td>
         <td style="font-size:12px;color:var(--muted)">${datum}</td>
       </tr>
       <tr class="best-detail-rij">
-        <td colspan="5">
+        <td colspan="6">
           <div class="best-detail-inhoud" id="detail-${i}">
             <div class="best-detail-grid">
               <div class="best-detail-blok">
@@ -1646,7 +1799,12 @@ function renderBestellingen() {
                 <p>${highlight(b.adres || '–', zoekterm)}</p>
               </div>
               <div class="best-detail-blok">
-                <a href="mailto:${b.email}" style="font-size:12px;color:var(--teal);display:inline-block;">✉️ Mail versturen</a>
+                <label>Mail acties</label>
+                <div style="display:flex;flex-direction:column;gap:6px;">
+                  <button class="actie-btn" onclick="event.stopPropagation();stuurMailOpnieuw('${b.id}', '${b.email}', 'bevestiging')" title="Stuur bevestigingsmail opnieuw">✉️ Bevestiging</button>
+                  <button class="actie-btn" onclick="event.stopPropagation();stuurMailOpnieuw('${b.id}', '${b.email}', 'herinnering')" title="Stuur herinneringsmail">🔔 Herinnering</button>
+                  <button class="actie-btn" onclick="event.stopPropagation();openMailHistory('${b.id}', '${naam.replace(/'/g, "\\'")}')">📋 Historie</button>
+                </div>
               </div>
             </div>
             <label style="font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:6px;">Bestelling</label>
@@ -2014,6 +2172,160 @@ function verwijderBestelling(id, naam) {
   );
 }
 
+// ══ Mail functies ══
+
+async function laadMailToken() {
+  try {
+    const snap = await fb().getDoc(fb().doc(fb().db, '_config', 'mail'));
+    if (snap.exists()) mailWebhookToken = snap.data()?.webhook_token || null;
+  } catch (_) {}
+}
+
+async function stuurMailOpnieuw(bestellingId, email, type) {
+  if (!mailWebhookToken) {
+    toonToast('Mail niet geconfigureerd — zie SETUP.md');
+    return;
+  }
+  const label = type === 'bevestiging' ? 'bevestigingsmail' : 'herinneringsmail';
+  toonConfirm(
+    `${label.charAt(0).toUpperCase() + label.slice(1)} sturen`,
+    `Weet u zeker dat u een ${label} wilt sturen naar ${email}?`,
+    async () => {
+      toonToast(`${label} wordt verstuurd…`);
+      try {
+        const resp = await fetch(FUNCTIONS_BASE, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ bestellingId, type, verificatieToken: mailWebhookToken }),
+        });
+        const data = await resp.json();
+        if (data.success) {
+          toonToast(`${label} verstuurd`);
+          laadBestellingen();
+        } else {
+          toonToast(`Fout: ${data.error || 'onbekend'}`);
+        }
+      } catch (err) {
+        toonToast('Verbindingsfout bij versturen mail');
+      }
+    }
+  );
+}
+
+async function stuurBatchHerinnering() {
+  const templateFilter = document.getElementById('best-template-filter')?.value;
+  if (!templateFilter) {
+    toonToast('Selecteer eerst een template om herinneringen te versturen');
+    return;
+  }
+  if (!mailWebhookToken) {
+    toonToast('Mail niet geconfigureerd — zie SETUP.md');
+    return;
+  }
+
+  // Filter: alleen bestellingen zonder herinnering
+  const zonderHerinnering = alleBestellingen.filter(b =>
+    !b.mail_herinnering_status || b.mail_herinnering_status === 'fout'
+  );
+
+  if (!zonderHerinnering.length) {
+    toonToast('Alle bestellingen hebben al een herinnering ontvangen');
+    return;
+  }
+
+  const templateNaam = alleTemplates.find(t => t.id === templateFilter)?.naam || 'deze template';
+  toonConfirm(
+    'Batch herinneringen versturen',
+    `${zonderHerinnering.length} klant(en) van "${templateNaam}" hebben nog geen herinnering ontvangen. Weet u zeker dat u deze herinneringen wilt versturen?`,
+    async () => {
+      const balk = document.getElementById('batch-mail-status');
+      balk.classList.add('zichtbaar');
+      balk.innerHTML = `<span>Herinneringen versturen: 0/${zonderHerinnering.length}</span>`;
+
+      let geslaagd = 0;
+      let mislukt = 0;
+
+      for (let i = 0; i < zonderHerinnering.length; i++) {
+        const b = zonderHerinnering[i];
+        balk.innerHTML = `<span>Herinneringen versturen: ${i + 1}/${zonderHerinnering.length} — ${b.voornaam} ${b.achternaam}</span>`;
+        try {
+          const resp = await fetch(FUNCTIONS_BASE, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ bestellingId: b.id, type: 'herinnering', verificatieToken: mailWebhookToken }),
+          });
+          const data = await resp.json();
+          if (data.success) geslaagd++;
+          else mislukt++;
+        } catch (_) {
+          mislukt++;
+        }
+        await new Promise(r => setTimeout(r, 200)); // Rate limit
+      }
+
+      balk.innerHTML = `<span>✅ Klaar: ${geslaagd} verstuurd${mislukt ? ', ' + mislukt + ' mislukt' : ''}</span><button class="actie-btn" onclick="document.getElementById('batch-mail-status').classList.remove('zichtbaar');laadBestellingen();" style="margin-left:auto">Sluiten</button>`;
+      laadBestellingen();
+    }
+  );
+}
+
+async function openMailHistory(bestellingId, naam) {
+  document.getElementById('mail-history-titel').textContent = `Mail historie — ${naam}`;
+  document.getElementById('mail-history-inhoud').innerHTML = '<div style="text-align:center;padding:20px;color:var(--muted);">Laden…</div>';
+  document.getElementById('mail-history-modal').classList.add('open');
+
+  try {
+    const snap = await fb().getDocs(
+      fb().query(
+        fb().collection(fb().db, 'bestellingen', bestellingId, 'mail_history'),
+        fb().orderBy('verstuurd_op', 'desc')
+      )
+    );
+
+    const items = snap.docs.map(d => d.data());
+    if (!items.length) {
+      document.getElementById('mail-history-inhoud').innerHTML =
+        '<div style="text-align:center;padding:20px;color:var(--muted);">Nog geen mails verstuurd.</div>';
+      return;
+    }
+
+    const statusKleur = {
+      verzonden: '#1a6ea8', afgeleverd: '#2d7a3a', geopend: '#1a6e38',
+      fout: '#c0392b', gebounced: '#c0392b', spam_klacht: '#a0670a'
+    };
+
+    const html = items.map(item => {
+      const datum = new Date(item.verstuurd_op).toLocaleString('nl-NL');
+      const kleur = statusKleur[item.status] || '#888';
+      const typeLabel = item.type === 'bevestiging' ? 'Bevestiging' : 'Herinnering';
+      return `<div class="mail-history-item">
+        <div>
+          <div style="font-size:13px;font-weight:700;">${typeLabel}</div>
+          <div class="mail-history-meta">${item.onderwerp || '–'}</div>
+          <div class="mail-history-meta">${datum}</div>
+          ${item.error ? `<div style="color:#c0392b;font-size:12px;margin-top:2px;">⚠️ ${item.error}</div>` : ''}
+        </div>
+        <span class="mail-badge ${item.status}" style="color:${kleur}">${item.status || '–'}</span>
+      </div>`;
+    }).join('');
+
+    document.getElementById('mail-history-inhoud').innerHTML =
+      `<div class="mail-history-panel">${html}</div>`;
+  } catch (err) {
+    document.getElementById('mail-history-inhoud').innerHTML =
+      `<div style="color:#c0392b;padding:20px;">Fout: ${err.message}</div>`;
+  }
+}
+
+function sluitMailHistory() {
+  document.getElementById('mail-history-modal').classList.remove('open');
+}
+
+function kopieerPlaceholder(tekst) {
+  navigator.clipboard.writeText(tekst).catch(() => {});
+  toonToast(`${tekst} gekopieerd`);
+}
+
 // ══ Init ══
 function waitForFb(cb) {
   if (window._fb) { cb(); return; }
@@ -2023,6 +2335,7 @@ waitForFb(() => {
   checkAuth().then(async () => {
     await laadTemplates();
     await laadThemas();
+    await laadMailToken();
     vulTemplateFilter();
   });
 });</script>

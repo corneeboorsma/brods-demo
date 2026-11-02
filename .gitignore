@@ -1,5 +1,8 @@
 node_modules/
 *.json
 !package.json
-migrate-to-firebase.js
+!firebase.json
 brodshoes-deploy.zip
+brodshoes-bestellen-deploy.zip
+setup-mail-config.js
+*.zip
