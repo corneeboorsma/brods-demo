@@ -540,6 +540,15 @@
     }
     .foto-verwijder-btn:hover { color: var(--red); border-color: var(--red); }
 
+    /* Modal tabs */
+    .modal-tab {
+      padding: 12px 18px; font-size: 11px; font-weight: 700; letter-spacing: 2px;
+      text-transform: uppercase; color: rgba(255,255,255,0.5); cursor: pointer;
+      border-bottom: 3px solid transparent; transition: all 0.15s;
+    }
+    .modal-tab.active { color: #fff; border-bottom-color: var(--red); }
+    .modal-tab:hover { color: rgba(255,255,255,0.8); }
+
     /* Mail status badges */
     .mail-badge {
       display: inline-flex; align-items: center; gap: 4px;
@@ -774,7 +783,15 @@
       <div class="modal-titel" id="modal-titel">Nieuwe template</div>
       <button class="modal-sluit" onclick="sluitModal()">×</button>
     </div>
-    <div class="modal-body">
+
+    <!-- Modal tabs -->
+    <div style="background:var(--teal-dark);display:flex;padding:0 28px;">
+      <div class="modal-tab active" id="mtab-instellingen" onclick="toonModalTab('instellingen')">Instellingen</div>
+      <div class="modal-tab" id="mtab-mail" onclick="toonModalTab('mail')">E-mail</div>
+    </div>
+
+    <!-- Tab: Instellingen -->
+    <div class="modal-body" id="mtabpanel-instellingen">
 
       <div class="sectie-label-editor">Algemeen</div>
       <div class="form-row">
@@ -861,57 +878,62 @@
       <div class="tijdslot-lijst-modal" id="ed-tijdslots"></div>
       <button class="btn-add" style="margin-top:8px;width:100%;" onclick="voegTijdslotToe()">+ Tijdslot toevoegen</button>
 
-      <div class="sectie-label-editor">E-mail instellingen</div>
-      <p style="font-size:12px;color:var(--muted);margin-bottom:12px;">
-        Pas de e-mailteksten aan voor deze template. Laat leeg voor de standaardtekst.
-        Klik op een placeholder om hem te kopiëren.
-      </p>
-      <div style="margin-bottom:10px;">
-        <div style="font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;">Beschikbare placeholders</div>
-        <div id="mail-placeholder-lijst">
-          <span class="mail-placeholder-tag" onclick="kopieerPlaceholder('{{voornaam}}')">{{voornaam}}</span>
-          <span class="mail-placeholder-tag" onclick="kopieerPlaceholder('{{achternaam}}')">{{achternaam}}</span>
-          <span class="mail-placeholder-tag" onclick="kopieerPlaceholder('{{naam}}')">{{naam}}</span>
-          <span class="mail-placeholder-tag" onclick="kopieerPlaceholder('{{tijdslot}}')">{{tijdslot}}</span>
-          <span class="mail-placeholder-tag" onclick="kopieerPlaceholder('{{totaal}}')">{{totaal}}</span>
-          <span class="mail-placeholder-tag" onclick="kopieerPlaceholder('{{evenement_dag}}')">{{evenement_dag}}</span>
-          <span class="mail-placeholder-tag" onclick="kopieerPlaceholder('{{evenement_locatie}}')">{{evenement_locatie}}</span>
-          <span class="mail-placeholder-tag" onclick="kopieerPlaceholder('{{evenement_badge}}')">{{evenement_badge}}</span>
-          <span class="mail-placeholder-tag" onclick="kopieerPlaceholder('{{evenement_deadline}}')">{{evenement_deadline}}</span>
-        </div>
-      </div>
+    </div>
+
+    <!-- Tab: E-mail -->
+    <div class="modal-body" id="mtabpanel-mail" style="display:none;">
+
+      <div class="sectie-label-editor">Bevestigingsmail</div>
       <div class="form-row enkel">
         <div class="form-group">
-          <label>Onderwerp bevestigingsmail</label>
+          <label>Onderwerp</label>
           <input type="text" id="ed-mail-onderwerp-bevestiging" placeholder="Bevestiging uw bestelling – Brodshoes {{evenement_titel}}" />
         </div>
       </div>
       <div class="form-row enkel">
         <div class="form-group">
-          <label>Intro bevestigingsmail</label>
-          <textarea id="ed-mail-intro" rows="3" placeholder="Beste {{voornaam}}, bedankt voor uw bestelling…"></textarea>
+          <label>Intro tekst</label>
+          <textarea id="ed-mail-intro" rows="4" placeholder="Beste {{voornaam}}, bedankt voor uw bestelling…"></textarea>
         </div>
       </div>
+
+      <div class="sectie-label-editor">Herinneringsmail</div>
       <div class="form-row enkel">
         <div class="form-group">
-          <label>Onderwerp herinneringsmail</label>
+          <label>Onderwerp</label>
           <input type="text" id="ed-mail-onderwerp-herinnering" placeholder="Herinnering: uw afhaalmoment nadert – Brodshoes" />
         </div>
       </div>
       <div class="form-row enkel">
         <div class="form-group">
-          <label>Intro herinneringsmail</label>
-          <textarea id="ed-mail-herinnering-intro" rows="3" placeholder="Beste {{voornaam}}, een korte herinnering dat uw afhaalmoment nadert…"></textarea>
-        </div>
-      </div>
-      <div class="form-row enkel">
-        <div class="form-group">
-          <label>Afsluiting (beide mails)</label>
-          <textarea id="ed-mail-afsluiting" rows="2" placeholder="Met vriendelijke groet, Team Brodshoes"></textarea>
+          <label>Intro tekst</label>
+          <textarea id="ed-mail-herinnering-intro" rows="4" placeholder="Beste {{voornaam}}, een korte herinnering dat uw afhaalmoment nadert…"></textarea>
         </div>
       </div>
 
+      <div class="sectie-label-editor">Afsluiting (beide mails)</div>
+      <div class="form-row enkel">
+        <div class="form-group">
+          <textarea id="ed-mail-afsluiting" rows="3" placeholder="Met vriendelijke groet, Team Brodshoes"></textarea>
+        </div>
+      </div>
+
+      <div class="sectie-label-editor">Beschikbare placeholders</div>
+      <p style="font-size:12px;color:var(--muted);margin-bottom:10px;">Klik op een placeholder om hem te kopiëren.</p>
+      <div>
+        <span class="mail-placeholder-tag" onclick="kopieerPlaceholder('{{voornaam}}')">{{voornaam}}</span>
+        <span class="mail-placeholder-tag" onclick="kopieerPlaceholder('{{achternaam}}')">{{achternaam}}</span>
+        <span class="mail-placeholder-tag" onclick="kopieerPlaceholder('{{naam}}')">{{naam}}</span>
+        <span class="mail-placeholder-tag" onclick="kopieerPlaceholder('{{tijdslot}}')">{{tijdslot}}</span>
+        <span class="mail-placeholder-tag" onclick="kopieerPlaceholder('{{totaal}}')">{{totaal}}</span>
+        <span class="mail-placeholder-tag" onclick="kopieerPlaceholder('{{evenement_dag}}')">{{evenement_dag}}</span>
+        <span class="mail-placeholder-tag" onclick="kopieerPlaceholder('{{evenement_locatie}}')">{{evenement_locatie}}</span>
+        <span class="mail-placeholder-tag" onclick="kopieerPlaceholder('{{evenement_badge}}')">{{evenement_badge}}</span>
+        <span class="mail-placeholder-tag" onclick="kopieerPlaceholder('{{evenement_deadline}}')">{{evenement_deadline}}</span>
+      </div>
+
     </div>
+
     <div class="modal-footer">
       <button class="actie-btn" onclick="sluitModal()">Annuleren</button>
       <button class="btn-nieuw" onclick="slaTemplateOp()">Opslaan</button>
@@ -1204,6 +1226,14 @@ function openBewerken(id) {
 
 function sluitModal() {
   document.getElementById('editor-modal').classList.remove('open');
+  toonModalTab('instellingen');
+}
+
+function toonModalTab(naam) {
+  ['instellingen', 'mail'].forEach(t => {
+    document.getElementById('mtabpanel-' + t).style.display = t === naam ? '' : 'none';
+    document.getElementById('mtab-' + t).classList.toggle('active', t === naam);
+  });
 }
 
 function updateSlugPreview() {
