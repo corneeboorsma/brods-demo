@@ -1079,6 +1079,7 @@ function toonTab(naam, el) {
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   document.getElementById('tab-' + naam).classList.add('active');
   el.classList.add('active');
+  if (naam === 'templates')    laadTemplates();
   if (naam === 'publicaties')  laadPublicaties();
   if (naam === 'bestellingen') laadBestellingen();
   if (naam === 'themas')       laadThemas();
@@ -2577,6 +2578,8 @@ waitForFb(() => {
     await laadThemas();
     await laadMailToken();
     vulTemplateFilter();
+    // Bestellingen tab is actief bij laden, zet lege staat
+    document.getElementById('best-tbody').innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:32px;">Selecteer een template om bestellingen te laden.</td></tr>`;
   });
 });</script>
 </body>
