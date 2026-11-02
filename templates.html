@@ -608,9 +608,9 @@
 
 <!-- ── Tabs ── -->
 <div class="tabs">
-  <div class="tab active" data-tab="templates" onclick="toonTab('templates', this)">Templates</div>
+  <div class="tab active" data-tab="bestellingen" onclick="toonTab('bestellingen', this)">Bestellingen</div>
+  <div class="tab" data-tab="templates" onclick="toonTab('templates', this)">Templates</div>
   <div class="tab" data-tab="publicaties" onclick="toonTab('publicaties', this)">Publicaties</div>
-  <div class="tab" data-tab="bestellingen" onclick="toonTab('bestellingen', this)">Bestellingen</div>
   <div class="tab" data-tab="themas" onclick="toonTab('themas', this)">Thema's</div>
   <div class="tab" data-tab="activiteit" onclick="toonTab('activiteit', this)">Activiteit</div>
 </div>
@@ -619,7 +619,7 @@
 <div class="content">
 
   <!-- ════ TAB: TEMPLATES ════ -->
-  <div class="tab-panel active" id="tab-templates">
+  <div class="tab-panel" id="tab-templates">
     <div class="toolbar">
       <div class="toolbar-links">
         <button class="filter-btn active" onclick="setFilter('alle', this)">Alle</button>
@@ -656,7 +656,7 @@
   </div>
 
   <!-- ════ TAB: BESTELLINGEN ════ -->
-  <div class="tab-panel" id="tab-bestellingen">
+  <div class="tab-panel active" id="tab-bestellingen">
     <div class="toolbar">
       <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
         <select id="best-template-filter" onchange="laadBestellingen()" style="padding:8px 12px;border:1px solid var(--border);font-family:'Lato',sans-serif;font-size:13px;outline:none;">
