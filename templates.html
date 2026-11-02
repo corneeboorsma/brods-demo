@@ -613,6 +613,7 @@
   <div class="tab" data-tab="publicaties" onclick="toonTab('publicaties', this)">Publicaties</div>
   <div class="tab" data-tab="themas" onclick="toonTab('themas', this)">Thema's</div>
   <div class="tab" data-tab="activiteit" onclick="toonTab('activiteit', this)">Activiteit</div>
+  <div class="tab" data-tab="gebruikers" onclick="toonTab('gebruikers', this)">Gebruikers</div>
 </div>
 
 <!-- ── Content ── -->
@@ -714,7 +715,44 @@
     <div id="act-tijdlijn"></div>
   </div>
 
-  <!-- ════ TAB: THEMA'S ════ -->
+  <!-- ════ TAB: GEBRUIKERS ════ -->
+  <div class="tab-panel" id="tab-gebruikers">
+    <div class="toolbar">
+      <div style="font-size:13px;color:var(--muted);">Beheer wie toegang heeft tot de applicatie</div>
+      <button class="btn-primary" onclick="toonGebruikerFormulier()">+ Nieuwe gebruiker</button>
+    </div>
+
+    <div id="gebruiker-formulier" style="display:none;background:#fff;border:1px solid var(--border);padding:24px;margin-bottom:16px;max-width:480px;">
+      <div style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:16px;">Nieuwe gebruiker</div>
+      <div class="form-group" style="margin-bottom:12px;">
+        <label>E-mailadres</label>
+        <input type="email" id="nieuw-email" placeholder="naam@voorbeeld.nl" style="width:100%;padding:10px 12px;border:1px solid var(--border);font-family:'Lato',sans-serif;font-size:13px;outline:none;" />
+      </div>
+      <div class="form-group" style="margin-bottom:16px;">
+        <label>Wachtwoord <span style="color:var(--muted);font-weight:400;">(minimaal 6 tekens)</span></label>
+        <input type="password" id="nieuw-wachtwoord" placeholder="Wachtwoord" style="width:100%;padding:10px 12px;border:1px solid var(--border);font-family:'Lato',sans-serif;font-size:13px;outline:none;" />
+      </div>
+      <div style="display:flex;gap:8px;">
+        <button class="btn-primary" onclick="maakGebruikerAan()">Aanmaken</button>
+        <button class="actie-btn" onclick="verbergGebruikerFormulier()">Annuleren</button>
+      </div>
+    </div>
+
+    <table class="best-tabel" style="width:100%;">
+      <thead>
+        <tr>
+          <th>E-mailadres</th>
+          <th>Aangemaakt op</th>
+          <th>Laatste login</th>
+          <th style="width:80px;"></th>
+        </tr>
+      </thead>
+      <tbody id="gebruikers-tbody">
+        <tr><td colspan="4" style="text-align:center;color:var(--muted);padding:32px;">Laden…</td></tr>
+      </tbody>
+    </table>
+  </div>
+
   <div class="tab-panel" id="tab-themas">
     <div class="toolbar">
       <div style="font-size:13px;color:var(--muted);">Standaard en aangepaste thema's</div>
@@ -1008,6 +1046,7 @@ function fb() { return window._fb; }
 // Cloud Function URLs (2nd gen)
 const FUNCTIONS_BASE = 'https://stuurhandmatigemail-xib7mk6vva-uc.a.run.app';
 const WEBHOOK_URL = 'https://resendwebhook-xib7mk6vva-uc.a.run.app';
+const GEBRUIKERS_URL = 'https://us-central1-brodshoes-bestellen.cloudfunctions.net/beheerGebruiker';
 
 // Bouw bestelpagina URL: werkt op GitHub Pages én op brodshoes.nl/bestellen/
 function bestelUrl(slug) {
@@ -1078,6 +1117,7 @@ function toonTab(naam, el) {
   if (naam === 'bestellingen') laadBestellingen();
   if (naam === 'themas')       laadThemas();
   if (naam === 'activiteit')   laadActiviteit();
+  if (naam === 'gebruikers')   laadGebruikers();
 }
 
 // ══ Filter ══
@@ -2555,6 +2595,87 @@ function bouwVoorbeeldMailHTML(bestelling, template, mailConfig, type) {
   </table>
 </body>
 </html>`
+}
+
+// ══ Gebruikersbeheer ══
+
+async function getIdToken() {
+  const user = fb().auth.currentUser;
+  if (!user) return null;
+  return await user.getIdToken();
+}
+
+async function gebruikersApiAanroep(body) {
+  const token = await getIdToken();
+  const resp = await fetch(GEBRUIKERS_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+    body: JSON.stringify(body),
+  });
+  const data = await resp.json();
+  if (!resp.ok) throw new Error(data.error || 'Onbekende fout');
+  return data;
+}
+
+async function laadGebruikers() {
+  const tbody = document.getElementById('gebruikers-tbody');
+  tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;color:var(--muted);padding:32px;">Laden…</td></tr>`;
+  try {
+    const { gebruikers } = await gebruikersApiAanroep({ actie: 'lijst' });
+    if (!gebruikers.length) {
+      tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;color:var(--muted);padding:32px;">Geen gebruikers gevonden.</td></tr>`;
+      return;
+    }
+    tbody.innerHTML = gebruikers.map(g => {
+      const aangemaakt = g.aangemaakt_op ? new Date(g.aangemaakt_op).toLocaleDateString('nl-NL') : '–';
+      const login = g.laatste_login ? new Date(g.laatste_login).toLocaleDateString('nl-NL') : '–';
+      const isZelf = fb().auth.currentUser?.email === g.email;
+      return `<tr>
+        <td>${g.email}</td>
+        <td style="color:var(--muted);font-size:13px;">${aangemaakt}</td>
+        <td style="color:var(--muted);font-size:13px;">${login}</td>
+        <td>${isZelf ? '<span style="font-size:11px;color:var(--muted);">Uzelf</span>' : `<button class="actie-btn rood" onclick="verwijderGebruiker('${g.uid}', '${g.email}')">🗑️</button>`}</td>
+      </tr>`;
+    }).join('');
+  } catch (err) {
+    tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;color:var(--red);padding:32px;">Fout: ${err.message}</td></tr>`;
+  }
+}
+
+function toonGebruikerFormulier() {
+  document.getElementById('gebruiker-formulier').style.display = 'block';
+  document.getElementById('nieuw-email').focus();
+}
+
+function verbergGebruikerFormulier() {
+  document.getElementById('gebruiker-formulier').style.display = 'none';
+  document.getElementById('nieuw-email').value = '';
+  document.getElementById('nieuw-wachtwoord').value = '';
+}
+
+async function maakGebruikerAan() {
+  const email = document.getElementById('nieuw-email').value.trim();
+  const password = document.getElementById('nieuw-wachtwoord').value;
+  if (!email || !password) { toonToast('Vul e-mail en wachtwoord in'); return; }
+  try {
+    await gebruikersApiAanroep({ actie: 'aanmaken', email, password });
+    toonToast(`Gebruiker ${email} aangemaakt`);
+    verbergGebruikerFormulier();
+    laadGebruikers();
+  } catch (err) {
+    toonToast(`Fout: ${err.message}`);
+  }
+}
+
+async function verwijderGebruiker(uid, email) {
+  if (!confirm(`Gebruiker "${email}" verwijderen? Dit kan niet ongedaan worden gemaakt.`)) return;
+  try {
+    await gebruikersApiAanroep({ actie: 'verwijderen', uid });
+    toonToast(`Gebruiker ${email} verwijderd`);
+    laadGebruikers();
+  } catch (err) {
+    toonToast(`Fout: ${err.message}`);
+  }
 }
 
 // ══ Init ══

@@ -1,5 +1,6 @@
 const { initializeApp } = require('firebase-admin/app');
 const { getFirestore, FieldValue } = require('firebase-admin/firestore');
+const { getAuth } = require('firebase-admin/auth');
 const { onDocumentCreated } = require('firebase-functions/v2/firestore');
 const { onRequest } = require('firebase-functions/v2/https');
 const { defineSecret } = require('firebase-functions/params');
@@ -403,5 +404,72 @@ exports.resendWebhook = onRequest(
     }
 
     res.status(200).send('OK');
+  }
+);
+
+// ── Cloud Function 4: Gebruikersbeheer ─────────────────────────────
+
+exports.beheerGebruiker = onRequest(
+  { cors: true },
+  async (req, res) => {
+    if (req.method !== 'POST') {
+      res.status(405).json({ error: 'Alleen POST toegestaan' });
+      return;
+    }
+
+    // Verifieer Firebase ID token
+    const authHeader = req.headers.authorization || '';
+    const idToken = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null;
+    if (!idToken) {
+      res.status(401).json({ error: 'Niet geautoriseerd' });
+      return;
+    }
+    try {
+      await getAuth().verifyIdToken(idToken);
+    } catch (err) {
+      res.status(401).json({ error: 'Ongeldig token' });
+      return;
+    }
+
+    const { actie, email, password, uid } = req.body;
+
+    try {
+      if (actie === 'lijst') {
+        const result = await getAuth().listUsers(1000);
+        const gebruikers = result.users.map(u => ({
+          uid: u.uid,
+          email: u.email,
+          aangemaakt_op: u.metadata.creationTime,
+          laatste_login: u.metadata.lastSignInTime || null,
+        }));
+        res.json({ gebruikers });
+
+      } else if (actie === 'aanmaken') {
+        if (!email || !password) {
+          res.status(400).json({ error: 'Email en wachtwoord zijn verplicht' });
+          return;
+        }
+        if (password.length < 6) {
+          res.status(400).json({ error: 'Wachtwoord moet minimaal 6 tekens zijn' });
+          return;
+        }
+        const user = await getAuth().createUser({ email, password });
+        res.json({ success: true, uid: user.uid, email: user.email });
+
+      } else if (actie === 'verwijderen') {
+        if (!uid) {
+          res.status(400).json({ error: 'uid is verplicht' });
+          return;
+        }
+        await getAuth().deleteUser(uid);
+        res.json({ success: true });
+
+      } else {
+        res.status(400).json({ error: 'Onbekende actie' });
+      }
+    } catch (err) {
+      console.error('beheerGebruiker fout:', err.message);
+      res.status(500).json({ error: err.message });
+    }
   }
 );
