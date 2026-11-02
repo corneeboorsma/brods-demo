@@ -1845,18 +1845,18 @@ function renderBestellingen() {
                 <label>Adres</label>
                 <p>${highlight(b.adres || '–', zoekterm)}</p>
               </div>
-            </div>
-            <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end;margin-bottom:16px;">
-              <div style="display:flex;gap:6px;">
-                <button class="actie-btn" onclick="event.stopPropagation();stuurMailOpnieuw('${b.id}', '${b.email}', 'bevestiging')">✉️ Bevestiging versturen</button>
-                <button class="actie-btn" onclick="event.stopPropagation();toonBestellingMailVoorbeeld('${b.id}', 'bevestiging')">👁️ Voorbeeld</button>
-              </div>
-              <div style="display:flex;gap:6px;">
-                <button class="actie-btn" onclick="event.stopPropagation();stuurMailOpnieuw('${b.id}', '${b.email}', 'herinnering')">🔔 Herinnering versturen</button>
-                <button class="actie-btn" onclick="event.stopPropagation();toonBestellingMailVoorbeeld('${b.id}', 'herinnering')">👁️ Voorbeeld</button>
-              </div>
-              <div>
-                <button class="actie-btn" onclick="event.stopPropagation();openMailHistory('${b.id}', '${naam.replace(/'/g, "\\'")}')">📋 Mail historie</button>
+              <div class="best-detail-blok" style="display:flex;flex-direction:column;gap:6px;align-items:flex-end;">
+                <div style="display:flex;gap:6px;">
+                  <button class="actie-btn" onclick="event.stopPropagation();stuurMailOpnieuw('${b.id}', '${b.email}', 'bevestiging')">✉️ Bevestiging versturen</button>
+                  <button class="actie-btn" onclick="event.stopPropagation();toonBestellingMailVoorbeeld('${b.id}', 'bevestiging')">👁️ Voorbeeld</button>
+                </div>
+                <div style="display:flex;gap:6px;">
+                  <button class="actie-btn" onclick="event.stopPropagation();stuurMailOpnieuw('${b.id}', '${b.email}', 'herinnering')">🔔 Herinnering versturen</button>
+                  <button class="actie-btn" onclick="event.stopPropagation();toonBestellingMailVoorbeeld('${b.id}', 'herinnering')">👁️ Voorbeeld</button>
+                </div>
+                <div>
+                  <button class="actie-btn" onclick="event.stopPropagation();openMailHistory('${b.id}', '${naam.replace(/'/g, "\\'")}')">📋 Mail historie</button>
+                </div>
               </div>
             </div>
             <label style="font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:6px;">Bestelling</label>
