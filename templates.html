@@ -1815,7 +1815,6 @@ function renderBestellingen() {
         <td>
           <strong>${highlight(naam, zoekterm)}</strong>
           ${heeftOpmerking ? ' <span style="color:var(--red)" title="${b.opmerking}">⚠️</span>' : ''}
-          ${template ? `<br><span style="font-size:11px;color:var(--muted)">${template.naam}</span>` : ''}
         </td>
         <td style="font-weight:600">${b.tijdslot || '–'}</td>
         <td style="font-family:'Cormorant Garamond',serif;font-size:16px;font-weight:700">€ ${parseFloat(b.totaal).toFixed(2).replace('.', ',')}</td>
