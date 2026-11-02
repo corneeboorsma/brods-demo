@@ -2374,7 +2374,6 @@ function kopieerPlaceholder(tekst) {
 }
 
 function toonMailVoorbeeld(type) {
-  // Voorbeeldbestelling op basis van huidige template-invoer
   const ev = {
     titel:    document.getElementById('ed-titel')?.value || 'Pasen 2026',
     dag:      document.getElementById('ed-dag')?.value   || 'zaterdag 18 april',
@@ -2383,16 +2382,15 @@ function toonMailVoorbeeld(type) {
     deadline: document.getElementById('ed-deadline')?.value || '',
   };
 
+  // Haal header/footer foto op uit huidige editor state
+  const headerFoto = edFotos?.header?.url || (bewerkId ? alleTemplates.find(t => t.id === bewerkId)?.config?.headerFoto : null) || null;
+  const footerFoto = edFotos?.footer?.url || (bewerkId ? alleTemplates.find(t => t.id === bewerkId)?.config?.footerFoto : null) || null;
+
   const voorbeeldBestelling = {
-    voornaam: 'Jan',
-    achternaam: 'Jansen',
-    email: 'jan@voorbeeld.nl',
-    telefoon: '06-12345678',
-    adres: 'Hoofdstraat 1, Rijssen',
-    tijdslot: ev.dag ? '14:00 – 14:30' : '',
-    totaal: 27.50,
-    besteld_op: new Date().toISOString(),
-    opmerking: '',
+    voornaam: 'Jan', achternaam: 'Jansen', email: 'jan@voorbeeld.nl',
+    telefoon: '06-12345678', adres: 'Hoofdstraat 1, Rijssen',
+    tijdslot: '14:00 – 14:30', totaal: 27.50,
+    besteld_op: new Date().toISOString(), opmerking: '',
     regels: [
       { label: 'Salades – Huzarensalade', qty: 2, subtotaal: 15.00 },
       { label: 'Salades – Waldorfsalade', qty: 1, subtotaal: 7.50 },
@@ -2404,9 +2402,8 @@ function toonMailVoorbeeld(type) {
     ? document.getElementById('ed-mail-intro')?.value || ''
     : document.getElementById('ed-mail-herinnering-intro')?.value || '';
   const afsluiting = document.getElementById('ed-mail-afsluiting')?.value || '';
-
   const mailConfig = { intro: intro || null, afsluiting: afsluiting || null };
-  const template = { config: { evenement: ev } };
+  const template = { config: { evenement: ev, headerFoto, footerFoto } };
 
   const html = bouwVoorbeeldMailHTML(voorbeeldBestelling, template, mailConfig, type);
 
@@ -2419,18 +2416,11 @@ function toonMailVoorbeeld(type) {
     <title>Voorbeeld: ${type}</title>
     <style>
       body { margin: 0; background: #e0d8c8; font-family: Arial, sans-serif; }
-      .preview-balk {
-        background: #1e3a3f; color: #fff; padding: 12px 24px;
-        font-size: 13px; display: flex; align-items: center; gap: 16px;
-      }
+      .preview-balk { background: #1e3a3f; color: #fff; padding: 12px 24px; font-size: 13px; display: flex; align-items: center; gap: 16px; }
       .preview-balk strong { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: rgba(255,255,255,0.5); }
-      .preview-balk span { font-size: 14px; }
     </style>
   </head><body>
-    <div class="preview-balk">
-      <strong>Onderwerp:</strong>
-      <span>${venster.document.createTextNode(onderwerp).textContent || onderwerp}</span>
-    </div>
+    <div class="preview-balk"><strong>Onderwerp:</strong> <span>${onderwerp}</span></div>
     ${html}
   </body></html>`);
   venster.document.close();
@@ -2462,14 +2452,16 @@ function bouwVoorbeeldMailHTML(bestelling, template, mailConfig, type) {
   const themaKleur = '#1e3a3f';
   const accentKleur = '#e85d4a';
   const achtergrondKleur = '#e8dcc8';
+  const headerFoto = template?.config?.headerFoto || null;
+  const footerFoto = template?.config?.footerFoto || null;
   const naam = `${bestelling.voornaam} ${bestelling.achternaam}`;
   const totaal = bestelling.totaal.toFixed(2).replace('.', ',');
 
   const regelsHTML = bestelling.regels.map(r =>
     `<tr>
-      <td style="padding:8px 16px;border-bottom:1px solid rgba(255,255,255,0.08);font-size:14px;color:#fff;">${r.label}</td>
-      <td style="padding:8px 16px;border-bottom:1px solid rgba(255,255,255,0.08);text-align:center;font-size:14px;color:#fff;">${r.qty}×</td>
-      <td style="padding:8px 16px;border-bottom:1px solid rgba(255,255,255,0.08);text-align:right;font-size:14px;color:#fff;">€ ${r.subtotaal.toFixed(2).replace('.', ',')}</td>
+      <td style="padding:8px 16px;border-bottom:1px solid rgba(255,255,255,0.08);font-size:14px;color:#fff;font-family:'Lato',Arial,sans-serif;">${r.label}</td>
+      <td style="padding:8px 16px;border-bottom:1px solid rgba(255,255,255,0.08);text-align:center;font-size:14px;color:#fff;font-family:'Lato',Arial,sans-serif;">${r.qty}×</td>
+      <td style="padding:8px 16px;border-bottom:1px solid rgba(255,255,255,0.08);text-align:right;font-size:14px;color:#fff;font-family:'Lato',Arial,sans-serif;">€ ${r.subtotaal.toFixed(2).replace('.', ',')}</td>
     </tr>`
   ).join('');
 
@@ -2485,56 +2477,61 @@ function bouwVoorbeeldMailHTML(bestelling, template, mailConfig, type) {
     ? vervangVoorbeeldPlaceholders(mailConfig.afsluiting, bestelling, ev).replace(/\n/g, '<br>')
     : standaardAfsluiting;
 
+  const headerBlok = headerFoto
+    ? `<tr><td style="padding:0;line-height:0;"><img src="${headerFoto}" width="600" style="display:block;width:100%;max-width:600px;height:auto;" alt="" /></td></tr>`
+    : `<tr><td style="background:${themaKleur};padding:28px 32px;text-align:center;">
+        <div style="font-family:'Cormorant Garamond',Georgia,serif;font-size:28px;font-weight:700;color:#fff;letter-spacing:3px;text-transform:uppercase;">Brodshoes</div>
+        <div style="font-size:11px;color:rgba(255,255,255,0.5);letter-spacing:2px;text-transform:uppercase;margin-top:4px;font-family:'Lato',Arial,sans-serif;">${ev.titel || 'Bestelling bevestiging'}</div>
+      </td></tr>`;
+
+  const footerBlok = footerFoto
+    ? `<tr><td style="padding:0;line-height:0;"><img src="${footerFoto}" width="600" style="display:block;width:100%;max-width:600px;height:auto;" alt="" /></td></tr>`
+    : `<tr><td style="background:${themaKleur};padding:16px 32px;text-align:center;">
+        <div style="font-size:11px;color:rgba(255,255,255,0.4);letter-spacing:1px;font-family:'Lato',Arial,sans-serif;">© Brodshoes · Dit is een voorbeeld</div>
+      </td></tr>`;
+
   return `
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Lato:wght@300;400;600;700&display=swap" rel="stylesheet">
   <table width="100%" cellpadding="0" cellspacing="0" style="background:${achtergrondKleur};padding:32px 16px;">
     <tr><td align="center">
       <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;">
-        <tr>
-          <td style="background:${themaKleur};padding:28px 32px;text-align:center;">
-            <div style="font-family:Georgia,serif;font-size:28px;font-weight:700;color:#fff;letter-spacing:3px;text-transform:uppercase;">Brodshoes</div>
-            <div style="font-size:11px;color:rgba(255,255,255,0.5);letter-spacing:2px;text-transform:uppercase;margin-top:4px;">${ev.titel || 'Bestelling bevestiging'}</div>
-          </td>
-        </tr>
+        ${headerBlok}
         <tr>
           <td style="background:#fff;padding:32px;">
-            <p style="font-size:15px;line-height:1.7;color:#333;margin:0 0 24px;">${introTekst}</p>
+            <p style="font-size:15px;line-height:1.7;color:#333;margin:0 0 24px;font-family:'Lato',Arial,sans-serif;">${introTekst}</p>
             ${ev.dag ? `<div style="background:${themaKleur};color:#fff;padding:16px 20px;margin-bottom:24px;">
-              <div style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.6);margin-bottom:6px;">Afhaalmoment</div>
-              <div style="font-size:16px;font-weight:700;">${ev.badge || ev.dag}</div>
-              ${ev.locatie ? `<div style="font-size:13px;color:rgba(255,255,255,0.7);margin-top:4px;">${ev.locatie}</div>` : ''}
+              <div style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.6);margin-bottom:6px;font-family:'Lato',Arial,sans-serif;">Afhaalmoment</div>
+              <div style="font-size:16px;font-weight:700;font-family:'Cormorant Garamond',Georgia,serif;">${ev.badge || ev.dag}</div>
+              ${ev.locatie ? `<div style="font-size:13px;color:rgba(255,255,255,0.7);margin-top:4px;font-family:'Lato',Arial,sans-serif;">${ev.locatie}</div>` : ''}
             </div>` : ''}
-            <div style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#888;margin-bottom:10px;">Uw bestelling</div>
+            <div style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#888;margin-bottom:10px;font-family:'Lato',Arial,sans-serif;">Uw bestelling</div>
             <table width="100%" cellpadding="0" cellspacing="0" style="background:${themaKleur};margin-bottom:24px;">
               <thead>
                 <tr>
-                  <th style="padding:10px 16px;text-align:left;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.5);font-weight:700;">Product</th>
-                  <th style="padding:10px 16px;text-align:center;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.5);font-weight:700;">Aantal</th>
-                  <th style="padding:10px 16px;text-align:right;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.5);font-weight:700;">Bedrag</th>
+                  <th style="padding:10px 16px;text-align:left;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.5);font-weight:700;font-family:'Lato',Arial,sans-serif;">Product</th>
+                  <th style="padding:10px 16px;text-align:center;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.5);font-weight:700;font-family:'Lato',Arial,sans-serif;">Aantal</th>
+                  <th style="padding:10px 16px;text-align:right;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.5);font-weight:700;font-family:'Lato',Arial,sans-serif;">Bedrag</th>
                 </tr>
               </thead>
               <tbody>${regelsHTML}</tbody>
               <tfoot>
                 <tr>
-                  <td colspan="2" style="padding:10px 16px;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,0.5);border-top:1px solid rgba(255,255,255,0.15);">Totaal</td>
-                  <td style="padding:10px 16px;text-align:right;font-size:20px;font-weight:700;color:#fff;border-top:1px solid rgba(255,255,255,0.15);">€ ${totaal}</td>
+                  <td colspan="2" style="padding:10px 16px;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,0.5);border-top:1px solid rgba(255,255,255,0.15);font-family:'Lato',Arial,sans-serif;">Totaal</td>
+                  <td style="padding:10px 16px;text-align:right;font-size:22px;font-weight:700;color:#fff;border-top:1px solid rgba(255,255,255,0.15);font-family:'Cormorant Garamond',Georgia,serif;">€ ${totaal}</td>
                 </tr>
               </tfoot>
             </table>
-            <div style="border-top:1px solid #eee;padding-top:20px;margin-top:20px;font-size:13px;color:#666;line-height:1.8;">
-              <strong style="color:#333;">${naam}</strong><br>
+            <div style="border-top:1px solid #eee;padding-top:20px;margin-top:20px;font-size:13px;color:#666;line-height:1.8;font-family:'Lato',Arial,sans-serif;">
+              <strong style="color:#333;font-family:'Cormorant Garamond',Georgia,serif;font-size:16px;">${naam}</strong><br>
               ${bestelling.adres}<br>${bestelling.telefoon}
             </div>
-            <p style="font-size:14px;line-height:1.7;color:#333;margin:24px 0 0;">${afsluitingTekst}</p>
+            <p style="font-size:14px;line-height:1.7;color:#333;margin:24px 0 0;font-family:'Lato',Arial,sans-serif;">${afsluitingTekst}</p>
           </td>
         </tr>
-        <tr>
-          <td style="background:${themaKleur};padding:16px 32px;text-align:center;">
-            <div style="font-size:11px;color:rgba(255,255,255,0.4);letter-spacing:1px;">© Brodshoes · Dit is een voorbeeld</div>
-          </td>
-        </tr>
+        ${footerBlok}
       </table>
     </td></tr>
-  </table>`;
+  </table>`
 }
 
 // ══ Init ══

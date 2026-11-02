@@ -53,6 +53,8 @@ function bouwMailHTML(bestelling, template, mailConfig) {
   const themaKleur = '#1e3a3f';
   const accentKleur = '#e85d4a';
   const achtergrondKleur = '#e8dcc8';
+  const headerFoto = template?.config?.headerFoto || null;
+  const footerFoto = template?.config?.footerFoto || null;
 
   const naam = `${bestelling.voornaam || ''} ${bestelling.achternaam || ''}`.trim();
   const totaal = (parseFloat(bestelling.totaal) || 0).toFixed(2).replace('.', ',');
@@ -61,93 +63,95 @@ function bouwMailHTML(bestelling, template, mailConfig) {
     .filter(r => parseFloat(r.qty) > 0)
     .map(r => `
       <tr>
-        <td style="padding:8px 16px;border-bottom:1px solid rgba(255,255,255,0.08);font-size:14px;">${r.label || ''}</td>
-        <td style="padding:8px 16px;border-bottom:1px solid rgba(255,255,255,0.08);text-align:center;font-size:14px;">${r.qty}×</td>
-        <td style="padding:8px 16px;border-bottom:1px solid rgba(255,255,255,0.08);text-align:right;font-size:14px;">€ ${(parseFloat(r.subtotaal) || 0).toFixed(2).replace('.', ',')}</td>
+        <td style="padding:8px 16px;border-bottom:1px solid rgba(255,255,255,0.08);font-size:14px;font-family:Arial,sans-serif;">${r.label || ''}</td>
+        <td style="padding:8px 16px;border-bottom:1px solid rgba(255,255,255,0.08);text-align:center;font-size:14px;font-family:Arial,sans-serif;">${r.qty}×</td>
+        <td style="padding:8px 16px;border-bottom:1px solid rgba(255,255,255,0.08);text-align:right;font-size:14px;font-family:Arial,sans-serif;">€ ${(parseFloat(r.subtotaal) || 0).toFixed(2).replace('.', ',')}</td>
       </tr>`)
     .join('');
 
   const opmerkingHtml = bestelling.opmerking
-    ? `<div style="background:#fff3f2;border-left:3px solid ${accentKleur};padding:12px 16px;margin-top:16px;font-size:13px;color:#333;">
+    ? `<div style="background:#fff3f2;border-left:3px solid ${accentKleur};padding:12px 16px;margin-top:16px;font-size:13px;color:#333;font-family:Arial,sans-serif;">
         <strong>Opmerking:</strong> ${bestelling.opmerking}
        </div>`
     : '';
 
-  // Gebruik aangepaste tekst uit mailConfig als beschikbaar
   const intro = mailConfig?.intro
-    ? vervangPlaceholders(mailConfig.intro, bestelling, template)
+    ? vervangPlaceholders(mailConfig.intro, bestelling, template).replace(/\n/g, '<br>')
     : `Beste ${bestelling.voornaam || 'klant'},<br><br>Bedankt voor uw bestelling bij Brodshoes. Hieronder vindt u een overzicht.`;
 
   const afsluiting = mailConfig?.afsluiting
-    ? vervangPlaceholders(mailConfig.afsluiting, bestelling, template)
+    ? vervangPlaceholders(mailConfig.afsluiting, bestelling, template).replace(/\n/g, '<br>')
     : `Met vriendelijke groet,<br><br>Team Brodshoes`;
+
+  const headerBlok = headerFoto
+    ? `<tr><td style="padding:0;line-height:0;"><img src="${headerFoto}" width="600" style="display:block;width:100%;max-width:600px;height:auto;" alt="" /></td></tr>`
+    : `<tr><td style="background:${themaKleur};padding:28px 32px;text-align:center;">
+        <div style="font-family:Georgia,'Cormorant Garamond',serif;font-size:28px;font-weight:700;color:#fff;letter-spacing:3px;text-transform:uppercase;">Brodshoes</div>
+        <div style="font-size:11px;color:rgba(255,255,255,0.5);letter-spacing:2px;text-transform:uppercase;margin-top:4px;font-family:Arial,sans-serif;">${ev.titel || 'Bestelling bevestiging'}</div>
+      </td></tr>`;
+
+  const footerBlok = footerFoto
+    ? `<tr><td style="padding:0;line-height:0;"><img src="${footerFoto}" width="600" style="display:block;width:100%;max-width:600px;height:auto;" alt="" /></td></tr>`
+    : `<tr><td style="background:${themaKleur};padding:16px 32px;text-align:center;">
+        <div style="font-size:11px;color:rgba(255,255,255,0.4);letter-spacing:1px;font-family:Arial,sans-serif;">© Brodshoes · Dit is een automatisch gegenereerd bericht</div>
+      </td></tr>`;
 
   return `<!DOCTYPE html>
 <html lang="nl">
-<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Bestellingbevestiging Brodshoes</title></head>
-<body style="margin:0;padding:0;background:${achtergrondKleur};font-family:'Helvetica Neue',Arial,sans-serif;">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Brodshoes</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Lato:wght@300;400;600;700&display=swap" rel="stylesheet">
+</head>
+<body style="margin:0;padding:0;background:${achtergrondKleur};font-family:'Lato',Arial,sans-serif;">
   <table width="100%" cellpadding="0" cellspacing="0" style="background:${achtergrondKleur};padding:32px 16px;">
     <tr><td align="center">
       <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;">
 
-        <!-- Header -->
-        <tr>
-          <td style="background:${themaKleur};padding:28px 32px;text-align:center;">
-            <div style="font-family:Georgia,serif;font-size:28px;font-weight:700;color:#fff;letter-spacing:3px;text-transform:uppercase;">Brodshoes</div>
-            <div style="font-size:11px;color:rgba(255,255,255,0.5);letter-spacing:2px;text-transform:uppercase;margin-top:4px;">${ev.titel || 'Bestelling bevestiging'}</div>
-          </td>
-        </tr>
+        ${headerBlok}
 
-        <!-- Body -->
         <tr>
           <td style="background:#fff;padding:32px;">
-            <p style="font-size:15px;line-height:1.7;color:#333;margin:0 0 24px;">${intro}</p>
+            <p style="font-size:15px;line-height:1.7;color:#333;margin:0 0 24px;font-family:'Lato',Arial,sans-serif;">${intro}</p>
 
-            <!-- Afhaalinfo -->
-            ${ev.dag ? `<div style="background:${themaKleur};color:#fff;padding:16px 20px;margin-bottom:24px;border-radius:2px;">
-              <div style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.6);margin-bottom:6px;">Afhaalmoment</div>
-              <div style="font-size:16px;font-weight:700;">${ev.badge || ev.dag}</div>
-              ${ev.locatie ? `<div style="font-size:13px;color:rgba(255,255,255,0.7);margin-top:4px;">${ev.locatie}</div>` : ''}
+            ${ev.dag ? `<div style="background:${themaKleur};color:#fff;padding:16px 20px;margin-bottom:24px;">
+              <div style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.6);margin-bottom:6px;font-family:'Lato',Arial,sans-serif;">Afhaalmoment</div>
+              <div style="font-size:16px;font-weight:700;font-family:'Cormorant Garamond',Georgia,serif;">${ev.badge || ev.dag}</div>
+              ${ev.locatie ? `<div style="font-size:13px;color:rgba(255,255,255,0.7);margin-top:4px;font-family:'Lato',Arial,sans-serif;">${ev.locatie}</div>` : ''}
             </div>` : ''}
 
-            <!-- Bestelling -->
-            <div style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#888;margin-bottom:10px;">Uw bestelling</div>
-            <table width="100%" cellpadding="0" cellspacing="0" style="background:${themaKleur};border-radius:2px;margin-bottom:24px;">
+            <div style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#888;margin-bottom:10px;font-family:'Lato',Arial,sans-serif;">Uw bestelling</div>
+            <table width="100%" cellpadding="0" cellspacing="0" style="background:${themaKleur};margin-bottom:24px;">
               <thead>
                 <tr>
-                  <th style="padding:10px 16px;text-align:left;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.5);font-weight:700;">Product</th>
-                  <th style="padding:10px 16px;text-align:center;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.5);font-weight:700;">Aantal</th>
-                  <th style="padding:10px 16px;text-align:right;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.5);font-weight:700;">Bedrag</th>
+                  <th style="padding:10px 16px;text-align:left;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.5);font-weight:700;font-family:'Lato',Arial,sans-serif;">Product</th>
+                  <th style="padding:10px 16px;text-align:center;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.5);font-weight:700;font-family:'Lato',Arial,sans-serif;">Aantal</th>
+                  <th style="padding:10px 16px;text-align:right;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.5);font-weight:700;font-family:'Lato',Arial,sans-serif;">Bedrag</th>
                 </tr>
               </thead>
               <tbody style="color:#fff;">${regelsHTML}</tbody>
               <tfoot>
                 <tr>
-                  <td colspan="2" style="padding:10px 16px;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,0.5);border-top:1px solid rgba(255,255,255,0.15);">Totaal</td>
-                  <td style="padding:10px 16px;text-align:right;font-size:20px;font-weight:700;color:#fff;border-top:1px solid rgba(255,255,255,0.15);">€ ${totaal}</td>
+                  <td colspan="2" style="padding:10px 16px;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,0.5);border-top:1px solid rgba(255,255,255,0.15);font-family:'Lato',Arial,sans-serif;">Totaal</td>
+                  <td style="padding:10px 16px;text-align:right;font-size:22px;font-weight:700;color:#fff;border-top:1px solid rgba(255,255,255,0.15);font-family:'Cormorant Garamond',Georgia,serif;">€ ${totaal}</td>
                 </tr>
               </tfoot>
             </table>
 
             ${opmerkingHtml}
 
-            <!-- Contactgegevens -->
-            <div style="border-top:1px solid #eee;padding-top:20px;margin-top:20px;font-size:13px;color:#666;line-height:1.8;">
-              <strong style="color:#333;">${naam}</strong><br>
+            <div style="border-top:1px solid #eee;padding-top:20px;margin-top:20px;font-size:13px;color:#666;line-height:1.8;font-family:'Lato',Arial,sans-serif;">
+              <strong style="color:#333;font-family:'Cormorant Garamond',Georgia,serif;font-size:16px;">${naam}</strong><br>
               ${bestelling.adres || ''}<br>
               ${bestelling.telefoon || ''}
             </div>
 
-            <p style="font-size:14px;line-height:1.7;color:#333;margin:24px 0 0;">${afsluiting}</p>
+            <p style="font-size:14px;line-height:1.7;color:#333;margin:24px 0 0;font-family:'Lato',Arial,sans-serif;">${afsluiting}</p>
           </td>
         </tr>
 
-        <!-- Footer -->
-        <tr>
-          <td style="background:${themaKleur};padding:16px 32px;text-align:center;">
-            <div style="font-size:11px;color:rgba(255,255,255,0.4);letter-spacing:1px;">© Brodshoes · Dit is een automatisch gegenereerd bericht</div>
-          </td>
-        </tr>
+        ${footerBlok}
 
       </table>
     </td></tr>
