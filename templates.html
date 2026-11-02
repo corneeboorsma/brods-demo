@@ -2382,18 +2382,9 @@ function toonBestellingMailVoorbeeld(bestellingId, type) {
     : (mailConfig?.onderwerp_herinnering || 'Herinnering: uw afhaalmoment nadert – Brodshoes');
 
   const venster = window.open('', '_blank');
-  venster.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8">
-    <title>Voorbeeld: ${type}</title>
-    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Lato:wght@300;400;600;700&display=swap" rel="stylesheet">
-    <style>
-      body { margin: 0; background: #e0d8c8; font-family: 'Lato', sans-serif; }
-      .preview-balk { background: #1e3a3f; color: #fff; padding: 12px 24px; font-size: 13px; display: flex; align-items: center; gap: 16px; }
-      .preview-balk strong { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: rgba(255,255,255,0.5); }
-    </style>
-  </head><body>
-    <div class="preview-balk"><strong>Onderwerp:</strong> <span>${onderwerp}</span></div>
-    ${html}
-  </body></html>`);
+  const previewBalk = `<div style="background:#1e3a3f;color:#fff;padding:12px 24px;font-size:13px;display:flex;align-items:center;gap:16px;font-family:'Lato',sans-serif;"><span style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.5);">Onderwerp:</span> <span>${onderwerp}</span></div>`;
+  const volledigeHtml = html.replace('<body>', `<body>${previewBalk}`);
+  venster.document.write(volledigeHtml);
   venster.document.close();
 }
 
@@ -2441,18 +2432,9 @@ function toonMailVoorbeeld(type) {
     : (document.getElementById('ed-mail-onderwerp-herinnering')?.value || 'Herinnering: uw afhaalmoment nadert – Brodshoes');
 
   const venster = window.open('', '_blank');
-  venster.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8">
-    <title>Voorbeeld: ${type}</title>
-    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Lato:wght@300;400;600;700&display=swap" rel="stylesheet">
-    <style>
-      body { margin: 0; background: #e0d8c8; font-family: 'Lato', sans-serif; }
-      .preview-balk { background: #1e3a3f; color: #fff; padding: 12px 24px; font-size: 13px; display: flex; align-items: center; gap: 16px; }
-      .preview-balk strong { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: rgba(255,255,255,0.5); }
-    </style>
-  </head><body>
-    <div class="preview-balk"><strong>Onderwerp:</strong> <span>${onderwerp}</span></div>
-    ${html}
-  </body></html>`);
+  const previewBalk = `<div style="background:#1e3a3f;color:#fff;padding:12px 24px;font-size:13px;display:flex;align-items:center;gap:16px;font-family:'Lato',sans-serif;"><span style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.5);">Onderwerp:</span> <span>${onderwerp}</span></div>`;
+  const volledigeHtml = html.replace('<body>', `<body>${previewBalk}`);
+  venster.document.write(volledigeHtml);
   venster.document.close();
 }
 
@@ -2520,8 +2502,18 @@ function bouwVoorbeeldMailHTML(bestelling, template, mailConfig, type) {
         <div style="font-size:11px;color:rgba(255,255,255,0.4);letter-spacing:1px;font-family:'Lato',Arial,sans-serif;">© Brodshoes · Dit is een voorbeeld</div>
       </td></tr>`;
 
-  return `
-  <table width="100%" cellpadding="0" cellspacing="0" style="background:${achtergrondKleur};padding:32px 16px;font-family:'Lato',Arial,sans-serif;">
+  return `<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Lato:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <style>
+    body { margin: 0; padding: 0; background: ${achtergrondKleur}; font-family: 'Lato', sans-serif; }
+  </style>
+</head>
+<body>
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:${achtergrondKleur};padding:32px 16px;">
     <tr><td align="center">
       <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;">
         ${headerBlok}
@@ -2560,7 +2552,9 @@ function bouwVoorbeeldMailHTML(bestelling, template, mailConfig, type) {
         ${footerBlok}
       </table>
     </td></tr>
-  </table>`
+  </table>
+</body>
+</html>`
 }
 
 // ══ Init ══
