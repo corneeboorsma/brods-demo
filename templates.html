@@ -1737,9 +1737,15 @@ let alleBestellingen = [];
 
 async function laadBestellingen() {
   const templateFilter = document.getElementById('best-template-filter')?.value;
-  let q = fb().query(fb().collection(fb().db, 'bestellingen'), fb().orderBy('besteld_op', 'desc'));
-  if (templateFilter) q = fb().query(fb().collection(fb().db, 'bestellingen'), fb().where('template_id', '==', templateFilter), fb().orderBy('besteld_op', 'desc'));
 
+  if (!templateFilter) {
+    document.getElementById('best-tbody').innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:32px;">Selecteer een template om bestellingen te laden.</td></tr>`;
+    document.getElementById('best-samenvatting').innerHTML = '';
+    alleBestellingen = [];
+    return;
+  }
+
+  const q = fb().query(fb().collection(fb().db, 'bestellingen'), fb().where('template_id', '==', templateFilter), fb().orderBy('besteld_op', 'desc'));
   const snap = await fb().getDocs(q);
   alleBestellingen = snap.docs.map(d => ({ id: d.id, ...d.data() }));
   renderBestellingen();
