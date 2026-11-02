@@ -86,7 +86,7 @@ function bouwMailHTML(bestelling, template, mailConfig) {
   const headerBlok = headerFoto
     ? `<tr><td style="padding:0;line-height:0;"><img src="${headerFoto}" width="600" style="display:block;width:100%;max-width:600px;height:auto;" alt="" /></td></tr>`
     : `<tr><td style="background:${themaKleur};padding:28px 32px;text-align:center;">
-        <div style="font-family:Georgia,'Cormorant Garamond',serif;font-size:28px;font-weight:700;color:#fff;letter-spacing:3px;text-transform:uppercase;">Brodshoes</div>
+        <div style="font-family:Arial,sans-serif;font-size:22px;font-weight:700;color:#fff;letter-spacing:3px;text-transform:uppercase;">Brodshoes</div>
         <div style="font-size:11px;color:rgba(255,255,255,0.5);letter-spacing:2px;text-transform:uppercase;margin-top:4px;font-family:Arial,sans-serif;">${ev.titel || 'Bestelling bevestiging'}</div>
       </td></tr>`;
 
@@ -117,7 +117,7 @@ function bouwMailHTML(bestelling, template, mailConfig) {
 
             ${ev.dag ? `<div style="background:${themaKleur};color:#fff;padding:16px 20px;margin-bottom:24px;">
               <div style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.6);margin-bottom:6px;font-family:'Lato',Arial,sans-serif;">Afhaalmoment</div>
-              <div style="font-size:16px;font-weight:700;font-family:'Cormorant Garamond',Georgia,serif;">${ev.badge || ev.dag}</div>
+              <div style="font-size:16px;font-weight:700;font-family:Arial,sans-serif;">${ev.badge || ev.dag}</div>
               ${ev.locatie ? `<div style="font-size:13px;color:rgba(255,255,255,0.7);margin-top:4px;font-family:'Lato',Arial,sans-serif;">${ev.locatie}</div>` : ''}
             </div>` : ''}
 
@@ -134,7 +134,7 @@ function bouwMailHTML(bestelling, template, mailConfig) {
               <tfoot>
                 <tr>
                   <td colspan="2" style="padding:10px 16px;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,0.5);border-top:1px solid rgba(255,255,255,0.15);font-family:'Lato',Arial,sans-serif;">Totaal</td>
-                  <td style="padding:10px 16px;text-align:right;font-size:22px;font-weight:700;color:#fff;border-top:1px solid rgba(255,255,255,0.15);font-family:'Cormorant Garamond',Georgia,serif;">€ ${totaal}</td>
+                  <td style="padding:10px 16px;text-align:right;font-size:18px;font-weight:700;color:#fff;border-top:1px solid rgba(255,255,255,0.15);font-family:Arial,sans-serif;">€ ${totaal}</td>
                 </tr>
               </tfoot>
             </table>
@@ -142,7 +142,7 @@ function bouwMailHTML(bestelling, template, mailConfig) {
             ${opmerkingHtml}
 
             <div style="border-top:1px solid #eee;padding-top:20px;margin-top:20px;font-size:13px;color:#666;line-height:1.8;font-family:'Lato',Arial,sans-serif;">
-              <strong style="color:#333;font-family:'Cormorant Garamond',Georgia,serif;font-size:16px;">${naam}</strong><br>
+              <strong style="color:#333;font-family:Arial,sans-serif;font-size:14px;font-weight:700;">${naam}</strong><br>
               ${bestelling.adres || ''}<br>
               ${bestelling.telefoon || ''}
             </div>
