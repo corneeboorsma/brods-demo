@@ -1745,9 +1745,10 @@ async function laadBestellingen() {
     return;
   }
 
-  const q = fb().query(fb().collection(fb().db, 'bestellingen'), fb().where('template_id', '==', templateFilter), fb().orderBy('besteld_op', 'desc'));
+  const q = fb().query(fb().collection(fb().db, 'bestellingen'), fb().where('template_id', '==', templateFilter));
   const snap = await fb().getDocs(q);
   alleBestellingen = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  alleBestellingen.sort((a, b) => (b.besteld_op || '').localeCompare(a.besteld_op || ''));
   renderBestellingen();
   renderSamenvatting();
 }
