@@ -2,7 +2,6 @@ node_modules/
 *.json
 !package.json
 !firebase.json
-brodshoes-deploy.zip
-brodshoes-bestellen-deploy.zip
+*firebase-adminsdk*.json
 setup-mail-config.js
 *.zip
