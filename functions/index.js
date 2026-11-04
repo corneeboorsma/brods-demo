@@ -5,10 +5,12 @@ const { onDocumentCreated } = require('firebase-functions/v2/firestore');
 const { onRequest } = require('firebase-functions/v2/https');
 const { defineSecret } = require('firebase-functions/params');
 const { Resend } = require('resend');
+const crypto = require('crypto');
 
 initializeApp();
 
 const resendApiKey = defineSecret('RESEND_API_KEY');
+const resendWebhookSecret = defineSecret('RESEND_WEBHOOK_SECRET');
 
 // ── E-mail helpers ──────────────────────────────────────────────────
 
@@ -262,17 +264,23 @@ exports.stuurHandmatigemail = onRequest(
       return;
     }
 
-    const { bestellingId, type, verificatieToken } = req.body;
-
-    // Simpele token check — zelfde token als in de Firestore configuratie
-    const db = getFirestore();
-    const configSnap = await db.collection('_config').doc('mail').get();
-    const config = configSnap.data() || {};
-
-    if (!config.webhook_token || verificatieToken !== config.webhook_token) {
-      res.status(401).json({ error: 'Ongeautoriseerd' });
+    // Verifieer Firebase ID token (zelfde patroon als beheerGebruiker)
+    const authHeader = req.headers.authorization || '';
+    const idToken = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null;
+    if (!idToken) {
+      res.status(401).json({ error: 'Niet geautoriseerd' });
       return;
     }
+    try {
+      await getAuth().verifyIdToken(idToken);
+    } catch (err) {
+      res.status(401).json({ error: 'Ongeldig token' });
+      return;
+    }
+
+    const { bestellingId, type } = req.body;
+
+    const db = getFirestore();
 
     if (!bestellingId || !type) {
       res.status(400).json({ error: 'bestellingId en type zijn verplicht' });
@@ -342,7 +350,7 @@ exports.stuurHandmatigemail = onRequest(
     } catch (err) {
       console.error('Fout bij handmatige mail:', err.message);
       await slaMailHistoryOp(db, bestellingId, type, 'fout', onderwerp, null, err.message);
-      res.status(500).json({ error: err.message });
+      res.status(500).json({ error: 'Er is een fout opgetreden bij het versturen van de mail' });
     }
   }
 );
@@ -350,10 +358,44 @@ exports.stuurHandmatigemail = onRequest(
 // ── Cloud Function 3: Resend webhook voor delivery-status updates ───
 
 exports.resendWebhook = onRequest(
-  { cors: false },
+  { cors: false, secrets: [resendWebhookSecret] },
   async (req, res) => {
     if (req.method !== 'POST') {
       res.status(405).send('Method Not Allowed');
+      return;
+    }
+
+    // Verifieer Resend SVIX webhook signature
+    const svixId        = req.headers['svix-id'];
+    const svixTimestamp = req.headers['svix-timestamp'];
+    const svixSignature = req.headers['svix-signature'];
+
+    if (!svixId || !svixTimestamp || !svixSignature) {
+      res.status(401).send('Ontbrekende webhook headers');
+      return;
+    }
+
+    // Tijdstempel mag niet ouder dan 5 minuten zijn (replay-aanval bescherming)
+    const ts = parseInt(svixTimestamp, 10);
+    if (isNaN(ts) || Math.abs(Date.now() / 1000 - ts) > 300) {
+      res.status(401).send('Webhook tijdstempel verlopen');
+      return;
+    }
+
+    const rawBody = JSON.stringify(req.body);
+    const signingPayload = `${svixId}.${svixTimestamp}.${rawBody}`;
+    const secret = Buffer.from(resendWebhookSecret.value().replace(/^whsec_/, ''), 'base64');
+    const expectedSig = crypto.createHmac('sha256', secret).update(signingPayload).digest('base64');
+
+    const signatures = svixSignature.split(' ').map(s => s.replace(/^v1,/, ''));
+    const valid = signatures.some(sig => {
+      try {
+        return crypto.timingSafeEqual(Buffer.from(sig, 'base64'), Buffer.from(expectedSig, 'base64'));
+      } catch { return false; }
+    });
+
+    if (!valid) {
+      res.status(401).send('Ongeldige webhook handtekening');
       return;
     }
 
@@ -417,7 +459,7 @@ exports.beheerGebruiker = onRequest(
       return;
     }
 
-    // Verifieer Firebase ID token
+    // Verifieer Firebase ID token en controleer admin custom claim
     const authHeader = req.headers.authorization || '';
     const idToken = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null;
     if (!idToken) {
@@ -425,7 +467,11 @@ exports.beheerGebruiker = onRequest(
       return;
     }
     try {
-      await getAuth().verifyIdToken(idToken);
+      const decodedToken = await getAuth().verifyIdToken(idToken);
+      if (!decodedToken.admin) {
+        res.status(403).json({ error: 'Onvoldoende rechten' });
+        return;
+      }
     } catch (err) {
       res.status(401).json({ error: 'Ongeldig token' });
       return;
@@ -449,11 +495,12 @@ exports.beheerGebruiker = onRequest(
           res.status(400).json({ error: 'Email en wachtwoord zijn verplicht' });
           return;
         }
-        if (password.length < 6) {
-          res.status(400).json({ error: 'Wachtwoord moet minimaal 6 tekens zijn' });
+        if (password.length < 8) {
+          res.status(400).json({ error: 'Wachtwoord moet minimaal 8 tekens zijn' });
           return;
         }
         const user = await getAuth().createUser({ email, password });
+        await getAuth().setCustomUserClaims(user.uid, { admin: true });
         res.json({ success: true, uid: user.uid, email: user.email });
 
       } else if (actie === 'verwijderen') {
@@ -469,7 +516,7 @@ exports.beheerGebruiker = onRequest(
       }
     } catch (err) {
       console.error('beheerGebruiker fout:', err.message);
-      res.status(500).json({ error: err.message });
+      res.status(500).json({ error: 'Er is een fout opgetreden' });
     }
   }
 );

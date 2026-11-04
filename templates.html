@@ -1048,6 +1048,10 @@ const FUNCTIONS_BASE = 'https://stuurhandmatigemail-xib7mk6vva-uc.a.run.app';
 const WEBHOOK_URL = 'https://resendwebhook-xib7mk6vva-uc.a.run.app';
 const GEBRUIKERS_URL = 'https://us-central1-brodshoes-bestellen.cloudfunctions.net/beheerGebruiker';
 
+function escapeHTML(s) {
+  return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
 // Bouw bestelpagina URL: werkt op GitHub Pages én op brodshoes.nl/bestellen/
 function bestelUrl(slug) {
   const base = window.location.pathname.replace('templates.html', '');
@@ -1073,7 +1077,7 @@ let edCats = [];
 let edSlots = [];
 let alleTemplates = [];
 let edFotos = { header: null, footer: null }; // { file, url } per type
-let mailWebhookToken = null;
+let mailWebhookToken = null; // Behouden voor backwards compat — niet meer in gebruik
 
 // ══ Audit logging ══
 async function log(actie, object_type, object_id, object_naam, details) {
@@ -2086,12 +2090,12 @@ function exportPDFLijst() {
         const qty = (r.qty % 1 === 0 ? r.qty : parseFloat(r.qty).toFixed(1));
         const qtyTekst = parseFloat(qty) > 0 ? qty : '';
         return `<tr>
-          <td class="prod-naam">${catNaam} - ${r.prod}</td>
-          <td class="prod-qty">${qtyTekst}</td>
+          <td class="prod-naam">${escapeHTML(catNaam)} - ${escapeHTML(r.prod)}</td>
+          <td class="prod-qty">${escapeHTML(String(qtyTekst))}</td>
         </tr>`;
       }).join('');
       return `<table class="cat-tabel"><tbody>
-        <tr><td class="cat-naam" colspan="2">${catNaam}</td></tr>
+        <tr><td class="cat-naam" colspan="2">${escapeHTML(catNaam)}</td></tr>
         ${rijen}
       </tbody></table>`;
     }).join('');
@@ -2099,11 +2103,11 @@ function exportPDFLijst() {
     return `<div class="bestelling-pagina${isLaatste ? '' : ' pagina-break'}">
       <div class="hoofd-blok">
         <div class="totaal-groot">€ ${parseFloat(b.totaal || 0).toFixed(2).replace('.', ',')}</div>
-        <div class="achternaam-groot">${b.achternaam || ''}</div>
-        <div class="voornaam-mid">${b.voornaam || ''}${b.tijdslot ? ' &nbsp;·&nbsp; ' + b.tijdslot : ''}</div>
+        <div class="achternaam-groot">${escapeHTML(b.achternaam || '')}</div>
+        <div class="voornaam-mid">${escapeHTML(b.voornaam || '')}${b.tijdslot ? ' &nbsp;·&nbsp; ' + escapeHTML(b.tijdslot) : ''}</div>
       </div>
       <div class="sectie-label">Opmerkingen</div>
-      ${b.opmerking ? `<div class="opm-tekst">${b.opmerking}</div>` : ''}
+      ${b.opmerking ? `<div class="opm-tekst">${escapeHTML(b.opmerking)}</div>` : ''}
       <div style="margin-bottom:8mm;"></div>
       ${catTabellen}
     </div>`;
@@ -2264,10 +2268,6 @@ async function laadMailToken() {
 }
 
 async function stuurMailOpnieuw(bestellingId, email, type) {
-  if (!mailWebhookToken) {
-    toonToast('Mail niet geconfigureerd — zie SETUP.md');
-    return;
-  }
   const label = type === 'bevestiging' ? 'bevestigingsmail' : 'herinneringsmail';
   toonConfirm(
     `${label.charAt(0).toUpperCase() + label.slice(1)} sturen`,
@@ -2275,10 +2275,11 @@ async function stuurMailOpnieuw(bestellingId, email, type) {
     async () => {
       toonToast(`${label} wordt verstuurd…`);
       try {
+        const idToken = await fb().auth.currentUser.getIdToken();
         const resp = await fetch(FUNCTIONS_BASE, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ bestellingId, type, verificatieToken: mailWebhookToken }),
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${idToken}` },
+          body: JSON.stringify({ bestellingId, type }),
         });
         const data = await resp.json();
         if (data.success) {
@@ -2298,10 +2299,6 @@ async function stuurBatchHerinnering() {
   const templateFilter = document.getElementById('best-template-filter')?.value;
   if (!templateFilter) {
     toonToast('Selecteer eerst een template om herinneringen te versturen');
-    return;
-  }
-  if (!mailWebhookToken) {
-    toonToast('Mail niet geconfigureerd — zie SETUP.md');
     return;
   }
 
@@ -2329,12 +2326,13 @@ async function stuurBatchHerinnering() {
 
       for (let i = 0; i < zonderHerinnering.length; i++) {
         const b = zonderHerinnering[i];
-        balk.innerHTML = `<span>Herinneringen versturen: ${i + 1}/${zonderHerinnering.length} — ${b.voornaam} ${b.achternaam}</span>`;
+        balk.innerHTML = `<span>Herinneringen versturen: ${i + 1}/${zonderHerinnering.length} — ${escapeHTML(b.voornaam)} ${escapeHTML(b.achternaam)}</span>`;
         try {
+          const idToken = await fb().auth.currentUser.getIdToken();
           const resp = await fetch(FUNCTIONS_BASE, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ bestellingId: b.id, type: 'herinnering', verificatieToken: mailWebhookToken }),
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${idToken}` },
+            body: JSON.stringify({ bestellingId: b.id, type: 'herinnering' }),
           });
           const data = await resp.json();
           if (data.success) geslaagd++;
@@ -2385,7 +2383,7 @@ async function openMailHistory(bestellingId, naam) {
           <div style="font-size:13px;font-weight:700;">${typeLabel}</div>
           <div class="mail-history-meta">${item.onderwerp || '–'}</div>
           <div class="mail-history-meta">${datum}</div>
-          ${item.error ? `<div style="color:#c0392b;font-size:12px;margin-top:2px;">⚠️ ${item.error}</div>` : ''}
+          ${item.error ? `<div style="color:#c0392b;font-size:12px;margin-top:2px;">⚠️ ${escapeHTML(item.error)}</div>` : ''}
         </div>
         <span class="mail-badge ${item.status}" style="color:${kleur}">${item.status || '–'}</span>
       </div>`;
@@ -2395,7 +2393,7 @@ async function openMailHistory(bestellingId, naam) {
       `<div class="mail-history-panel">${html}</div>`;
   } catch (err) {
     document.getElementById('mail-history-inhoud').innerHTML =
-      `<div style="color:#c0392b;padding:20px;">Fout: ${err.message}</div>`;
+      `<div style="color:#c0392b;padding:20px;">Fout: ${escapeHTML(err.message)}</div>`;
   }
 }
 
