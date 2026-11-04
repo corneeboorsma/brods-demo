@@ -26,7 +26,14 @@ service cloud.firestore {
                     && request.resource.data.voornaam.size() < 100
                     && request.resource.data.achternaam is string
                     && request.resource.data.achternaam.size() > 0
-                    && request.resource.data.achternaam.size() < 100;
+                    && request.resource.data.achternaam.size() < 100
+                    && request.resource.data.totaal is number
+                    && request.resource.data.totaal >= 0
+                    && request.resource.data.totaal < 10000
+                    && request.resource.data.tijdslot is string
+                    && request.resource.data.tijdslot.size() < 50
+                    && (request.resource.data.opmerking == null || request.resource.data.opmerking.size() < 1000)
+                    && request.resource.data.regels.size() <= 50;
       allow read, update, delete: if request.auth != null;
 
       // Mail history subcollectie: alleen Cloud Functions schrijven, ingelogd lezen
