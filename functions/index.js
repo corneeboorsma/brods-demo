@@ -257,7 +257,7 @@ exports.stuurBevestigingsmail = onDocumentCreated(
 // ── Cloud Function 2: HTTP endpoint voor herinnerings-/herbevestigingsmail ──
 
 exports.stuurHandmatigemail = onRequest(
-  { secrets: [resendApiKey], cors: ['https://www.brodshoes.nl', 'https://brodshoes.nl'] },
+  { secrets: [resendApiKey], cors: ['https://www.brodshoes.nl', 'https://brodshoes.nl', 'https://corneeboorsma.github.io'] },
   async (req, res) => {
     if (req.method !== 'POST') {
       res.status(405).json({ error: 'Alleen POST toegestaan' });
@@ -452,7 +452,7 @@ exports.resendWebhook = onRequest(
 // ── Cloud Function 4: Gebruikersbeheer ─────────────────────────────
 
 exports.beheerGebruiker = onRequest(
-  { cors: ['https://www.brodshoes.nl', 'https://brodshoes.nl'] },
+  { cors: ['https://www.brodshoes.nl', 'https://brodshoes.nl', 'https://corneeboorsma.github.io'] },
   async (req, res) => {
     if (req.method !== 'POST') {
       res.status(405).json({ error: 'Alleen POST toegestaan' });

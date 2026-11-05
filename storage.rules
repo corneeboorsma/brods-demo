@@ -1,0 +1,15 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Template header/footer foto's: publiek leesbaar (worden in mails gebruikt)
+    match /template-fotos/{allPaths=**} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+
+    // Al het overige: alleen ingelogd
+    match /{allPaths=**} {
+      allow read, write: if request.auth != null;
+    }
+  }
+}

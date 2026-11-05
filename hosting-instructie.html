@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <title>Hosting Instructie — brodshoes.nl/bestellingen/</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      font-size: 13px;
+      line-height: 1.7;
+      color: #222;
+      max-width: 720px;
+      margin: 48px auto;
+      padding: 0 32px;
+    }
+    h1 { font-size: 20px; color: #1e3a3f; border-bottom: 2px solid #1e3a3f; padding-bottom: 8px; margin-bottom: 24px; }
+    h2 { font-size: 15px; color: #1e3a3f; margin-top: 32px; margin-bottom: 8px; }
+    table { border-collapse: collapse; width: 100%; margin: 12px 0; }
+    th { background: #1e3a3f; color: #fff; text-align: left; padding: 8px 12px; font-size: 12px; }
+    td { padding: 7px 12px; border-bottom: 1px solid #e0d8cc; font-size: 12px; vertical-align: top; }
+    tr:last-child td { border-bottom: none; }
+    code, pre { font-family: monospace; background: #f4f0ea; padding: 2px 6px; border-radius: 3px; font-size: 12px; }
+    pre { padding: 12px 16px; display: block; white-space: pre-wrap; }
+    .kader { background: #f4f0ea; border-left: 3px solid #1e3a3f; padding: 12px 16px; margin: 12px 0; }
+    .rood { color: #c0392b; font-weight: bold; }
+    ul li, ol li { margin-bottom: 4px; }
+    @media print {
+      body { margin: 0; padding: 24px 32px; }
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Hosting Instructie — brodshoes.nl/bestellingen/</h1>
+
+  <p>Dit document is bestemd voor de hostingpartij. Het beschrijft wat er geüpload moet worden, welke serververeisten gelden en hoe de URLs zich gedragen.</p>
+
+  <h2>1. Deployment</h2>
+
+  <p>Het meegeleverde ZIP-bestand <code>brodshoes-bestellingen-deploy.zip</code> bevat alle benodigde bestanden. Pak het uit en upload de inhoud naar de map <code>/bestellingen/</code> op de server.</p>
+
+  <table>
+    <tr><th>Bestand</th><th>Omschrijving</th></tr>
+    <tr><td><code>index.html</code></td><td>Bestelpagina voor klanten</td></tr>
+    <tr><td><code>templates.html</code></td><td>Beheerpaneel (admingebruikers)</td></tr>
+    <tr><td><code>admin.html</code></td><td>Evenementconfiguratie (admingebruikers)</td></tr>
+    <tr><td><code>login.html</code></td><td>Inlogpagina</td></tr>
+    <tr><td><code>firebase-config.js</code></td><td>Verbindingsconfiguratie (geen aanpassingen nodig)</td></tr>
+    <tr><td><code>.htaccess</code></td><td>URL-herschrijfregels (zie sectie 3)</td></tr>
+  </table>
+
+  <div class="kader">
+    De applicatie heeft geen database, buildstap of serversoftware nodig. Alle bestanden zijn statisch. De backend draait volledig op Firebase (Google Cloud) en wordt niet op deze server gehost.
+  </div>
+
+  <h2>2. Serververeisten</h2>
+
+  <table>
+    <tr><th>Vereiste</th><th>Toelichting</th></tr>
+    <tr><td>Apache met <code>mod_rewrite</code></td><td>Vereist voor de <code>.htaccess</code> URL-herschrijfregels</td></tr>
+    <tr><td><code>AllowOverride All</code></td><td><code>.htaccess</code> moet actief zijn in de map <code>/bestellingen/</code></td></tr>
+    <tr><td>HTTPS (SSL)</td><td>Verplicht — de applicatie weigert te laden op http://</td></tr>
+  </table>
+
+  <h2>3. URL-structuur en gedrag</h2>
+
+  <p>Alle URLs beginnen met <code>https://www.brodshoes.nl/bestellingen/</code>. Hieronder staat per URL wat er wordt getoond en wie er toegang toe heeft.</p>
+
+  <table>
+    <tr><th>URL</th><th>Gedrag</th><th>Toegang</th></tr>
+    <tr>
+      <td><code>/bestellingen/</code></td>
+      <td>Redirect naar <code>login.html</code> (geen slug opgegeven)</td>
+      <td>Iedereen</td>
+    </tr>
+    <tr>
+      <td><code>/bestellingen/pasen-2026</code></td>
+      <td>Laadt de bestelpagina voor het evenement met slug <code>pasen-2026</code>. De server herschrijft deze URL intern naar <code>index.html?slug=pasen-2026</code>.</td>
+      <td>Iedereen (publiek)</td>
+    </tr>
+    <tr>
+      <td><code>/bestellingen/index.html</code></td>
+      <td>Redirect naar <code>login.html</code> (geen slug opgegeven)</td>
+      <td>Iedereen</td>
+    </tr>
+    <tr>
+      <td><code>/bestellingen/login.html</code></td>
+      <td>Inlogpagina. Na succesvol inloggen redirect naar <code>templates.html</code>.</td>
+      <td>Iedereen</td>
+    </tr>
+    <tr>
+      <td><code>/bestellingen/templates.html</code></td>
+      <td>Beheerpaneel. Controleert zelf of de gebruiker ingelogd is; zo niet, redirect naar <code>login.html</code>.</td>
+      <td>Ingelogde admins</td>
+    </tr>
+    <tr>
+      <td><code>/bestellingen/admin.html</code></td>
+      <td>Evenementconfiguratie. Zelfde auth-gedrag als <code>templates.html</code>.</td>
+      <td>Ingelogde admins</td>
+    </tr>
+  </table>
+
+  <h2>4. Inhoud .htaccess</h2>
+
+  <p>Het bestand staat al correct ingesteld in het ZIP en hoeft niet gewijzigd te worden. Ter referentie:</p>
+
+  <pre>Options -Indexes
+RewriteEngine On
+
+# Herschrijf /bestellingen/pasen-2026 naar /bestellingen/index.html?slug=pasen-2026
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^([a-z0-9-]+)$ index.html?slug=$1 [L,QSA]</pre>
+
+  <p>De regel wordt alleen toegepast als het pad geen bestaand bestand of map is. Bestaande bestanden zoals <code>login.html</code> en <code>templates.html</code> worden dus altijd rechtstreeks geserveerd.</p>
+
+  <h2>5. Eenmalige instelling na livegang</h2>
+
+  <p>Na de eerste deploy moet het productiedomein worden geautoriseerd in Firebase, anders blokkeert de inlogpagina alle aanmeldingen. Dit doet de beheerder van Brodshoes zelf — geen actie vereist van de hostingpartij.</p>
+
+  <p style="margin-top:48px;font-size:11px;color:#999;border-top:1px solid #e0d8cc;padding-top:12px;">
+    Brodshoes bestelsysteem · november 2026
+  </p>
+
+</body>
+</html>
